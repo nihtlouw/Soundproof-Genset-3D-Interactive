@@ -12,6 +12,7 @@ Interaktif 3D cutaway untuk genset bersilencer (soundproof enclosure) — pintu,
   - **V2 · Pagar wiremesh** — rangka baja ringan dengan jaring wiremesh 10 × 10 cm, dua daun pintu pagar, dan atap seng gelombang di atas lantai beton yang sama.
 - Tab Pintu / Rumah / Kanopi / Bagian / Teks untuk mengatur setiap elemen.
 - Sudut kamera siap pakai (depan, belakang, kiri, kanan, atas, 3D).
+- **Kontrol cahaya** — tab *Rumah → Cahaya* mengatur kekuatan matahari (20–130%) dengan preset *Mendung / Siang / Cerah*. Bawaannya 70% agar siang tidak menyilaukan.
 - **Bagikan tampilan** — tombol *Bagikan* di kanan atas menyalin tautan yang memuat sudut kamera, pintu yang terbuka, opasitas, ukuran ruangan, versi rumah, dan sakelar. Siapa pun yang membuka tautan itu langsung melihat tampilan yang sama.
 
 ## Menjalankan
