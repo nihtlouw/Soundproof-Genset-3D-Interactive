@@ -7,9 +7,12 @@ Interaktif 3D cutaway untuk genset bersilencer (soundproof enclosure) — pintu,
 ## Fitur
 
 - Cutaway 3D: pintu, dinding, atap, dan kanopi bisa dibuka atau dibuat transparan.
+- **Dua versi rumah genset** (tab *Rumah → Versi rumah*):
+  - **V1 · Dinding plester** — rumah kuning dengan pintu louvre ganda, atap beton, dan kusen ventilasi.
+  - **V2 · Pagar wiremesh** — rangka baja ringan dengan jaring wiremesh 10 × 10 cm, dua daun pintu pagar, dan atap seng gelombang di atas lantai beton yang sama.
 - Tab Pintu / Rumah / Kanopi / Bagian / Teks untuk mengatur setiap elemen.
 - Sudut kamera siap pakai (depan, belakang, kiri, kanan, atas, 3D).
-- **Bagikan tampilan** — tombol *Bagikan* di kanan atas menyalin tautan yang memuat sudut kamera, pintu yang terbuka, opasitas, ukuran ruangan, dan sakelar. Siapa pun yang membuka tautan itu langsung melihat tampilan yang sama.
+- **Bagikan tampilan** — tombol *Bagikan* di kanan atas menyalin tautan yang memuat sudut kamera, pintu yang terbuka, opasitas, ukuran ruangan, versi rumah, dan sakelar. Siapa pun yang membuka tautan itu langsung melihat tampilan yang sama.
 
 ## Menjalankan
 
