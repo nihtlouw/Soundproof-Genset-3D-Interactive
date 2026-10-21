@@ -50,6 +50,11 @@ button,input{font:inherit;color:inherit}
 .vbtn:last-child{border-right:0}
 .vbtn:hover{background:var(--chip)}
 .vbtn[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.tools{display:flex;border:1px solid var(--line);background:var(--hud);backdrop-filter:blur(6px)}
+.tools .vbtn{min-width:102px;text-align:center;border-right:0}
+.tools .vbtn[data-flash="1"]{color:var(--accent);font-weight:700}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+@media (max-width:520px){.tools .vbtn{min-width:0;padding:6px 9px}}
 .hint{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:12px;font:400 11px/1.3 var(--f-mono);color:var(--mut);text-align:right;pointer-events:none}
 @media (max-width:860px){.hint{display:none}.title h1{font-size:22px}}
 .nogl{position:absolute;inset:0;margin:auto;max-width:320px;height:fit-content;text-align:center;color:var(--mut)}
@@ -135,6 +140,10 @@ input[type=range]{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
         <button class="vbtn" data-view="right" aria-pressed="false" type="button">Kanan</button>
         <button class="vbtn" data-view="top" aria-pressed="false" type="button">Atas</button>
         <button class="vbtn" data-view="iso" aria-pressed="true" type="button">3D</button>
+      </div>
+      <div class="tools">
+        <button class="vbtn" id="share" type="button" title="Salin tautan ke tampilan ini" aria-label="Salin tautan ke tampilan ini">Bagikan</button>
+        <span class="sr" id="shareStatus" role="status" aria-live="polite"></span>
       </div>
     </div>
     <aside class="info" id="info" hidden>
@@ -1634,6 +1643,10 @@ function buildShelter(T, opts) {
   var dims = { W: 5.0, D: 2.7, H: 3.1 };
   var opRoof = 1, opWall = 1, lightsOn = true, gardenOn = true, humanOn = false;
   var opacity = 1;
+  /* tautan yang dibagikan: ukuran ruangan harus sudah terpasang sebelum rumah dibangun */
+  var SHARE_KEY = 'v1';
+  var shared = readHash();
+  if (shared && shared.dims) dims = shared.dims;
   var shCallouts = [];
   var coWrap = $('#calloutLayer');
   var calloutsOn = window.innerWidth > 700;
@@ -2051,6 +2064,114 @@ function buildShelter(T, opts) {
     });
   }
 
+  /* ---------- bagikan tampilan lewat tautan ----------
+     Seluruh keadaan kecil (kamera, pintu, opasitas, ukuran ruangan, sakelar)
+     dipadatkan ke dalam hash URL, mis. #v=v1&cam=0.62,1.17,5.8,0,0.95,0&doors=1010000 */
+  function clampN(n, lo, hi, fb) { return isFinite(n) ? Math.max(lo, Math.min(hi, n)) : fb; }
+  function bits(arr) { return arr.map(function (b) { return b ? '1' : '0'; }).join(''); }
+  function readHash() {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return null;
+    var p = {};
+    h.split('&').forEach(function (kv) {
+      var i = kv.indexOf('=');
+      if (i > 0) { try { p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1)); } catch (e) { } }
+    });
+    if (p.v !== SHARE_KEY) return null;
+    var o = {};
+    var cam = (p.cam || '').split(',').map(parseFloat);
+    if (cam.length === 6 && cam.every(isFinite)) o.cam = cam;
+    var d = (p.dims || '').split(',').map(parseFloat);
+    if (d.length === 3 && d.every(isFinite)) o.dims = { W: clampN(d[0], 4.2, 6.5, 5), D: clampN(d[1], 2.4, 3.6, 2.7), H: clampN(d[2], 3, 3.8, 3.1) };
+    if (p.op != null) o.opacity = clampN(parseFloat(p.op), 0, 1, 1);
+    if (p.roof != null) o.roof = clampN(parseFloat(p.roof), 0, 1, 1);
+    if (p.wall != null) o.wall = clampN(parseFloat(p.wall), 0, 1, 1);
+    if (p.shelter != null) o.shelter = p.shelter === '1';
+    ['run', 'lights', 'garden', 'human', 'edges', 'labels'].forEach(function (k) { if (p[k] != null) o[k] = p[k] === '1'; });
+    if (p.doors) o.doors = p.doors;
+    if (p.layers) o.layers = p.layers;
+    return o;
+  }
+  function snapshot() {
+    var q = [];
+    function add(k, v) { q.push(k + '=' + encodeURIComponent(v)); }
+    add('v', SHARE_KEY);
+    add('cam', [view.az, view.pol, view.r, view.t.x, view.t.y, view.t.z].map(function (n) { return n.toFixed(3); }).join(','));
+    add('dims', [dims.W, dims.D, dims.H].join(','));
+    add('op', Math.round(opacity * 100) / 100);
+    add('roof', Math.round(opRoof * 100) / 100);
+    add('wall', Math.round(opWall * 100) / 100);
+    add('shelter', shelterOn ? '1' : '0');
+    add('doors', bits(DOORS.map(function (d) { var dr = getDoor(d[0]); return !!(dr && dr.target); })));
+    add('layers', bits(LAYERS.map(function (l) { var el = $('#layer_' + l[0]); return !!(el && el.checked); })));
+    add('run', $('#run').checked ? '1' : '0');
+    add('lights', lightsOn ? '1' : '0');
+    add('garden', gardenOn ? '1' : '0');
+    add('human', humanOn ? '1' : '0');
+    add('edges', $('#edges').checked ? '1' : '0');
+    add('labels', calloutsOn ? '1' : '0');
+    return q.join('&');
+  }
+  function setChk(id, on) {
+    var el = $('#' + id);
+    if (!el || el.checked === on) return;
+    el.checked = on;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  function applyShared(o) {
+    if (!o) return;
+    if (o.shelter != null) setChk('shOn', o.shelter);
+    if (o.opacity != null) setOpacity(o.opacity);
+    if (o.roof != null) setRoofOp(o.roof);
+    if (o.wall != null) setWallOp(o.wall);
+    ['run', 'lights', 'garden', 'human', 'edges'].forEach(function (k) { if (o[k] != null) setChk(k, o[k]); });
+    if (o.labels != null) setChk('callouts', o.labels);
+    if (o.layers) LAYERS.forEach(function (l, i) { if (o.layers.charAt(i)) setChk('layer_' + l[0], o.layers.charAt(i) === '1'); });
+    if (o.doors) DOORS.forEach(function (d, i) { if (o.doors.charAt(i)) toggleAny(d[0], o.doors.charAt(i) === '1'); });
+    syncDoors();
+    if (o.cam) {
+      tween = null;
+      view.az = o.cam[0]; view.pol = o.cam[1]; view.r = o.cam[2];
+      view.t.set(o.cam[3], o.cam[4], o.cam[5]);
+      clampView(); applyCamera();
+      document.querySelectorAll('.vbtn[data-view]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    }
+    kick(90);
+  }
+  var statusEl = $('#shareStatus');
+  function say(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  function copyText(t) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+    return new Promise(function (res, rej) {
+      var ta = document.createElement('textarea');
+      ta.value = t; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '-1000px';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { }
+      document.body.removeChild(ta);
+      if (ok) res(); else rej(new Error('copy'));
+    });
+  }
+  var shareBtn = $('#share'), flashT = null;
+  shareBtn.addEventListener('click', function () {
+    var url = location.href.split('#')[0] + '#' + snapshot();
+    try { history.replaceState(null, '', url); } catch (e) { location.hash = snapshot(); }
+    function flash(msg) {
+      if (flashT) clearTimeout(flashT);
+      shareBtn.textContent = msg; shareBtn.setAttribute('data-flash', '1');
+      flashT = setTimeout(function () { shareBtn.textContent = 'Bagikan'; shareBtn.removeAttribute('data-flash'); }, 1800);
+    }
+    copyText(url).then(function () {
+      say('Tautan tampilan ini disalin ke papan klip.');
+      flash('Tersalin ✓');
+    }, function () {
+      say('Tautan tidak bisa disalin otomatis. Salin manual dari kotak dialog.');
+      window.prompt('Salin tautan tampilan ini:', url);
+      flash('Salin manual');
+    });
+  });
+
   /* ---------- tema ---------- */
   function getCss(n, fb) { var v = getComputedStyle(document.documentElement).getPropertyValue(n).trim(); return v || fb; }
   var themeKey = '';
@@ -2104,6 +2225,7 @@ function buildShelter(T, opts) {
   setOpacity(1);
   setRoofOp(1); setWallOp(1);
   applyCamera();
+  if (shared) applyShared(shared);
   requestAnimationFrame(loop);
 
   if (document.fonts && document.fonts.load) {
