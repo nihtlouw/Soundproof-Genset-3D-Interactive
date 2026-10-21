@@ -105,7 +105,7 @@ h3{margin:18px 0 6px;font:600 10.5px/1 var(--f-mono);letter-spacing:.09em;text-t
 .btn:hover{border-color:var(--accent)}
 .btn.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-.preset[aria-pressed="true"],.shpreset[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.preset[aria-pressed="true"],.shpreset[aria-pressed="true"],.hvpreset[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 
 .sliderrow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
 .sliderrow label{font-weight:500}
@@ -182,10 +182,15 @@ input[type=range]{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
       </div>
 
       <div class="page" data-page="house" role="tabpanel" hidden>
-        <p class="lead">Rumah genset berpintu louvre ganda, atap beton, dan lantai plat seperti pada foto acuan.</p>
+        <p class="lead" id="houseLead">Rumah genset berpintu louvre ganda, atap beton, dan lantai plat seperti pada foto acuan.</p>
         <ul class="rows">
           <li><span class="row-name">Tampilkan rumah genset</span><label class="sw"><input type="checkbox" id="shOn" checked aria-label="Tampilkan rumah genset"><span class="sw-ui"></span></label></li>
         </ul>
+        <h3>Versi rumah</h3>
+        <div class="btnrow" role="group" aria-label="Versi rumah genset" style="margin-top:0">
+          <button class="btn hvpreset" data-variant="plaster" aria-pressed="true" type="button">V1 · Dinding plester</button>
+          <button class="btn hvpreset" data-variant="mesh" aria-pressed="false" type="button">V2 · Pagar wiremesh</button>
+        </div>
         <div id="shBody">
           <h3>Transparansi</h3>
           <div class="sliderrow"><label for="opRoof">Atap</label><output id="opRoofVal" for="opRoof">100%</output></div>
@@ -212,7 +217,7 @@ input[type=range]{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
             <li><span class="row-name">Taman dan pohon palem</span><label class="sw"><input type="checkbox" id="garden" checked aria-label="Taman dan pohon palem"><span class="sw-ui"></span></label></li>
             <li><span class="row-name">Skala manusia 1,7 m</span><label class="sw"><input type="checkbox" id="human" aria-label="Skala manusia"><span class="sw-ui"></span></label></li>
           </ul>
-          <p class="note">Ukuran dalam meter, diukur dari bagian dalam dinding. Dinding plester kuning setebal 20 cm, atap menjorok 0,6 m di depan.</p>
+          <p class="note" id="houseNote">Ukuran dalam meter, diukur dari bagian dalam dinding. Dinding plester kuning setebal 20 cm, atap menjorok 0,6 m di depan.</p>
         </div>
       </div>
 
@@ -917,6 +922,7 @@ function buildShelter(T, opts) {
   'use strict';
   var PI = Math.PI;
   var W = opts.W, D = opts.D, H = opts.H;
+  var v2 = opts.variant === 'mesh';   // versi 2: pagar wiremesh, bukan dinding plester
   var a = W / 2, zb = -1.0, zf = zb + D;
   var gateH = H - 0.7;
   var GROUND = -0.16;
@@ -1075,6 +1081,54 @@ function buildShelter(T, opts) {
   var pipeM = mat(0x6d5b47, { roughness: 0.95 });
   var rivetGeo = new T.SphereGeometry(0.013, 8, 6);
 
+  /* ---------- wiremesh (varian 2) ---------- */
+  var meshTex = ctex(64, 64, function (g, w, h) {
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(196,204,210,1)'; g.lineWidth = 3.4;
+    g.beginPath(); g.moveTo(w / 2, 0); g.lineTo(w / 2, h); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,0.5)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(w / 2 - 1.3, 0); g.lineTo(w / 2 - 1.3, h); g.moveTo(0, h / 2 - 1.3); g.lineTo(w, h / 2 - 1.3); g.stroke();
+    g.strokeStyle = 'rgba(70,78,84,0.5)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(w / 2 + 1.3, 0); g.lineTo(w / 2 + 1.3, h); g.moveTo(0, h / 2 + 1.3); g.lineTo(w, h / 2 + 1.3); g.stroke();
+  }, 1, 1);
+
+  function meshMatFor(pw, ph, register) {
+    var t = meshTex.clone();
+    t.needsUpdate = true; t.wrapS = t.wrapT = T.RepeatWrapping;
+    t.repeat.set(Math.max(1, Math.round(pw / 0.1)), Math.max(1, Math.round(ph / 0.1)));
+    t.encoding = T.sRGBEncoding; t.anisotropy = 8; texs.push(t);
+    var m = new T.MeshStandardMaterial({
+      map: t, transparent: true, alphaTest: 0.3, side: T.DoubleSide,
+      roughness: 0.38, metalness: 0.8, color: col(0xd3dade)
+    });
+    if (register !== false) wallMats.push(m);
+    return m;
+  }
+  var fenceM = mat(0x9ba4aa, { roughness: 0.42, metalness: 0.8, map: metalTex }); wallMats.push(fenceM);
+  var postM = mat(0x323a40, { roughness: 0.5, metalness: 0.6, map: metalTex }); wallMats.push(postM);
+
+  // satu bidang pagar: rel atas/bawah, rel tengah, jaring, dan tiang di tiap sambungan
+  function fenceWall(len, h, x, y, z, rotY) {
+    var g = group(wallsG, 'shWalls', x, y, z);
+    g.rotation.y = rotY;
+    var n = Math.max(1, Math.round(len / 1.35)), pw = len / n, t = 0.05;
+    for (var i = 0; i < n; i++) {
+      var cx = -len / 2 + pw * (i + 0.5);
+      wallMeshes.push(box(pw - t, t, t, fenceM, cx, h / 2 - t / 2, 0, g, false));
+      wallMeshes.push(box(pw - t, t, t, fenceM, cx, -h / 2 + t / 2, 0, g, false));
+      wallMeshes.push(box(pw - t, t * 0.65, t * 0.65, fenceM, cx, 0.02, 0, g, false));
+      var pn = new T.Mesh(new T.PlaneGeometry(pw - t, h - t), meshMatFor(pw, h));
+      pn.position.set(cx, 0, 0);
+      g.add(pn); wallMeshes.push(pn);
+    }
+    for (var k = 0; k <= n; k++) {
+      var px = -len / 2 + pw * k;
+      wallMeshes.push(box(0.075, h + 0.02, 0.075, postM, px, 0, 0, g, false));
+      wallMeshes.push(box(0.13, 0.025, 0.13, postM, px, -h / 2 - 0.012, 0, g, false));
+    }
+    return g;
+  }
+
   /* ---------- tanah + rumput ---------- */
   var gTex = ctex(512, 512, function (g, w, h) {
     var i;
@@ -1132,10 +1186,17 @@ function buildShelter(T, opts) {
   function wallBox(w, h, d, x, y, z, len) {
     var me = box(w, h, d, plaster(len, 'wall', wallMats), x, y, z, wallsG, false); wallMeshes.push(me); return me;
   }
-  wallBox(W + 0.4, H, 0.2, 0, H / 2, -1.1, W + 0.4);
   var sideD = (zf - 0.1) - (-1.2), sideZ = ((zf - 0.1) + (-1.2)) / 2;
-  wallBox(0.2, H, sideD, -(a + 0.1), H / 2, sideZ, sideD);
-  wallBox(0.2, H, sideD, (a + 0.1), H / 2, sideZ, sideD);
+  if (v2) {
+    fenceWall(W + 0.4, H, 0, H / 2, -1.1, 0);
+    fenceWall(sideD, H, -(a + 0.1), H / 2, sideZ, PI / 2);
+    fenceWall(sideD, H, (a + 0.1), H / 2, sideZ, PI / 2);
+    fenceWall(W, H - gateH, 0, gateH + (H - gateH) / 2, zf, 0);
+  } else {
+    wallBox(W + 0.4, H, 0.2, 0, H / 2, -1.1, W + 0.4);
+    wallBox(0.2, H, sideD, -(a + 0.1), H / 2, sideZ, sideD);
+    wallBox(0.2, H, sideD, (a + 0.1), H / 2, sideZ, sideD);
+  }
 
   var slatTex = ctex(256, 256, function (g, w, h) {
     g.fillStyle = '#16191c'; g.fillRect(0, 0, w, h);
@@ -1159,10 +1220,12 @@ function buildShelter(T, opts) {
     me.position.set(x, 1.15, 0.1); me.rotation.y = rotY; me.renderOrder = 2;
     gV.add(me); wallMeshes.push(me);
   }
-  vent('shVentIn', -a + 0.003, PI / 2);
-  vent('shVentIn', -(a + 0.2) - 0.003, -PI / 2);
-  vent('shVentOut', a - 0.003, -PI / 2);
-  vent('shVentOut', (a + 0.2) + 0.003, PI / 2);
+  if (!v2) {
+    vent('shVentIn', -a + 0.003, PI / 2);
+    vent('shVentIn', -(a + 0.2) - 0.003, -PI / 2);
+    vent('shVentOut', a - 0.003, -PI / 2);
+    vent('shVentOut', (a + 0.2) + 0.003, PI / 2);
+  }
 
   // papan peringatan di dinding kiri luar
   var signTex = ctex(256, 180, function (g, w, h) {
@@ -1177,12 +1240,13 @@ function buildShelter(T, opts) {
   });
   var signG = group(root, 'shSign');
   var sign = new T.Mesh(new T.PlaneGeometry(0.5, 0.352), decalMat(signTex, wallMats));
-  sign.position.set(-(a + 0.2) - 0.004, 1.65, zf - 0.7); sign.rotation.y = -PI / 2; sign.renderOrder = 3;
+  sign.position.set(v2 ? -(a + 0.1) - 0.032 : -(a + 0.2) - 0.004, 1.65, zf - 0.7);
+  sign.rotation.y = -PI / 2; sign.renderOrder = 3;
   signG.add(sign); wallMeshes.push(sign);
 
   // perlengkapan dalam: panel distribusi + APAR
   var panelG = group(root, 'shPanel');
-  var pnx = -a + 0.45, pnz = zb + 0.075;
+  var pnx = -a + 0.45, pnz = v2 ? -1.07 : zb + 0.075;
   wallMeshes.push(box(0.5, 0.64, 0.15, galvM, pnx, 1.45, pnz, panelG, false));
   wallMeshes.push(box(0.46, 0.6, 0.012, mat(0xc9cdcf, { roughness: 0.5, metalness: 0.5, map: metalTex }), pnx, 1.45, pnz + 0.081, panelG, false));
   var plTex = ctex(256, 160, function (g, w, h) {
@@ -1200,7 +1264,7 @@ function buildShelter(T, opts) {
   [[-0.1, 0.1], [0.1, 0.1]].forEach(function (p) { wallMeshes.push(box(0.03, 0.03, 0.02, steelM, pnx + p[0] * 2, 1.45 + 0.33, pnz + 0.08, panelG, false)); });
 
   var aparG = group(root, 'shApar');
-  var apx = a - 0.4, apz = zb + 0.11;
+  var apx = a - 0.4, apz = v2 ? -1.05 : zb + 0.11;
   var redM = mat(0xc2201a, { roughness: 0.35, metalness: 0.2 });
   wallMeshes.push(cyl(0.075, 0.46, redM, 'y', apx, 1.1, apz, aparG, 20));
   wallMeshes.push(sph(0.075, redM, apx, 1.33, apz, aparG));
@@ -1222,8 +1286,27 @@ function buildShelter(T, opts) {
   /* ---------- atap + plafon + lampu ---------- */
   var roofG = group(root, 'shRoof');
   var rz0 = -1.25, rz1 = zf + 0.6;
-  var roof = new T.Mesh(new T.BoxGeometry(W + 1.0, 0.22, rz1 - rz0), [trimM, trimM, topM, ceilM, trimM, trimM]);
-  roof.position.set(0, H + 0.11, (rz0 + rz1) / 2); roof.receiveShadow = true; roofG.add(roof); roofMeshes.push(roof);
+  var roofTh = v2 ? 0.1 : 0.22;
+  var zincM = null;
+  if (v2) {
+    zincM = new T.MeshStandardMaterial({
+      map: ctex(128, 128, function (g, w, h) {
+        var i;
+        for (i = 0; i < w; i++) {
+          var v = 118 + Math.round(58 * Math.sin(i / w * PI * 8));
+          g.fillStyle = 'rgb(' + (v - 12) + ',' + (v + 4) + ',' + (v + 12) + ')';
+          g.fillRect(i, 0, 1, h);
+        }
+        speckle(g, w, h, 900, '60,60,60', 0.22, 2);
+        speckle(g, w, h, 500, '255,255,255', 0.16, 2);
+      }, Math.max(1, Math.round((W + 1) / 0.9)), 1),
+      roughness: 0.5, metalness: 0.55
+    });
+    roofMats.push(zincM);
+  }
+  var roof = new T.Mesh(new T.BoxGeometry(W + 1.0, roofTh, rz1 - rz0),
+    v2 ? [zincM, zincM, zincM, zincM, zincM, zincM] : [trimM, trimM, topM, ceilM, trimM, trimM]);
+  roof.position.set(0, H + roofTh / 2, (rz0 + rz1) / 2); roof.receiveShadow = true; roofG.add(roof); roofMeshes.push(roof);
   roofMeshes.push(box(W + 1.0, 0.025, 0.08, frameM, 0, H - 0.0125, rz1 - 0.04, roofG, false));
   // talang air dan pipa turun di tiang kanan
   roofMeshes.push(cyl(0.04, W + 0.9, galvM, 'x', 0, H + 0.02, rz1 + 0.05, roofG, 12));
@@ -1246,8 +1329,9 @@ function buildShelter(T, opts) {
   var pl1 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl1.position.set(-a * 0.5, H - 0.35, 0.4); lightsG.add(pl1); lamps.push(pl1);
   var pl2 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl2.position.set(a * 0.5, H - 0.35, 0.4); lightsG.add(pl2); lamps.push(pl2);
 
-  /* ---------- panel ventilasi atas ---------- */
+  /* ---------- panel ventilasi atas (hanya versi plester) ---------- */
   var scrG = group(root, 'shScreen');
+  if (!v2) {
   box(W, 0.1, 0.2, frameM, 0, gateH + 0.05, zf, scrG, false);
   box(W, 0.14, 0.2, frameM, 0, H - 0.07, zf, scrG, false);
   var n4 = 4;
@@ -1269,6 +1353,7 @@ function buildShelter(T, opts) {
     var pm = new T.Mesh(new T.PlaneGeometry(pw, bandH), perfM);
     pm.position.set(-a + (pi + 0.5) * W / n4, (gateH + 0.1 + H - 0.14) / 2, zf); scrG.add(pm);
   }
+  }
 
   /* ---------- pintu louvre ---------- */
   function leaf(side, key, label) {
@@ -1281,8 +1366,16 @@ function buildShelter(T, opts) {
     box(a, 0.06, 0.05, frameM, dir * a / 2, -h / 2 + 0.03, 0, pv, false);
     box(a, 0.05, 0.05, frameM, dir * a / 2, 0, 0, pv, false);
     box(a - 0.1, 0.24, 0.056, frameM, dir * a / 2, -h / 2 + 0.18, 0, pv, false);
+    var k;
+    if (v2) {
+      // daun pintu pagar: hanya jaring di dalam rangka, plus satu rel tengah
+      var gp = new T.Mesh(new T.PlaneGeometry(a - 0.14, h - 0.22), meshMatFor(a, h, false));
+      gp.position.set(dir * a / 2, 0.02, 0);
+      pv.add(gp);
+      box(a - 0.1, 0.055, 0.035, fenceM, dir * a / 2, 0, 0, pv, false);
+    } else {
     var sg = new T.BoxGeometry(a - 0.12, 0.085, 0.012);
-    var pitch = 0.0755, cnt = Math.floor((h - 0.45) / pitch), k;
+    var pitch = 0.0755, cnt = Math.floor((h - 0.45) / pitch);
     for (k = 0; k < cnt; k++) {
       var s = new T.Mesh(sg, slatM);
       s.position.set(dir * a / 2, -h / 2 + 0.34 + k * pitch + pitch / 2, 0);
@@ -1294,6 +1387,7 @@ function buildShelter(T, opts) {
         var rv = new T.Mesh(rivetGeo, steelM); rv.position.set(dir * (0.12 + k * (a - 0.24) / rn), yy, 0.027); pv.add(rv);
       });
     }
+    }
     box(0.028, 0.34, 0.03, steelM, dir * (a - 0.075), 0, 0.045, pv, false);
     cyl(0.012, 0.5, steelM, 'y', dir * (a - 0.04), 0.7, 0.04, pv, 10);
     cyl(0.012, 0.3, steelM, 'y', dir * (a - 0.04), -h / 2 + 0.2, 0.04, pv, 10);
@@ -1303,8 +1397,8 @@ function buildShelter(T, opts) {
     });
     doors[key] = { g: pv, label: label, max: 1.75, sign: side, cur: 0, target: 0, part: key };
   }
-  leaf(-1, 'gateL', 'Pintu louvre kiri');
-  leaf(1, 'gateR', 'Pintu louvre kanan');
+  leaf(-1, 'gateL', v2 ? 'Pintu pagar kiri' : 'Pintu louvre kiri');
+  leaf(1, 'gateR', v2 ? 'Pintu pagar kanan' : 'Pintu louvre kanan');
 
   /* ---------- knalpot tembus dinding ---------- */
   var exG = group(root, 'shExhaust');
@@ -1461,7 +1555,7 @@ function buildShelter(T, opts) {
   }
 
   var callouts = [
-    { part: 'shRoof', label: 'Atap beton', pos: [0, H + 0.26, 0.3], n: [0, 1, 0] },
+    { part: 'shRoof', label: v2 ? 'Atap seng gelombang' : 'Atap beton', pos: [0, H + 0.26, 0.3], n: [0, 1, 0] },
     { part: 'shScreen', label: 'Panel ventilasi atas', pos: [-a * 0.5, H - 0.3, zf + 0.12], n: [0, 0, 1] },
     { part: 'gateL', label: 'Pintu louvre kiri', pos: [-a - 0.1, gateH * 0.62, zf + 0.2], n: [0, 0, 1] },
     { part: 'gateR', label: 'Pintu louvre kanan', pos: [a + 0.1, gateH * 0.62, zf + 0.2], n: [0, 0, 1] },
@@ -1475,8 +1569,14 @@ function buildShelter(T, opts) {
     { part: 'shApar', label: 'APAR', pos: [apx, 1.55, zb + 0.2], n: null, need: 'inside' }
   ];
 
+  if (v2) {
+    callouts = callouts.filter(function (c) { return c.part !== 'shVentIn' && c.part !== 'shVentOut' && c.part !== 'shScreen'; });
+    callouts.push({ part: 'shWalls', label: 'Pagar wiremesh', pos: [-(a + 0.12), 2.15, zf - 1.0], n: [-1, 0, 0] });
+  }
+
   return {
     group: root, W: W, D: D, H: H, a: a, zb: zb, zf: zf, gateH: gateH, doors: doors, callouts: callouts,
+    variant: v2 ? 'mesh' : 'plaster',
     setWalls: function (op) { fade(wallMats, wallMeshes, op); },
     setRoof: function (op) { fade(roofMats, roofMeshes, op); },
     setLights: setLights, setGarden: function (on) { gardenG.visible = on; },
@@ -1641,12 +1741,14 @@ function buildShelter(T, opts) {
   /* ---------- rumah genset ---------- */
   var shelter = null, shelterOn = true;
   var dims = { W: 5.0, D: 2.7, H: 3.1 };
+  var variant = 'plaster';
   var opRoof = 1, opWall = 1, lightsOn = true, gardenOn = true, humanOn = false;
   var opacity = 1;
   /* tautan yang dibagikan: ukuran ruangan harus sudah terpasang sebelum rumah dibangun */
   var SHARE_KEY = 'v1';
   var shared = readHash();
   if (shared && shared.dims) dims = shared.dims;
+  if (shared && shared.variant) variant = shared.variant;
   var shCallouts = [];
   var coWrap = $('#calloutLayer');
   var calloutsOn = window.innerWidth > 700;
@@ -1654,8 +1756,9 @@ function buildShelter(T, opts) {
   function viewScale() { return shelterOn ? 1.55 : 1; }
   function applyGround() {
     slab.visible = !shelterOn; catcher.visible = !shelterOn; gridObj.visible = !shelterOn;
+    var kind = variant === 'mesh' ? ' · pagar wiremesh' : '';
     $('#sub').textContent = shelterOn
-      ? 'Rumah ' + fmt(dims.W) + ' × ' + fmt(dims.D) + ' × ' + fmt(dims.H) + ' m · kanopi 3,0 × 1,1 × 1,8 m'
+      ? 'Rumah ' + fmt(dims.W) + ' × ' + fmt(dims.D) + ' × ' + fmt(dims.H) + ' m' + kind + ' · kanopi 3,0 × 1,1 × 1,8 m'
       : 'Dibuat dari satu foto · kanopi 3,0 × 1,1 × 1,8 m';
   }
   function buildShelterNow() {
@@ -1666,7 +1769,7 @@ function buildShelter(T, opts) {
     }
     shCallouts.forEach(function (c) { c.el.remove(); });
     shCallouts = [];
-    shelter = window.buildShelter(T, dims);
+    shelter = window.buildShelter(T, { W: dims.W, D: dims.D, H: dims.H, variant: variant });
     shelter.group.visible = shelterOn;
     scene.add(shelter.group);
     shelter.setRoof(opRoof); shelter.setWalls(opWall); shelter.setLights(lightsOn); shelter.setGarden(gardenOn); shelter.setHuman(humanOn);
@@ -1966,6 +2069,40 @@ function buildShelter(T, opts) {
   $('#lights').addEventListener('change', function (e) { lightsOn = e.target.checked; if (shelter) shelter.setLights(lightsOn); kick(); });
   $('#garden').addEventListener('change', function (e) { gardenOn = e.target.checked; if (shelter) shelter.setGarden(gardenOn); kick(); });
   $('#human').addEventListener('change', function (e) { humanOn = e.target.checked; if (shelter) shelter.setHuman(humanOn); kick(); });
+
+  /* versi rumah: plester atau pagar wiremesh */
+  function applyVariant(v) {
+    variant = (v === 'mesh') ? 'mesh' : 'plaster';
+    document.querySelectorAll('.hvpreset').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.dataset.variant === variant ? 'true' : 'false');
+    });
+    var mesh = variant === 'mesh';
+    var lead = $('#houseLead'), note = $('#houseNote');
+    if (lead) lead.textContent = mesh
+      ? 'Versi pagar: rangka baja ringan dengan jaring wiremesh dan daun pintu pagar ganda, atap seng di atas lantai beton yang sama.'
+      : 'Rumah genset berpintu louvre ganda, atap beton, dan lantai plat seperti pada foto acuan.';
+    if (note) note.textContent = mesh
+      ? 'Ukuran dalam meter, diukur dari bagian dalam pagar. Jaring wiremesh 10 × 10 cm pada rangka baja, atap seng menjorok 0,6 m di depan.'
+      : 'Ukuran dalam meter, diukur dari bagian dalam dinding. Dinding plester kuning setebal 20 cm, atap menjorok 0,6 m di depan.';
+    DOORS.forEach(function (d) {
+      if (!d[3]) return;
+      var row = doorRows[d[0]];
+      if (!row) return;
+      var nm = row.querySelector('.row-name'), inp = row.querySelector('input');
+      var txt = (mesh ? 'Pintu pagar ' : 'Pintu louvre ') + (d[0] === 'gateL' ? 'kiri' : 'kanan');
+      if (nm) nm.textContent = txt;
+      if (inp) inp.setAttribute('aria-label', txt);
+    });
+    applyGround();
+  }
+  document.querySelectorAll('.hvpreset').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (variant === b.dataset.variant) return;
+      applyVariant(b.dataset.variant);
+      buildShelterNow();
+    });
+  });
+  applyVariant(variant);
   var rebuildT = null;
   [['dimW', 'dimWVal', 'W'], ['dimD', 'dimDVal', 'D'], ['dimH', 'dimHVal', 'H']].forEach(function (p) {
     var el = $('#' + p[0]), out = $('#' + p[1]);
@@ -2088,6 +2225,7 @@ function buildShelter(T, opts) {
     if (p.wall != null) o.wall = clampN(parseFloat(p.wall), 0, 1, 1);
     if (p.shelter != null) o.shelter = p.shelter === '1';
     ['run', 'lights', 'garden', 'human', 'edges', 'labels'].forEach(function (k) { if (p[k] != null) o[k] = p[k] === '1'; });
+    if (p.hv === 'mesh' || p.hv === 'plaster') o.variant = p.hv;
     if (p.doors) o.doors = p.doors;
     if (p.layers) o.layers = p.layers;
     return o;
@@ -2098,6 +2236,7 @@ function buildShelter(T, opts) {
     add('v', SHARE_KEY);
     add('cam', [view.az, view.pol, view.r, view.t.x, view.t.y, view.t.z].map(function (n) { return n.toFixed(3); }).join(','));
     add('dims', [dims.W, dims.D, dims.H].join(','));
+    add('hv', variant);
     add('op', Math.round(opacity * 100) / 100);
     add('roof', Math.round(opRoof * 100) / 100);
     add('wall', Math.round(opWall * 100) / 100);
@@ -2120,6 +2259,7 @@ function buildShelter(T, opts) {
   }
   function applyShared(o) {
     if (!o) return;
+    if (o.variant && o.variant !== variant) { applyVariant(o.variant); buildShelterNow(); }
     if (o.shelter != null) setChk('shOn', o.shelter);
     if (o.opacity != null) setOpacity(o.opacity);
     if (o.roof != null) setRoofOp(o.roof);
