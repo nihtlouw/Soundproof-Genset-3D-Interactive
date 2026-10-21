@@ -22,9 +22,9 @@ Model ini menyederhanakan praktik pemasangan genset yang umum, dengan prioritas 
 
 | Aspek | Praktik umum | Penyederhanaan di model |
 | --- | --- | --- |
-| Akses belakang | Ruang belakang sering sempit, jadi enclosure memakai **panel lepas (removable)**, bukan pintu engsel — panduan NEC 110.26/NFPA 110 menuntut ruang kerja 36 inci *atau* ruang untuk membuka penuh pintu engsel | Dua panel belakang kanopi kini **lepas-angkat** (angkat, geser, sandarkan), sehingga tidak perlu ruang ayun |
-| Jarak servis | Sisi servis 1,5–2,0 m; sisi exhaust/belakang 0,8–1,0 m | Jarak belakang dikunci **0,8 m**; jarak depan ditampilkan di tab Rumah lengkap dengan tombol *Samakan ke standar (3,4 m)* |
-| Ventilasi | Bukaan masuk 1–1,5× luas radiator, keluar 2–3×; inlet rendah, outlet tinggi | V2 memakai pagar wiremesh dengan **celah udara terbuka di bawah atap** (luas bebas besar) |
+| Akses belakang | NEC 110.26/NFPA 110 menuntut ruang kerja 36 inci *atau* ruang untuk membuka penuh pintu engsel. Bila lahan sempit, enclosure memakai **panel lepas (removable)** | Jarak belakang dinaikkan ke **1,5 m**, jadi dua pintu belakang kanopi **bisa dibuka penuh (±79°)**; panel lepas tetap jadi alternatif bila lahan sempit |
+| Jarak servis | Sisi servis 1,5–2,0 m; sisi exhaust/belakang 0,8–1,0 m | Jarak belakang **1,5 m**, jarak depan mengikuti kedalaman ruangan (bawaan **1,5 m**; ruang 5,0 × 4,1 × 3,1 m), ditampilkan di tab Rumah dengan tombol *Samakan ke standar (4,1 m)* |
+| Ventilasi | Bukaan masuk 1–1,5× luas radiator, keluar 2–3×; inlet rendah, outlet tinggi | V2 memakai pagar wiremesh dengan **celah udara terbuka di bawah atap** (luas bebas besar); knalpot mendatar 1,5 m digantung ke struktur atap |
 | Atap | Atap menjorok untuk menahan hujan, bukan menutup rapat | Atap seng/beton menjorok 0,6 m di depan, celah ventilasi tetap terbuka |
 | Panjang daun pintu | Daun pintu tidak boleh membentur dinding/pagar | Sudut buka dihitung otomatis dari ruang yang tersedia (`asin(ruang / lebar daun)`) |
 
