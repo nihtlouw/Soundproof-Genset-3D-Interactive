@@ -9,7 +9,7 @@ Interaktif 3D cutaway untuk genset bersilencer (soundproof enclosure) — pintu,
 - Cutaway 3D: pintu, dinding, atap, dan kanopi bisa dibuka atau dibuat transparan.
 - **Dua versi rumah genset** (tab *Rumah → Versi rumah*):
   - **V1 · Dinding plester** — rumah kuning dengan pintu louvre ganda, atap beton, dan kusen ventilasi.
-  - **V2 · Pagar wiremesh** — rangka baja ringan dengan jaring wiremesh 10 × 10 cm setinggi ±2,35 m (lebih pendek dari rumah plester), dua daun pintu pagar, dan atap seng gelombang di atas lantai beton yang sama. Atap ditopang empat tiang sudut penuh, celah udara di antara puncak pagar dan atap.
+  - **V2 · Pagar wiremesh** — rangka baja ringan dengan jaring wiremesh 10 × 10 cm setinggi ±2,35 m (lebih pendek dari rumah plester) dan dua daun pintu pagar. Atap seng gelombang **menumpang langsung di balok ring puncak pagar** — tanpa celah ventilasi — jadi tinggi totalnya ±2,45 m; ventilasi sepenuhnya lewat jaring.
 - Tab Pintu / Rumah / Kanopi / Bagian / Teks untuk mengatur setiap elemen.
 - Sudut kamera siap pakai (depan, belakang, kiri, kanan, atas, 3D).
 - Pintu tidak pernah menembus dinding/pagar: daun pintu berhenti di ±83–86°, dan pintu belakang kanopi otomatis dibatasi sesuai sisa ruang di belakang genset (ditampilkan pada label pintu).
@@ -24,7 +24,7 @@ Model ini menyederhanakan praktik pemasangan genset yang umum, dengan prioritas 
 | --- | --- | --- |
 | Akses belakang | NEC 110.26/NFPA 110 menuntut ruang kerja 36 inci *atau* ruang untuk membuka penuh pintu engsel. Bila lahan sempit, enclosure memakai **panel lepas (removable)** | Jarak belakang dinaikkan ke **1,5 m**, jadi dua pintu belakang kanopi **bisa dibuka penuh (±79°)**; panel lepas tetap jadi alternatif bila lahan sempit |
 | Jarak servis | Sisi servis 1,5–2,0 m; sisi exhaust/belakang 0,8–1,0 m | Jarak belakang **1,5 m**, jarak depan mengikuti kedalaman ruangan (bawaan **1,5 m**; ruang 5,0 × 4,1 × 3,1 m), ditampilkan di tab Rumah dengan tombol *Samakan ke standar (4,1 m)* |
-| Ventilasi | Bukaan masuk 1–1,5× luas radiator, keluar 2–3×; inlet rendah, outlet tinggi | V2 memakai pagar wiremesh dengan **celah udara terbuka di bawah atap** (luas bebas besar); knalpot mendatar 1,5 m digantung ke struktur atap |
+| Ventilasi | Bukaan masuk 1–1,5× luas radiator, keluar 2–3×; inlet rendah, outlet tinggi | V2: seluruh bidang pagar wiremesh (bukaan ±50–60%) menjadi jalur udara; atap rapat di atas balok ring. Knalpot mendatar 1,5 m digantung ke struktur atap, cerobongnya keluar di belakang tepi atap |
 | Atap | Atap menjorok untuk menahan hujan, bukan menutup rapat | Atap seng/beton menjorok 0,6 m di depan, celah ventilasi tetap terbuka |
 | Panjang daun pintu | Daun pintu tidak boleh membentur dinding/pagar | Sudut buka dihitung otomatis dari ruang yang tersedia (`asin(ruang / lebar daun)`) |
 
