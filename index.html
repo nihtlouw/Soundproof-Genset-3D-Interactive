@@ -1451,26 +1451,45 @@ function buildShelter(T, opts) {
   /* ---------- knalpot tembus dinding ---------- */
   var exG = group(root, 'shExhaust');
   var exY = v2 ? fenceH - 0.42 : 2.66;
-  var ez = zb + 0.03;                        // menembus dinding/pagar belakang
+  var ez = zb + 0.03;                        // V1: menembus dinding belakang
   var ezCanopy = -0.55;                      // knalpot keluar dari muka belakang kanopi
-  var ezLen = Math.max(0.4, ezCanopy - ez), ezMid = (ezCanopy + ez) / 2;
-  cyl(0.058, ezLen, pipeM, 'z', 0.88, exY, ezMid, exG, 18);
-  // gantungan pipa ke struktur atap: run mendatar 1,5 m tidak boleh menggantung bebas
-  var hangH = Math.max(0.12, (roofBase - 0.06) - exY);
-  [ezMid - ezLen * 0.3, ezMid + ezLen * 0.3].forEach(function (hz) {
-    cyl(0.011, hangH, steelM, 'y', 0.88, exY + hangH / 2, hz, exG, 8);
-    box(0.05, 0.02, 0.05, steelM, 0.88, exY + hangH, hz, exG, false);
-  });
-  // V2: riser digeser keluar dari tepi atap supaya cerobong tidak menembus seng
-  var elbowZ = v2 ? ez - 0.66 : ez - 0.43;
-  var risH = v2 ? (roofBase + 0.14) - exY : 0.5;
-  var stubLen = Math.abs((ez - 0.22) - elbowZ), stubMid = ((ez - 0.22) + elbowZ) / 2;
-  cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez, exG, 24);
-  cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez - 0.21, exG, 24);
-  cyl(0.058, stubLen, stainM, 'z', 0.88, exY, stubMid, exG, 18);
-  sph(0.062, stainM, 0.88, exY, elbowZ, exG);
-  cyl(0.058, risH, stainM, 'y', 0.88, exY + risH / 2, elbowZ, exG, 18);
-  cyl(0.1, 0.05, stainM, 'y', 0.88, exY + risH + 0.028, elbowZ, exG, 20, 0.012);
+  var elbowZ, risH, risTop;
+  if (v2) {
+    /* V2: pagar tidak dilubangi sama sekali. Knalpot kanopi memang sudah naik
+       lurus ke atas (ujungnya 2,71 m) sehingga setelah atap diturunkan pipa itu
+       menembus atap seng: di situlah dipasang collar + sambungan dan penutup hujan. */
+    elbowZ = -0.455;                        // sumbu ujung atas knalpot kanopi
+    var crossZ = -0.17;                     // titik pipa memotong bidang atap
+    risTop = roofBase + roofTh + 0.42;
+    // collar / flashing di atap
+    cyl(0.115, roofTh + 0.08, steelM, 'y', 0.88, roofBase + roofTh / 2, crossZ, exG, 22);
+    box(0.34, 0.02, 0.34, steelM, 0.88, roofBase + roofTh + 0.012, crossZ, exG, false);
+    // sambungan di atas atap + penutup hujan
+    var extY0 = 2.70;
+    risH = Math.max(0.14, risTop - extY0);
+    cyl(0.058, risH, stainM, 'y', 0.88, extY0 + risH / 2, elbowZ, exG, 18);
+    cyl(0.095, 0.05, stainM, 'y', 0.88, extY0 + risH + 0.025, elbowZ, exG, 20, 0.012);
+    cyl(0.012, 0.09, stainM, 'y', 0.88, extY0 + risH + 0.07, elbowZ, exG, 8);
+    risTop = extY0 + risH;
+  } else {
+    var ezLen = Math.max(0.4, ezCanopy - ez), ezMid = (ezCanopy + ez) / 2;
+    cyl(0.058, ezLen, pipeM, 'z', 0.88, exY, ezMid, exG, 18);
+    // gantungan pipa ke struktur atap: run mendatar panjang tidak boleh menggantung bebas
+    var hangH = Math.max(0.12, (roofBase - 0.06) - exY);
+    [ezMid - ezLen * 0.3, ezMid + ezLen * 0.3].forEach(function (hz) {
+      cyl(0.011, hangH, steelM, 'y', 0.88, exY + hangH / 2, hz, exG, 8);
+      box(0.05, 0.02, 0.05, steelM, 0.88, exY + hangH, hz, exG, false);
+    });
+    elbowZ = ez - 0.43;
+    risH = 0.5;
+    var stubLen = Math.abs((ez - 0.22) - elbowZ), stubMid = ((ez - 0.22) + elbowZ) / 2;
+    cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez, exG, 24);
+    cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez - 0.21, exG, 24);
+    cyl(0.058, stubLen, stainM, 'z', 0.88, exY, stubMid, exG, 18);
+    sph(0.062, stainM, 0.88, exY, elbowZ, exG);
+    cyl(0.058, risH, stainM, 'y', 0.88, exY + risH / 2, elbowZ, exG, 18);
+    cyl(0.1, 0.05, stainM, 'y', 0.88, exY + risH + 0.028, elbowZ, exG, 20, 0.012);
+  }
 
   /* ---------- taman ---------- */
   var gardenG = group(root, 'shGarden');
@@ -1625,7 +1644,7 @@ function buildShelter(T, opts) {
     { part: 'shVentOut', label: 'Kisi udara keluar', pos: [a + 0.2, 1.8, 0.1], n: [1, 0, 0] },
     { part: 'shSign', label: 'Papan peringatan', pos: [-(a + 0.22), 1.9, zf - 0.7], n: [-1, 0, 0] },
     { part: 'shFloor', label: 'Lantai beton', pos: [0, -0.1, zf + 0.7], n: [0, 0, 1] },
-    { part: 'shExhaust', label: 'Knalpot tembus dinding', pos: [0.88, exY + risH + 0.16, elbowZ], n: null },
+    { part: 'shExhaust', label: v2 ? 'Knalpot naik lewat atap' : 'Knalpot tembus dinding', pos: [0.88, (v2 ? risTop + 0.1 : exY + risH + 0.16), elbowZ], n: null },
     { part: 'shLights', label: 'Lampu downlight', pos: [-a * 0.5, roofBase - 0.1, zf - 0.55], n: null, need: 'roofFade' },
     { part: 'shPanel', label: 'Panel distribusi', pos: [pnx, 1.85, zb + 0.2], n: null, need: 'inside' },
     { part: 'shApar', label: 'APAR', pos: [apx, 1.55, zb + 0.2], n: null, need: 'inside' }
