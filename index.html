@@ -206,17 +206,17 @@ input[type=range]{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
           <h3>Ukuran ruangan</h3>
           <div class="sliderrow"><label for="dimW">Lebar</label><output id="dimWVal" for="dimW">5,0 m</output></div>
           <input type="range" id="dimW" min="4.2" max="6.5" step="0.1" value="5">
-          <div class="sliderrow"><label for="dimD">Kedalaman</label><output id="dimDVal" for="dimD">2,7 m</output></div>
-          <input type="range" id="dimD" min="2.4" max="3.6" step="0.1" value="2.7">
+          <div class="sliderrow"><label for="dimD">Kedalaman</label><output id="dimDVal" for="dimD">4,1 m</output></div>
+          <input type="range" id="dimD" min="3.1" max="5.2" step="0.1" value="4.1">
           <div class="sliderrow"><label for="dimH">Tinggi</label><output id="dimHVal" for="dimH">3,1 m</output></div>
           <input type="range" id="dimH" min="3" max="3.8" step="0.1" value="3.1">
           <div class="btnrow" style="margin-top:0"><button class="btn" id="dimReset" type="button">Ukuran awal</button></div>
           <h3>Jarak servis</h3>
           <ul class="rows">
             <li><div class="row-txt"><span class="row-name">Depan kanopi</span><span class="row-sub">saran 1,5 m</span></div><span class="row-sub" id="clearFront">–</span></li>
-            <li><div class="row-txt"><span class="row-name">Belakang unit</span><span class="row-sub">saran 0,8 m</span></div><span class="row-sub" id="clearRear">–</span></li>
+            <li><div class="row-txt"><span class="row-name">Belakang unit</span><span class="row-sub">saran 1,5 m</span></div><span class="row-sub" id="clearRear">–</span></li>
           </ul>
-          <div class="btnrow" style="margin-top:10px"><button class="btn" id="dimStd" type="button">Samakan ke standar (3,4 m)</button></div>
+          <div class="btnrow" style="margin-top:10px"><button class="btn" id="dimStd" type="button">Samakan ke standar (4,1 m)</button></div>
           <h3>Cahaya</h3>
           <div class="sliderrow"><label for="sun">Kekuatan matahari</label><output id="sunVal" for="sun">65%</output></div>
           <input type="range" id="sun" min="20" max="130" step="5" value="65">
@@ -658,8 +658,9 @@ function buildGenset(T) {
   /* ---------- doors (back) ---------- */
   box(0.16, H, 0.04, greyM, 0, (YB + YT) / 2, ZB + 0.02, can, true);
   var slatB = slatTex(12, 256, 300);
-  var backL = makeDoor('backL', 'Removable panel, left', { hx: -1.5, hy: (YB + YT) / 2, w: 1.42, h: H, dir: 1, front: false, max: 0, mode: 'lift', mat: greyM, part: 'backDoors' });
-  var backR = makeDoor('backR', 'Removable panel, right', { hx: 1.5, hy: (YB + YT) / 2, w: 1.42, h: H, dir: -1, front: false, max: 0, mode: 'lift', mat: greyM, part: 'backDoors' });
+  // ruang belakang 1,5 m: daun 1,42 m bisa dibuka penuh (batas dihitung di app)
+  var backL = makeDoor('backL', 'Rear door, left', { hx: -1.5, hy: (YB + YT) / 2, w: 1.42, h: H, dir: 1, front: false, max: 1.3, mat: greyM, part: 'backDoors' });
+  var backR = makeDoor('backR', 'Rear door, right', { hx: 1.5, hy: (YB + YT) / 2, w: 1.42, h: H, dir: -1, front: false, max: 1.3, mat: greyM, part: 'backDoors' });
   onDoor(backL, slatB, 0.7, 0.62, 0.72, 0.18, 'out');
   onDoor(backR, slatB, 0.7, 0.62, -0.72, 0.18, 'out');
   lockHandle(backL, 1.28, 0, 'out');
@@ -951,7 +952,7 @@ function buildShelter(T, opts) {
   var W = opts.W, D = opts.D, H = opts.H;
   var v2 = opts.variant === 'mesh';   // versi 2: pagar wiremesh, bukan dinding plester
   var a = W / 2;
-  var rearGap = 0.8;                     // ruang di belakang unit untuk servis + aliran udara panas
+  var rearGap = 1.5;                     // ruang servis di belakang unit (cukup untuk membuka pintu belakang)
   var zb = -(0.55 + rearGap), zf = zb + D;   // 0,55 = muka belakang kanopi
   var zBackWall = zb - 0.1;              // pusat dinding/pagar belakang (tebal 0,2 / 0,1)
   var zPlat0 = zb - 0.2, zRoof0 = zb - 0.25;
@@ -1450,7 +1451,15 @@ function buildShelter(T, opts) {
   var exG = group(root, 'shExhaust');
   var exY = v2 ? fenceH - 0.42 : 2.66;
   var ez = zb + 0.03;                        // menembus dinding/pagar belakang
-  cyl(0.058, 0.9, pipeM, 'z', 0.88, exY, ez + 0.03, exG, 18);
+  var ezCanopy = -0.55;                      // knalpot keluar dari muka belakang kanopi
+  var ezLen = Math.max(0.4, ezCanopy - ez), ezMid = (ezCanopy + ez) / 2;
+  cyl(0.058, ezLen, pipeM, 'z', 0.88, exY, ezMid, exG, 18);
+  // gantungan pipa ke struktur atap: run mendatar 1,5 m tidak boleh menggantung bebas
+  var hangH = Math.max(0.12, (H - 0.06) - exY);
+  [ezMid - ezLen * 0.3, ezMid + ezLen * 0.3].forEach(function (hz) {
+    cyl(0.011, hangH, steelM, 'y', 0.88, exY + hangH / 2, hz, exG, 8);
+    box(0.05, 0.02, 0.05, steelM, 0.88, exY + hangH, hz, exG, false);
+  });
   cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez, exG, 24);
   cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez - 0.21, exG, 24);
   cyl(0.058, 0.2, stainM, 'z', 0.88, exY, ez - 0.32, exG, 18);
@@ -1611,7 +1620,7 @@ function buildShelter(T, opts) {
     { part: 'shVentOut', label: 'Kisi udara keluar', pos: [a + 0.2, 1.8, 0.1], n: [1, 0, 0] },
     { part: 'shSign', label: 'Papan peringatan', pos: [-(a + 0.22), 1.9, zf - 0.7], n: [-1, 0, 0] },
     { part: 'shFloor', label: 'Lantai beton', pos: [0, -0.1, zf + 0.7], n: [0, 0, 1] },
-    { part: 'shExhaust', label: 'Knalpot tembus dinding', pos: [0.88, 3.35, -1.43] , n: null },
+    { part: 'shExhaust', label: 'Knalpot tembus dinding', pos: [0.88, exY + 0.75, ez - 0.43], n: null },
     { part: 'shLights', label: 'Lampu downlight', pos: [-a * 0.5, H - 0.1, zf - 0.55], n: null, need: 'roofFade' },
     { part: 'shPanel', label: 'Panel distribusi', pos: [pnx, 1.85, zb + 0.2], n: null, need: 'inside' },
     { part: 'shApar', label: 'APAR', pos: [apx, 1.55, zb + 0.2], n: null, need: 'inside' }
@@ -1806,7 +1815,7 @@ function buildShelter(T, opts) {
 
   /* ---------- rumah genset ---------- */
   var shelter = null, shelterOn = true;
-  var dims = { W: 5.0, D: 2.7, H: 3.1 };
+  var dims = { W: 5.0, D: 4.1, H: 3.1 };
   var variant = 'plaster';
   var opRoof = 1, opWall = 1, lightsOn = true, gardenOn = true, humanOn = false;
   var opacity = 1;
@@ -1819,7 +1828,11 @@ function buildShelter(T, opts) {
   var coWrap = $('#calloutLayer');
   var calloutsOn = window.innerWidth > 700;
 
-  function viewScale() { return shelterOn ? 1.55 : 1; }
+  function viewScale() {
+    if (!shelterOn) return 1;
+    // jarak kamera mengikuti diagonal denah supaya rumah yang lebih dalam tetap masuk layar
+    return 1.55 * Math.max(1, Math.sqrt(dims.W * dims.W + dims.D * dims.D) / 5.68);
+  }
   function applyGround() {
     slab.visible = !shelterOn; catcher.visible = !shelterOn; gridObj.visible = !shelterOn;
     var kind = variant === 'mesh' ? ' · pagar wiremesh' : '';
@@ -1846,10 +1859,16 @@ function buildShelter(T, opts) {
       }
     });
     ['backL', 'backR'].forEach(function (k) {
+      var d = model.doors[k];
+      if (!d) return;
+      var clear = Math.max(0.1, shelter.rearGap - 0.1);
+      var ang = Math.asin(Math.max(0.05, Math.min(0.98, clear / Math.max(0.2, d.w))));
+      d.max = Math.max(0.3, Math.min(1.45, ang));
       var row = doorRows[k];
-      if (!row) return;
-      var sub = row.querySelector('.row-sub');
-      if (sub) sub.textContent = 'Kanopi, belakang · panel lepas (angkat)';
+      if (row) {
+        var sub = row.querySelector('.row-sub');
+        if (sub) sub.textContent = 'Kanopi, belakang · buka maks ' + Math.round(d.max * 180 / Math.PI) + '°';
+      }
     });
   }
 
@@ -1886,7 +1905,8 @@ function buildShelter(T, opts) {
   }
   function viewFor(v) {
     var k = viewScale();
-    var t = v.t.slice(); if (shelterOn) t[2] = 0.35;
+    var t = v.t.slice();
+    if (shelterOn) t[2] = shelter ? (-(0.55 + shelter.rearGap) - 0.2 + shelter.zf + 0.6) / 2 : 0.1;
     return { az: v.az, pol: v.pol, r: v.r * k, t: t };
   }
 
@@ -2089,8 +2109,8 @@ function buildShelter(T, opts) {
     ['engine', 'Pintu mesin', 'Kanopi, depan kanan tengah', false],
     ['alt', 'Pintu alternator', 'Kanopi, depan kiri atas', false],
     ['ctrl', 'Pintu kontrol', 'Kanopi, depan kiri bawah', false],
-    ['backL', 'Panel lepas kiri', 'Kanopi, belakang · panel lepas (angkat)', false],
-    ['backR', 'Panel lepas kanan', 'Kanopi, belakang · panel lepas (angkat)', false],
+    ['backL', 'Pintu belakang kiri', 'Kanopi, belakang', false],
+    ['backR', 'Pintu belakang kanan', 'Kanopi, belakang', false],
     ['gateL', 'Pintu louvre kiri', 'Rumah genset, depan', true],
     ['gateR', 'Pintu louvre kanan', 'Rumah genset, depan', true]
   ];
@@ -2223,9 +2243,9 @@ function buildShelter(T, opts) {
     });
   });
   function updateClearance() {
-    var rear = (shelter && shelter.rearGap) || 0.8;
+    var rear = (shelter && shelter.rearGap) || 1.5;
     var front = dims.D - rear - 1.1;     // kedalaman ruangan - jarak belakang - kedalaman kanopi
-    [['clearFront', front, 1.5], ['clearRear', rear, 0.8]].forEach(function (r) {
+    [['clearFront', front, 1.5], ['clearRear', rear, 1.5]].forEach(function (r) {
       var el = $('#' + r[0]);
       if (!el) return;
       var ok = r[1] >= r[2] - 0.001;
@@ -2234,14 +2254,14 @@ function buildShelter(T, opts) {
     });
   }
   $('#dimStd').addEventListener('click', function () {
-    dims.D = 3.4;
+    dims.D = 4.1;
     $('#dimD').value = dims.D; $('#dimDVal').textContent = fmt(dims.D) + ' m';
     updateClearance();
     buildShelterNow();
   });
 
   $('#dimReset').addEventListener('click', function () {
-    dims = { W: 5.0, D: 2.7, H: 3.1 };
+    dims = { W: 5.0, D: 4.1, H: 3.1 };
     updateClearance();
     [['dimW', 'dimWVal', 'W'], ['dimD', 'dimDVal', 'D'], ['dimH', 'dimHVal', 'H']].forEach(function (p) { $('#' + p[0]).value = dims[p[2]]; $('#' + p[1]).textContent = fmt(dims[p[2]]) + ' m'; });
     buildShelterNow();
@@ -2348,7 +2368,7 @@ function buildShelter(T, opts) {
     var cam = (p.cam || '').split(',').map(parseFloat);
     if (cam.length === 6 && cam.every(isFinite)) o.cam = cam;
     var d = (p.dims || '').split(',').map(parseFloat);
-    if (d.length === 3 && d.every(isFinite)) o.dims = { W: clampN(d[0], 4.2, 6.5, 5), D: clampN(d[1], 2.4, 3.6, 2.7), H: clampN(d[2], 3, 3.8, 3.1) };
+    if (d.length === 3 && d.every(isFinite)) o.dims = { W: clampN(d[0], 4.2, 6.5, 5), D: clampN(d[1], 3.1, 5.2, 4.1), H: clampN(d[2], 3, 3.8, 3.1) };
     if (p.op != null) o.opacity = clampN(parseFloat(p.op), 0, 1, 1);
     if (p.roof != null) o.roof = clampN(parseFloat(p.roof), 0, 1, 1);
     if (p.wall != null) o.wall = clampN(parseFloat(p.wall), 0, 1, 1);
