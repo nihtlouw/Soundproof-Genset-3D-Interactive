@@ -16,6 +16,18 @@ Interaktif 3D cutaway untuk genset bersilencer (soundproof enclosure) — pintu,
 - **Kontrol cahaya** — tab *Rumah → Cahaya* mengatur kekuatan matahari (20–130%) dengan preset *Mendung / Siang / Cerah*. Bawaannya 70% agar siang tidak menyilaukan.
 - **Bagikan tampilan** — tombol *Bagikan* di kanan atas menyalin tautan yang memuat sudut kamera, pintu yang terbuka, opasitas, ukuran ruangan, versi rumah, dan sakelar. Siapa pun yang membuka tautan itu langsung melihat tampilan yang sama.
 
+## Dasar desain (penyederhanaan praktik lapangan)
+
+Model ini menyederhanakan praktik pemasangan genset yang umum, dengan prioritas efisiensi, keselamatan, dan kemudahan perawatan:
+
+| Aspek | Praktik umum | Penyederhanaan di model |
+| --- | --- | --- |
+| Akses belakang | Ruang belakang sering sempit, jadi enclosure memakai **panel lepas (removable)**, bukan pintu engsel — panduan NEC 110.26/NFPA 110 menuntut ruang kerja 36 inci *atau* ruang untuk membuka penuh pintu engsel | Dua panel belakang kanopi kini **lepas-angkat** (angkat, geser, sandarkan), sehingga tidak perlu ruang ayun |
+| Jarak servis | Sisi servis 1,5–2,0 m; sisi exhaust/belakang 0,8–1,0 m | Jarak belakang dikunci **0,8 m**; jarak depan ditampilkan di tab Rumah lengkap dengan tombol *Samakan ke standar (3,4 m)* |
+| Ventilasi | Bukaan masuk 1–1,5× luas radiator, keluar 2–3×; inlet rendah, outlet tinggi | V2 memakai pagar wiremesh dengan **celah udara terbuka di bawah atap** (luas bebas besar) |
+| Atap | Atap menjorok untuk menahan hujan, bukan menutup rapat | Atap seng/beton menjorok 0,6 m di depan, celah ventilasi tetap terbuka |
+| Panjang daun pintu | Daun pintu tidak boleh membentur dinding/pagar | Sudut buka dihitung otomatis dari ruang yang tersedia (`asin(ruang / lebar daun)`) |
+
 ## Menjalankan
 
 Semuanya ada di satu file, tanpa build step:

@@ -211,6 +211,12 @@ input[type=range]{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
           <div class="sliderrow"><label for="dimH">Tinggi</label><output id="dimHVal" for="dimH">3,1 m</output></div>
           <input type="range" id="dimH" min="3" max="3.8" step="0.1" value="3.1">
           <div class="btnrow" style="margin-top:0"><button class="btn" id="dimReset" type="button">Ukuran awal</button></div>
+          <h3>Jarak servis</h3>
+          <ul class="rows">
+            <li><div class="row-txt"><span class="row-name">Depan kanopi</span><span class="row-sub">saran 1,5 m</span></div><span class="row-sub" id="clearFront">–</span></li>
+            <li><div class="row-txt"><span class="row-name">Belakang unit</span><span class="row-sub">saran 0,8 m</span></div><span class="row-sub" id="clearRear">–</span></li>
+          </ul>
+          <div class="btnrow" style="margin-top:10px"><button class="btn" id="dimStd" type="button">Samakan ke standar (3,4 m)</button></div>
           <h3>Cahaya</h3>
           <div class="sliderrow"><label for="sun">Kekuatan matahari</label><output id="sunVal" for="sun">65%</output></div>
           <input type="range" id="sun" min="20" max="130" step="5" value="65">
@@ -483,7 +489,12 @@ function buildGenset(T) {
     layers.canopy.add(g);
     box(o.w, o.h, 0.035, o.mat, o.dir * o.w / 2, 0, 0, g, true);
     var sign = o.front ? -o.dir : o.dir;
-    doors[key] = { g: g, label: label, max: o.max, sign: sign, cur: 0, target: 0, front: o.front, dir: o.dir, w: o.w, h: o.h, part: o.part };
+    doors[key] = {
+      g: g, label: label, max: o.max, sign: sign, cur: 0, target: 0, front: o.front, dir: o.dir,
+      w: o.w, h: o.h, part: o.part,
+      mode: o.mode || 'swing',                       // 'lift' = panel lepas (angkat)
+      home: { x: o.hx, y: o.hy, z: z }, out: o.front ? 1 : -1
+    };
     var out = o.front ? 1 : -1;
     // hinges on the pivot line
     var hy = [o.h * 0.38, -o.h * 0.38];
@@ -647,8 +658,8 @@ function buildGenset(T) {
   /* ---------- doors (back) ---------- */
   box(0.16, H, 0.04, greyM, 0, (YB + YT) / 2, ZB + 0.02, can, true);
   var slatB = slatTex(12, 256, 300);
-  var backL = makeDoor('backL', 'Rear door, left', { hx: -1.5, hy: (YB + YT) / 2, w: 1.42, h: H, dir: 1, front: false, max: 1.45, mat: greyM, part: 'backDoors' });
-  var backR = makeDoor('backR', 'Rear door, right', { hx: 1.5, hy: (YB + YT) / 2, w: 1.42, h: H, dir: -1, front: false, max: 1.45, mat: greyM, part: 'backDoors' });
+  var backL = makeDoor('backL', 'Removable panel, left', { hx: -1.5, hy: (YB + YT) / 2, w: 1.42, h: H, dir: 1, front: false, max: 0, mode: 'lift', mat: greyM, part: 'backDoors' });
+  var backR = makeDoor('backR', 'Removable panel, right', { hx: 1.5, hy: (YB + YT) / 2, w: 1.42, h: H, dir: -1, front: false, max: 0, mode: 'lift', mat: greyM, part: 'backDoors' });
   onDoor(backL, slatB, 0.7, 0.62, 0.72, 0.18, 'out');
   onDoor(backR, slatB, 0.7, 0.62, -0.72, 0.18, 'out');
   lockHandle(backL, 1.28, 0, 'out');
@@ -883,7 +894,14 @@ function buildGenset(T) {
       var diff = d.target - d.cur;
       if (Math.abs(diff) > 0.0008) d.cur += diff * Math.min(1, dt * 5); else d.cur = d.target;
       var e = d.cur * d.cur * (3 - 2 * d.cur);
-      d.g.rotation.y = d.sign * d.max * e;
+      if (d.mode === 'lift') {
+        // angkat keluar dari rangka, geser ke samping, lalu sandarkan pada dinding
+        d.g.rotation.y = 0;
+        d.g.position.set(d.home.x, d.home.y + Math.sin(Math.PI * e) * 0.22, d.home.z + d.out * 0.34 * e);
+        d.g.rotation.x = -d.out * 0.09 * e;
+      } else {
+        d.g.rotation.y = d.sign * d.max * e;
+      }
     });
     fanSpd += ((state.run ? 22 : 0) - fanSpd) * Math.min(1, dt * 1.4);
     fan.rotation.x += dt * fanSpd;
@@ -924,14 +942,19 @@ function buildGenset(T) {
 </script>
 <script>
 /* Rumah genset (shelter). Satuan meter. Lantai atas plat = y 0, genset berdiri di titik 0,0,0.
-   Dinding belakang bagian dalam z = -1.0, bidang depan (tiang + pintu louvre) z = -1.0 + D.
+   Dinding belakang bagian dalam z = zb, bidang depan (tiang + pintu louvre) z = zb + D.
+   zb diberi jarak servis 0,8 m di belakang unit (praktik umum: 0,8-1,0 m sisi exhaust).
    Semua tekstur digambar di canvas (plester, beton, keramik, logam, daun) dengan pola acak yang tetap. */
 function buildShelter(T, opts) {
   'use strict';
   var PI = Math.PI;
   var W = opts.W, D = opts.D, H = opts.H;
   var v2 = opts.variant === 'mesh';   // versi 2: pagar wiremesh, bukan dinding plester
-  var a = W / 2, zb = -1.0, zf = zb + D;
+  var a = W / 2;
+  var rearGap = 0.8;                     // ruang di belakang unit untuk servis + aliran udara panas
+  var zb = -(0.55 + rearGap), zf = zb + D;   // 0,55 = muka belakang kanopi
+  var zBackWall = zb - 0.1;              // pusat dinding/pagar belakang (tebal 0,2 / 0,1)
+  var zPlat0 = zb - 0.2, zRoof0 = zb - 0.25;
   var gateH = H - 0.7;
   /* versi pagar lebih pendek: atap tetap di H, ditopang tiang sudut, celah udara di antaranya */
   var fenceH = v2 ? Math.max(1.95, Math.min(2.45, H - 0.75)) : H;
@@ -1177,7 +1200,7 @@ function buildShelter(T, opts) {
     }
   }, (W + 0.4) / 1.2, (D + 0.35) / 1.2);
   var tileTop = new T.MeshStandardMaterial({ map: tTex, roughness: 0.55, metalness: 0.05 });
-  var platZ0 = -1.2, platZ1 = zf + 0.15;
+  var platZ0 = zPlat0, platZ1 = zf + 0.15;
   var plat = new T.Mesh(new T.BoxGeometry(W + 0.4, 0.16, platZ1 - platZ0), [concreteM, concreteM, tileTop, concreteM, concreteM, concreteM]);
   plat.position.set(0, -0.08, (platZ0 + platZ1) / 2); plat.receiveShadow = true; floorG.add(plat);
   box(W + 0.4, 0.08, 0.5, concreteM, 0, -0.12, zf + 0.15 + 0.25, floorG, false);
@@ -1197,16 +1220,16 @@ function buildShelter(T, opts) {
   function wallBox(w, h, d, x, y, z, len) {
     var me = box(w, h, d, plaster(len, 'wall', wallMats), x, y, z, wallsG, false); wallMeshes.push(me); return me;
   }
-  var sideD = (zf - 0.1) - (-1.2), sideZ = ((zf - 0.1) + (-1.2)) / 2;
+  var sideD = (zf - 0.1) - zPlat0, sideZ = ((zf - 0.1) + zPlat0) / 2;
   if (v2) {
-    fenceWall(W + 0.4, fenceH, 0, fenceH / 2, -1.1, 0);
+    fenceWall(W + 0.4, fenceH, 0, fenceH / 2, zBackWall, 0);
     fenceWall(sideD, fenceH, -(a + 0.1), fenceH / 2, sideZ, PI / 2);
     fenceWall(sideD, fenceH, (a + 0.1), fenceH / 2, sideZ, PI / 2);
     // rel atas di depan, di atas kedua daun pintu
     wallMeshes.push(box(W + 0.16, 0.06, 0.06, fenceM, 0, fenceH - 0.03, zf, wallsG, false));
     wallMeshes.push(box(0.07, 0.12, 0.07, postM, 0, fenceH - 0.06, zf, wallsG, false));
   } else {
-    wallBox(W + 0.4, H, 0.2, 0, H / 2, -1.1, W + 0.4);
+    wallBox(W + 0.4, H, 0.2, 0, H / 2, zBackWall, W + 0.4);
     wallBox(0.2, H, sideD, -(a + 0.1), H / 2, sideZ, sideD);
     wallBox(0.2, H, sideD, (a + 0.1), H / 2, sideZ, sideD);
   }
@@ -1259,7 +1282,7 @@ function buildShelter(T, opts) {
 
   // perlengkapan dalam: panel distribusi + APAR
   var panelG = group(root, 'shPanel');
-  var pnx = -a + 0.45, pnz = v2 ? -1.07 : zb + 0.075;
+  var pnx = -a + 0.45, pnz = v2 ? zb - 0.07 : zb + 0.075;
   wallMeshes.push(box(0.5, 0.64, 0.15, galvM, pnx, 1.45, pnz, panelG, false));
   wallMeshes.push(box(0.46, 0.6, 0.012, mat(0xc9cdcf, { roughness: 0.5, metalness: 0.5, map: metalTex }), pnx, 1.45, pnz + 0.081, panelG, false));
   var plTex = ctex(256, 160, function (g, w, h) {
@@ -1277,7 +1300,7 @@ function buildShelter(T, opts) {
   [[-0.1, 0.1], [0.1, 0.1]].forEach(function (p) { wallMeshes.push(box(0.03, 0.03, 0.02, steelM, pnx + p[0] * 2, 1.45 + 0.33, pnz + 0.08, panelG, false)); });
 
   var aparG = group(root, 'shApar');
-  var apx = a - 0.4, apz = v2 ? -1.05 : zb + 0.11;
+  var apx = a - 0.4, apz = v2 ? zb - 0.05 : zb + 0.11;
   var redM = mat(0xc2201a, { roughness: 0.35, metalness: 0.2 });
   wallMeshes.push(cyl(0.075, 0.46, redM, 'y', apx, 1.1, apz, aparG, 20));
   wallMeshes.push(sph(0.075, redM, apx, 1.33, apz, aparG));
@@ -1298,7 +1321,7 @@ function buildShelter(T, opts) {
 
   /* ---------- atap + plafon + lampu ---------- */
   var roofG = group(root, 'shRoof');
-  var rz0 = -1.25, rz1 = zf + 0.6;
+  var rz0 = zRoof0, rz1 = zf + 0.6;
   var roofTh = v2 ? 0.1 : 0.22;
   var zincM = null;
   if (v2) {
@@ -1328,11 +1351,11 @@ function buildShelter(T, opts) {
   box(0.2, H, 0.2, frameM, (a + 0.1), H / 2, zf, postsG, false);
   if (v2) {
     // tiang sudut penuh dari tanah ke atap, plus balok keliling sebagai dudukan atap seng
-    [[-(a + 0.1), -1.1], [a + 0.1, -1.1], [-(a + 0.1), zf], [a + 0.1, zf]].forEach(function (p) {
+    [[-(a + 0.1), zBackWall], [a + 0.1, zBackWall], [-(a + 0.1), zf], [a + 0.1, zf]].forEach(function (p) {
       box(0.14, H, 0.14, postM, p[0], H / 2, p[1], postsG, false);
     });
     box(W + 0.36, 0.1, 0.1, frameM, 0, H - 0.05, zf, postsG, false);
-    box(W + 0.36, 0.1, 0.1, frameM, 0, H - 0.05, -1.1, postsG, false);
+    box(W + 0.36, 0.1, 0.1, frameM, 0, H - 0.05, zBackWall, postsG, false);
     box(0.1, 0.1, rz1 - rz0 - 0.3, frameM, -(a + 0.1), H - 0.05, (rz0 + rz1) / 2 - 0.05, postsG, false);
     box(0.1, 0.1, rz1 - rz0 - 0.3, frameM, (a + 0.1), H - 0.05, (rz0 + rz1) / 2 - 0.05, postsG, false);
   }
@@ -1426,13 +1449,14 @@ function buildShelter(T, opts) {
   /* ---------- knalpot tembus dinding ---------- */
   var exG = group(root, 'shExhaust');
   var exY = v2 ? fenceH - 0.42 : 2.66;
-  cyl(0.058, 0.9, pipeM, 'z', 0.88, exY, -0.97, exG, 18);
-  cyl(0.1, 0.02, steelM, 'z', 0.88, exY, -1.0, exG, 24);
-  cyl(0.1, 0.02, steelM, 'z', 0.88, exY, -1.21, exG, 24);
-  cyl(0.058, 0.2, stainM, 'z', 0.88, exY, -1.32, exG, 18);
-  sph(0.062, stainM, 0.88, exY, -1.43, exG);
-  cyl(0.058, 0.5, stainM, 'y', 0.88, exY + 0.25, -1.43, exG, 18);
-  cyl(0.1, 0.05, stainM, 'y', 0.88, exY + 0.53, -1.43, exG, 20, 0.012);
+  var ez = zb + 0.03;                        // menembus dinding/pagar belakang
+  cyl(0.058, 0.9, pipeM, 'z', 0.88, exY, ez + 0.03, exG, 18);
+  cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez, exG, 24);
+  cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez - 0.21, exG, 24);
+  cyl(0.058, 0.2, stainM, 'z', 0.88, exY, ez - 0.32, exG, 18);
+  sph(0.062, stainM, 0.88, exY, ez - 0.43, exG);
+  cyl(0.058, 0.5, stainM, 'y', 0.88, exY + 0.25, ez - 0.43, exG, 18);
+  cyl(0.1, 0.05, stainM, 'y', 0.88, exY + 0.53, ez - 0.43, exG, 20, 0.012);
 
   /* ---------- taman ---------- */
   var gardenG = group(root, 'shGarden');
@@ -1600,6 +1624,7 @@ function buildShelter(T, opts) {
 
   return {
     group: root, W: W, D: D, H: H, a: a, zb: zb, zf: zf, gateH: gateH, doors: doors, callouts: callouts,
+    rearGap: rearGap, canopyZ: 0.55,
     variant: v2 ? 'mesh' : 'plaster',
     setWalls: function (op) { fade(wallMats, wallMeshes, op); },
     setRoof: function (op) { fade(roofMats, roofMeshes, op); },
@@ -1802,22 +1827,29 @@ function buildShelter(T, opts) {
       ? 'Rumah ' + fmt(dims.W) + ' × ' + fmt(dims.D) + ' × ' + fmt(dims.H) + ' m' + kind + ' · kanopi 3,0 × 1,1 × 1,8 m'
       : 'Dibuat dari satu foto · kanopi 3,0 × 1,1 × 1,8 m';
   }
-  /* pintu belakang kanopi hanya punya ruang sempit di belakang genset:
-     batasi sudut buka supaya tidak menembus dinding/pagar belakang rumah. */
-  function updateRearLimits() {
-    var wallZ = shelter ? shelter.zb - (shelter.variant === 'mesh' ? 0.1 : 0) : -1.0;
-    ['backL', 'backR'].forEach(function (k) {
+  /* Batas buka pintu kanopi mengikuti ruang servis yang tersedia.
+     Praktik lapangan: pintu tidak boleh membentur dinding/pagar, dan panel
+     belakang dibuat lepas-angkat karena ruang di belakang unit sempit. */
+  function updateDoorLimits() {
+    if (!shelter) return;
+    var frontClear = shelter.zf - shelter.canopyZ;          // ruang di depan kanopi
+    ['alt', 'ctrl', 'engine'].forEach(function (k) {
       var d = model.doors[k];
       if (!d) return;
-      var clear = Math.abs(wallZ - d.g.position.z) - 0.06;
-      var ang = Math.asin(Math.max(0.02, Math.min(0.98, clear / Math.max(0.2, d.w))));
-      d.max = Math.max(0.24, Math.min(1.45, ang));
-      var deg = Math.round(d.max * 180 / Math.PI);
+      var clear = Math.max(0.1, frontClear - 0.08);
+      var ang = Math.asin(Math.max(0.05, Math.min(0.98, clear / Math.max(0.2, d.w))));
+      d.max = Math.max(0.3, Math.min(1.45, ang));
       var row = doorRows[k];
       if (row) {
         var sub = row.querySelector('.row-sub');
-        if (sub) sub.textContent = 'Kanopi, belakang · buka maks ' + deg + '°';
+        if (sub) sub.textContent = 'Kanopi, depan · buka maks ' + Math.round(d.max * 180 / Math.PI) + '°';
       }
+    });
+    ['backL', 'backR'].forEach(function (k) {
+      var row = doorRows[k];
+      if (!row) return;
+      var sub = row.querySelector('.row-sub');
+      if (sub) sub.textContent = 'Kanopi, belakang · panel lepas (angkat)';
     });
   }
 
@@ -1843,7 +1875,7 @@ function buildShelter(T, opts) {
     });
     applyGround();
     applySun();
-    updateRearLimits();
+    updateDoorLimits();
     if (sel) { var o = findObj(sel); if (o) select(sel, o); else select(null); }
     kick(60);
   }
@@ -2057,8 +2089,8 @@ function buildShelter(T, opts) {
     ['engine', 'Pintu mesin', 'Kanopi, depan kanan tengah', false],
     ['alt', 'Pintu alternator', 'Kanopi, depan kiri atas', false],
     ['ctrl', 'Pintu kontrol', 'Kanopi, depan kiri bawah', false],
-    ['backL', 'Pintu belakang kiri', 'Kanopi, belakang', false],
-    ['backR', 'Pintu belakang kanan', 'Kanopi, belakang', false],
+    ['backL', 'Panel lepas kiri', 'Kanopi, belakang · panel lepas (angkat)', false],
+    ['backR', 'Panel lepas kanan', 'Kanopi, belakang · panel lepas (angkat)', false],
     ['gateL', 'Pintu louvre kiri', 'Rumah genset, depan', true],
     ['gateR', 'Pintu louvre kanan', 'Rumah genset, depan', true]
   ];
@@ -2186,11 +2218,31 @@ function buildShelter(T, opts) {
     el.value = dims[p[2]]; out.textContent = fmt(dims[p[2]]) + ' m';
     el.addEventListener('input', function () {
       dims[p[2]] = parseFloat(el.value); out.textContent = fmt(dims[p[2]]) + ' m';
+      updateClearance();
       clearTimeout(rebuildT); rebuildT = setTimeout(buildShelterNow, 90);
     });
   });
+  function updateClearance() {
+    var rear = (shelter && shelter.rearGap) || 0.8;
+    var front = dims.D - rear - 1.1;     // kedalaman ruangan - jarak belakang - kedalaman kanopi
+    [['clearFront', front, 1.5], ['clearRear', rear, 0.8]].forEach(function (r) {
+      var el = $('#' + r[0]);
+      if (!el) return;
+      var ok = r[1] >= r[2] - 0.001;
+      el.textContent = fmt(r[1]) + ' m ' + (ok ? '✓' : '· kurang');
+      el.style.color = ok ? '' : 'var(--accent)';
+    });
+  }
+  $('#dimStd').addEventListener('click', function () {
+    dims.D = 3.4;
+    $('#dimD').value = dims.D; $('#dimDVal').textContent = fmt(dims.D) + ' m';
+    updateClearance();
+    buildShelterNow();
+  });
+
   $('#dimReset').addEventListener('click', function () {
     dims = { W: 5.0, D: 2.7, H: 3.1 };
+    updateClearance();
     [['dimW', 'dimWVal', 'W'], ['dimD', 'dimDVal', 'D'], ['dimH', 'dimHVal', 'H']].forEach(function (p) { $('#' + p[0]).value = dims[p[2]]; $('#' + p[1]).textContent = fmt(dims[p[2]]) + ' m'; });
     buildShelterNow();
   });
@@ -2440,6 +2492,7 @@ function buildShelter(T, opts) {
   }
   checkTheme();
   buildShelterNow();
+  updateClearance();
   openTab('doors');
   syncDoors();
   setOpacity(1);
