@@ -1158,7 +1158,7 @@ function buildShelter(T, opts) {
     }
     for (var k = 0; k <= n; k++) {
       var px = -len / 2 + pw * k;
-      wallMeshes.push(box(0.075, h + 0.02, 0.075, postM, px, 0, 0, g, false));
+      wallMeshes.push(box(0.075, h, 0.075, postM, px, 0, 0, g, false));
       wallMeshes.push(box(0.13, 0.025, 0.13, postM, px, -h / 2 - 0.012, 0, g, false));
     }
     return g;
@@ -1324,6 +1324,7 @@ function buildShelter(T, opts) {
   var roofG = group(root, 'shRoof');
   var rz0 = zRoof0, rz1 = zf + 0.6;
   var roofTh = v2 ? 0.1 : 0.22;
+  var roofBase = v2 ? fenceH : H;   // V2: atap turun menumpang di puncak pagar, tanpa celah ventilasi
   var zincM = null;
   if (v2) {
     zincM = new T.MeshStandardMaterial({
@@ -1343,25 +1344,25 @@ function buildShelter(T, opts) {
   }
   var roof = new T.Mesh(new T.BoxGeometry(W + 1.0, roofTh, rz1 - rz0),
     v2 ? [zincM, zincM, zincM, zincM, zincM, zincM] : [trimM, trimM, topM, ceilM, trimM, trimM]);
-  roof.position.set(0, H + roofTh / 2, (rz0 + rz1) / 2); roof.receiveShadow = true; roofG.add(roof); roofMeshes.push(roof);
-  roofMeshes.push(box(W + 1.0, 0.025, 0.08, frameM, 0, H - 0.0125, rz1 - 0.04, roofG, false));
+  roof.position.set(0, roofBase + roofTh / 2, (rz0 + rz1) / 2); roof.receiveShadow = true; roofG.add(roof); roofMeshes.push(roof);
+  roofMeshes.push(box(W + 1.0, 0.025, 0.08, frameM, 0, roofBase - 0.0125, rz1 - 0.04, roofG, false));
   // talang air dan pipa turun di tiang kanan
-  roofMeshes.push(cyl(0.04, W + 0.9, galvM, 'x', 0, H + 0.02, rz1 + 0.05, roofG, 12));
+  roofMeshes.push(cyl(0.04, W + 0.9, galvM, 'x', 0, roofBase + 0.02, rz1 + 0.05, roofG, 12));
   var postsG = group(root, 'shPosts');
-  box(0.2, H, 0.2, frameM, -(a + 0.1), H / 2, zf, postsG, false);
-  box(0.2, H, 0.2, frameM, (a + 0.1), H / 2, zf, postsG, false);
+  box(0.2, roofBase, 0.2, frameM, -(a + 0.1), roofBase / 2, zf, postsG, false);
+  box(0.2, roofBase, 0.2, frameM, (a + 0.1), roofBase / 2, zf, postsG, false);
   if (v2) {
-    // tiang sudut penuh dari tanah ke atap, plus balok keliling sebagai dudukan atap seng
+    // tiang sudut dari tanah ke balok ring, balok ring = dudukan langsung atap seng
     [[-(a + 0.1), zBackWall], [a + 0.1, zBackWall], [-(a + 0.1), zf], [a + 0.1, zf]].forEach(function (p) {
-      box(0.14, H, 0.14, postM, p[0], H / 2, p[1], postsG, false);
+      box(0.14, roofBase, 0.14, postM, p[0], roofBase / 2, p[1], postsG, false);
     });
-    box(W + 0.36, 0.1, 0.1, frameM, 0, H - 0.05, zf, postsG, false);
-    box(W + 0.36, 0.1, 0.1, frameM, 0, H - 0.05, zBackWall, postsG, false);
-    box(0.1, 0.1, rz1 - rz0 - 0.3, frameM, -(a + 0.1), H - 0.05, (rz0 + rz1) / 2 - 0.05, postsG, false);
-    box(0.1, 0.1, rz1 - rz0 - 0.3, frameM, (a + 0.1), H - 0.05, (rz0 + rz1) / 2 - 0.05, postsG, false);
+    box(W + 0.36, 0.1, 0.1, frameM, 0, roofBase - 0.05, zf, postsG, false);
+    box(W + 0.36, 0.1, 0.1, frameM, 0, roofBase - 0.05, zBackWall, postsG, false);
+    box(0.1, 0.1, rz1 - rz0 - 0.3, frameM, -(a + 0.1), roofBase - 0.05, (rz0 + rz1) / 2 - 0.05, postsG, false);
+    box(0.1, 0.1, rz1 - rz0 - 0.3, frameM, (a + 0.1), roofBase - 0.05, (rz0 + rz1) / 2 - 0.05, postsG, false);
   }
-  cyl(0.032, H + 0.02, galvM, 'y', a + 0.27, H / 2 + 0.01, rz1 + 0.05, postsG, 12);
-  [0.5, 1.5, 2.5].forEach(function (y) { box(0.06, 0.03, 0.05, steelM, a + 0.27, Math.min(y, H - 0.2), rz1 + 0.05, postsG, false); });
+  cyl(0.032, roofBase + 0.02, galvM, 'y', a + 0.27, roofBase / 2 + 0.01, rz1 + 0.05, postsG, 12);
+  [0.5, 1.5, 2.5].forEach(function (y) { box(0.06, 0.03, 0.05, steelM, a + 0.27, Math.min(y, roofBase - 0.2), rz1 + 0.05, postsG, false); });
 
   var lightsG = group(root, 'shLights');
   var lampM = new T.MeshBasicMaterial({ color: col(0xfff2d2) });
@@ -1369,12 +1370,12 @@ function buildShelter(T, opts) {
   var lamps = [];
   [[-a * 0.5, zf - 0.55], [a * 0.5, zf - 0.55], [-a * 0.5, 0.1], [a * 0.5, 0.1]].forEach(function (p) {
     var ring = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 0.02, 24), mat(0xe2e4e5, { roughness: 0.5 }));
-    ring.position.set(p[0], H - 0.012, p[1]); lightsG.add(ring);
+    ring.position.set(p[0], roofBase - 0.012, p[1]); lightsG.add(ring);
     var disc = new T.Mesh(new T.CircleGeometry(0.075, 24), lampM);
-    disc.rotation.x = PI / 2; disc.position.set(p[0], H - 0.024, p[1]); lightsG.add(disc);
+    disc.rotation.x = PI / 2; disc.position.set(p[0], roofBase - 0.024, p[1]); lightsG.add(disc);
   });
-  var pl1 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl1.position.set(-a * 0.5, H - 0.35, 0.4); lightsG.add(pl1); lamps.push(pl1);
-  var pl2 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl2.position.set(a * 0.5, H - 0.35, 0.4); lightsG.add(pl2); lamps.push(pl2);
+  var pl1 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl1.position.set(-a * 0.5, roofBase - 0.35, 0.4); lightsG.add(pl1); lamps.push(pl1);
+  var pl2 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl2.position.set(a * 0.5, roofBase - 0.35, 0.4); lightsG.add(pl2); lamps.push(pl2);
 
   /* ---------- panel ventilasi atas (hanya versi plester) ---------- */
   var scrG = group(root, 'shScreen');
@@ -1455,17 +1456,21 @@ function buildShelter(T, opts) {
   var ezLen = Math.max(0.4, ezCanopy - ez), ezMid = (ezCanopy + ez) / 2;
   cyl(0.058, ezLen, pipeM, 'z', 0.88, exY, ezMid, exG, 18);
   // gantungan pipa ke struktur atap: run mendatar 1,5 m tidak boleh menggantung bebas
-  var hangH = Math.max(0.12, (H - 0.06) - exY);
+  var hangH = Math.max(0.12, (roofBase - 0.06) - exY);
   [ezMid - ezLen * 0.3, ezMid + ezLen * 0.3].forEach(function (hz) {
     cyl(0.011, hangH, steelM, 'y', 0.88, exY + hangH / 2, hz, exG, 8);
     box(0.05, 0.02, 0.05, steelM, 0.88, exY + hangH, hz, exG, false);
   });
+  // V2: riser digeser keluar dari tepi atap supaya cerobong tidak menembus seng
+  var elbowZ = v2 ? ez - 0.66 : ez - 0.43;
+  var risH = v2 ? (roofBase + 0.14) - exY : 0.5;
+  var stubLen = Math.abs((ez - 0.22) - elbowZ), stubMid = ((ez - 0.22) + elbowZ) / 2;
   cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez, exG, 24);
   cyl(0.1, 0.02, steelM, 'z', 0.88, exY, ez - 0.21, exG, 24);
-  cyl(0.058, 0.2, stainM, 'z', 0.88, exY, ez - 0.32, exG, 18);
-  sph(0.062, stainM, 0.88, exY, ez - 0.43, exG);
-  cyl(0.058, 0.5, stainM, 'y', 0.88, exY + 0.25, ez - 0.43, exG, 18);
-  cyl(0.1, 0.05, stainM, 'y', 0.88, exY + 0.53, ez - 0.43, exG, 20, 0.012);
+  cyl(0.058, stubLen, stainM, 'z', 0.88, exY, stubMid, exG, 18);
+  sph(0.062, stainM, 0.88, exY, elbowZ, exG);
+  cyl(0.058, risH, stainM, 'y', 0.88, exY + risH / 2, elbowZ, exG, 18);
+  cyl(0.1, 0.05, stainM, 'y', 0.88, exY + risH + 0.028, elbowZ, exG, 20, 0.012);
 
   /* ---------- taman ---------- */
   var gardenG = group(root, 'shGarden');
@@ -1612,7 +1617,7 @@ function buildShelter(T, opts) {
   }
 
   var callouts = [
-    { part: 'shRoof', label: v2 ? 'Atap seng gelombang' : 'Atap beton', pos: [0, H + 0.26, 0.3], n: [0, 1, 0] },
+    { part: 'shRoof', label: v2 ? 'Atap seng gelombang' : 'Atap beton', pos: [0, roofBase + 0.22, 0.3], n: [0, 1, 0] },
     { part: 'shScreen', label: 'Panel ventilasi atas', pos: [-a * 0.5, H - 0.3, zf + 0.12], n: [0, 0, 1] },
     { part: 'gateL', label: 'Pintu louvre kiri', pos: [-a - 0.1, doorH * 0.62, zf + 0.24], n: [0, 0, 1] },
     { part: 'gateR', label: 'Pintu louvre kanan', pos: [a + 0.1, doorH * 0.62, zf + 0.24], n: [0, 0, 1] },
@@ -1620,8 +1625,8 @@ function buildShelter(T, opts) {
     { part: 'shVentOut', label: 'Kisi udara keluar', pos: [a + 0.2, 1.8, 0.1], n: [1, 0, 0] },
     { part: 'shSign', label: 'Papan peringatan', pos: [-(a + 0.22), 1.9, zf - 0.7], n: [-1, 0, 0] },
     { part: 'shFloor', label: 'Lantai beton', pos: [0, -0.1, zf + 0.7], n: [0, 0, 1] },
-    { part: 'shExhaust', label: 'Knalpot tembus dinding', pos: [0.88, exY + 0.75, ez - 0.43], n: null },
-    { part: 'shLights', label: 'Lampu downlight', pos: [-a * 0.5, H - 0.1, zf - 0.55], n: null, need: 'roofFade' },
+    { part: 'shExhaust', label: 'Knalpot tembus dinding', pos: [0.88, exY + risH + 0.16, elbowZ], n: null },
+    { part: 'shLights', label: 'Lampu downlight', pos: [-a * 0.5, roofBase - 0.1, zf - 0.55], n: null, need: 'roofFade' },
     { part: 'shPanel', label: 'Panel distribusi', pos: [pnx, 1.85, zb + 0.2], n: null, need: 'inside' },
     { part: 'shApar', label: 'APAR', pos: [apx, 1.55, zb + 0.2], n: null, need: 'inside' }
   ];
@@ -1633,7 +1638,7 @@ function buildShelter(T, opts) {
 
   return {
     group: root, W: W, D: D, H: H, a: a, zb: zb, zf: zf, gateH: gateH, doors: doors, callouts: callouts,
-    rearGap: rearGap, canopyZ: 0.55,
+    rearGap: rearGap, canopyZ: 0.55, fenceTop: fenceH, topY: roofBase + roofTh,
     variant: v2 ? 'mesh' : 'plaster',
     setWalls: function (op) { fade(wallMats, wallMeshes, op); },
     setRoof: function (op) { fade(roofMats, roofMeshes, op); },
@@ -1835,9 +1840,11 @@ function buildShelter(T, opts) {
   }
   function applyGround() {
     slab.visible = !shelterOn; catcher.visible = !shelterOn; gridObj.visible = !shelterOn;
-    var kind = variant === 'mesh' ? ' · pagar wiremesh' : '';
+    var mesh = variant === 'mesh';
+    var hShow = (mesh && shelter && shelter.topY) ? shelter.topY : dims.H;
+    var kind = mesh ? ' · pagar wiremesh' : '';
     $('#sub').textContent = shelterOn
-      ? 'Rumah ' + fmt(dims.W) + ' × ' + fmt(dims.D) + ' × ' + fmt(dims.H) + ' m' + kind + ' · kanopi 3,0 × 1,1 × 1,8 m'
+      ? 'Rumah ' + fmt(dims.W) + ' × ' + fmt(dims.D) + ' × ' + fmt(hShow) + ' m' + kind + ' · kanopi 3,0 × 1,1 × 1,8 m'
       : 'Dibuat dari satu foto · kanopi 3,0 × 1,1 × 1,8 m';
   }
   /* Batas buka pintu kanopi mengikuti ruang servis yang tersedia.
@@ -2211,7 +2218,7 @@ function buildShelter(T, opts) {
       ? 'Versi pagar: rangka baja ringan dengan jaring wiremesh dan daun pintu pagar ganda, atap seng di atas lantai beton yang sama.'
       : 'Rumah genset berpintu louvre ganda, atap beton, dan lantai plat seperti pada foto acuan.';
     if (note) note.textContent = mesh
-      ? 'Ukuran dalam meter, diukur dari bagian dalam pagar. Jaring wiremesh 10 × 10 cm pada rangka baja, atap seng menjorok 0,6 m di depan.'
+      ? 'Ukuran dalam meter, diukur dari bagian dalam pagar. Tinggi = tinggi pagar + atap (atap menumpang langsung di balok ring, tanpa celah ventilasi). Jaring wiremesh 10 × 10 cm, atap seng menjorok 0,6 m di depan.'
       : 'Ukuran dalam meter, diukur dari bagian dalam dinding. Dinding plester kuning setebal 20 cm, atap menjorok 0,6 m di depan.';
     DOORS.forEach(function (d) {
       if (!d[3]) return;
