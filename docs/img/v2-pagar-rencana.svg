@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200" font-family="'IBM Plex Sans',Helvetica,Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1250" width="1200" height="1250" font-family="'IBM Plex Sans',Helvetica,Arial,sans-serif">
   <defs>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="#3a4147"/>
@@ -35,11 +35,11 @@
     </style>
   </defs>
 
-  <rect class="frame" x="10" y="10" width="1180" height="1180"/>
+  <rect class="frame" x="10" y="10" width="1180" height="1230"/>
   <text class="h1" x="34" y="46">RUMAH GENSET SOUNDPROOF · V2 — PAGAR WIREMESH</text>
-  <text class="lbl" x="34" y="66">Usulan bentuk berdasarkan sketsa lapangan · modul 4,50 × 2,50 m · dinding isi 25 cm · atap spandek bubungan · pintu geser samping</text>
+  <text class="lbl" x="34" y="66">Usulan bentuk berdasarkan sketsa lapangan · modul 4,50 × 2,50 m · dinding isi 25 cm · atap spandek pelana (gable) · pintu geser samping</text>
   <line x1="34" y1="78" x2="1166" y2="78" stroke="#232a2f"/>
-  <line x1="640" y1="78" x2="640" y2="1166" stroke="#dfe4e7"/>
+  <line x1="640" y1="78" x2="640" y2="1216" stroke="#dfe4e7"/>
 
   <!-- ============================================================ A · DENAH -->
   <text class="h2" x="34" y="104">A · DENAH (TAMPAK ATAS)</text>
@@ -107,7 +107,13 @@
     <!-- atap spandek bubungan -->
     <path class="roof" d="M-40 -16 L125 -94 L290 -16 Z"/>
     <line x1="125" y1="-94" x2="125" y2="-16" stroke="#aeb7bd" stroke-width="1" stroke-dasharray="4 4"/>
-    <text class="note" x="125" y="-60" text-anchor="middle">spandek + reng</text>
+    <text class="note" x="48" y="-32" text-anchor="middle">spandek + reng</text>
+    <!-- kisi ventilasi keluar di ujung bubungan -->
+    <rect x="96" y="-44" width="58" height="19" fill="#eef1f3" stroke="#3a4147" stroke-width="1.2"/>
+    <line x1="98" y1="-37" x2="152" y2="-37" stroke="#8d97a0" stroke-width="1.5"/>
+    <line x1="98" y1="-31" x2="152" y2="-31" stroke="#8d97a0" stroke-width="1.5"/>
+    <line x1="98" y1="-44" x2="98" y2="-25" stroke="#c8ced2" stroke-width="1"/>
+    <line x1="152" y1="-44" x2="152" y2="-25" stroke="#c8ced2" stroke-width="1"/>
     <!-- pondasi -->
     <rect x="-16" y="240" width="282" height="15" fill="url(#hatch)" stroke="#232a2f"/>
     <rect x="-40" y="255" width="330" height="4" fill="#e7ebee" stroke="#232a2f"/>
@@ -115,7 +121,7 @@
     <path class="dimv" d="M-58 0 L-58 240"/>
     <text class="dimt" x="-66" y="124" text-anchor="end">240</text>
     <path class="dimv" d="M-86 -16 L-86 -94"/>
-    <text class="dimt" x="-94" y="-50" text-anchor="end">60</text>
+    <text class="dimt" x="-94" y="-50" text-anchor="end">50</text>
     <path class="dim" d="M0 264 L250 264"/>
     <text class="dimt" x="125" y="279" text-anchor="middle">250 cm</text>
     <path class="dimv" d="M264 240 L264 256"/>
@@ -124,6 +130,9 @@
   <line x1="860" y1="170" x2="1010" y2="146" class="lead"/>
   <text class="note" x="1014" y="142">tiang hollow 60 × 60</text>
   <text class="note" x="1014" y="156">+ balok ring keliling</text>
+  <line x1="908" y1="232" x2="1008" y2="182" class="lead"/>
+  <text class="note" x="1014" y="180">kisi ventilasi keluar</text>
+  <text class="note" x="1014" y="194">di kedua ujung bubungan</text>
   <line x1="1156" y1="252" x2="1000" y2="268" class="lead"/>
   <text class="note" x="1014" y="272">3 rel hollow</text>
   <text class="note" x="1014" y="286">(atas, tengah, bawah)</text>
@@ -145,7 +154,8 @@
     <text x="670" y="736">7 · Panel genset + kWh di dinding samping luar,</text>
     <text x="686" y="751">kabel masuk lewat satu jalur.</text>
     <text x="670" y="771">8 · Atap menonjol 30–60 cm tiap sisi + talang.</text>
-    <text x="670" y="791">9 · Ventilasi lewat seluruh bidang wiremesh.</text>
+    <text x="670" y="791">9 · Ventilasi: masuk lewat bidang wiremesh, keluar</text>
+    <text x="686" y="806">lewat kisi di kedua ujung bubungan.</text>
   </g>
 
   <!-- ============================================================ C · TAMPAK DEPAN -->
@@ -196,29 +206,31 @@
   <line x1="430" y1="632" x2="486" y2="606" class="lead"/>
   <text class="note" x="490" y="598">knalpot berhenti di bawah atap</text>
   <text class="note" x="490" y="612">(collar + tudung, spandek utuh)</text>
-  <line x1="700" y1="890" x2="724" y2="884" class="lead"/>
-  <text class="note" x="728" y="882">roda geser + rel bawah</text>
+  <line x1="486" y1="904" x2="500" y2="918" class="lead"/>
+  <text class="note" x="504" y="920">roda geser + rel bawah</text>
 
   <!-- ============================================================ E · BAHAN -->
   <line x1="670" y1="826" x2="1166" y2="826" stroke="#dfe4e7"/>
   <text class="h2" x="670" y="852">E · BAHAN</text>
   <g class="note">
-    <text x="670" y="876">Hollow 60×60×1,8 (tiang) · hollow 40×40 (rel) · wiremesh</text>
-    <text x="670" y="890">10×10 galvanis · spandek 0,35 + reng · beton sloof 15/20</text>
-    <text x="670" y="904">· lantai beton 10 cm · engsel roda + rel pintu geser</text>
+    <text x="670" y="878">Hollow 60×60×1,8 (tiang) · hollow 40×40 (rel) · wiremesh</text>
+    <text x="670" y="892">10×10 galvanis · spandek 0,35 + reng · beton sloof 15/20</text>
+    <text x="670" y="906">· lantai beton 10 cm · engsel roda + rel pintu geser</text>
   </g>
-  <line x1="670" y1="926" x2="1166" y2="926" stroke="#dfe4e7"/>
-  <text class="h2" x="670" y="952">F · KEPUTUSAN KLIEN</text>
+  <line x1="670" y1="930" x2="1166" y2="930" stroke="#dfe4e7"/>
+  <text class="h2" x="670" y="954">F · KEPUTUSAN KLIEN</text>
   <g class="lbl">
-    <text x="670" y="976">• Tinggi total 3,00 m (pagar 2,40 m + balok ring</text>
-    <text x="686" y="991">10 cm + naik atap 50 cm) — agar panel kanopi</text>
-    <text x="686" y="1006">genset bisa dibuka di dalam.</text>
-    <text x="670" y="1026">• Pintu geser 2 daun, masing-masing ±2,16 m.</text>
-    <text x="670" y="1046">• Modul 4,50 × 2,50 m dipakai apa adanya</text>
-    <text x="686" y="1061">(ruang bersih 4,00 × 2,00 m).</text>
-    <text x="670" y="1081">• Pintu di sisi panjang 450 cm.</text>
-    <text x="670" y="1101">• Atap spandek bubungan; knalpot berhenti di</text>
-    <text x="686" y="1116">bawah atap (tidak menembus).</text>
+    <text x="670" y="978">• Tinggi total 3,00 m (pagar 2,40 m + balok ring</text>
+    <text x="686" y="993">10 cm + naik atap 50 cm) — agar panel kanopi</text>
+    <text x="686" y="1008">genset bisa dibuka di dalam.</text>
+    <text x="670" y="1028">• Pintu geser 2 daun, masing-masing ±2,16 m.</text>
+    <text x="670" y="1048">• Modul 4,50 × 2,50 m dipakai apa adanya</text>
+    <text x="686" y="1063">(ruang bersih 4,00 × 2,00 m).</text>
+    <text x="670" y="1083">• Pintu di sisi panjang 450 cm.</text>
+    <text x="670" y="1103">• Atap spandek bubungan; knalpot berhenti di</text>
+    <text x="686" y="1118">bawah atap (tidak menembus).</text>
+    <text x="670" y="1138">• Ditambah kisi ventilasi keluar di kedua ujung</text>
+    <text x="686" y="1153">bubungan agar panas tidak terkurung.</text>
   </g>
-  <text class="note" x="34" y="1176">Soundproof-Genset-3D-Interactive · usulan V2 dari sketsa klien · satuan cm · gambar berskala, bukan acuan pelaksanaan</text>
+  <text class="note" x="34" y="1226">Soundproof-Genset-3D-Interactive · usulan V2 dari sketsa klien · satuan cm · gambar berskala, bukan acuan pelaksanaan</text>
 </svg>
