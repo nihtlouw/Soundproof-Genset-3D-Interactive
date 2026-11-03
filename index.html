@@ -1457,41 +1457,139 @@ function buildShelter(T, opts) {
     /* V2: panel genset + kWh di dinding samping luar; sepasang kabel merah/hitam
        keluar lewat gland dan tersambung kontinu ke panel kontrol genset di dalam. */
     var outX = -(a + 0.25) - 0.005;
+    var panelZ = zf - 1.75;
+    var panelBoardW = Math.min(1.04, Math.max(0.90, D - 1.10));
+    var panelScaleY = Math.min(1, Math.max(0.7, (fenceH - 0.08) / 2.42));
+    var panelCableY = 1.22 * panelScaleY;
     var pnOut = group(panelG, null, outX, 0, 0);
-    wallMeshes.push(box(0.012, 0.62, 0.46, galvM, 0, 1.45, zf - 1.75, pnOut, false));
-    wallMeshes.push(box(0.012, 0.58, 0.42, mat(0xc9cdcf, { roughness: 0.5, metalness: 0.5, map: metalTex }), -0.012, 1.45, zf - 1.75, pnOut, false));
-    var plTex = ctex(256, 200, function (g, w, h) {
-      g.clearRect(0, 0, w, h);
-      g.fillStyle = '#1b1f22'; g.fillRect(16, 10, w - 32, 34);
-      g.fillStyle = '#e8eaea'; g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.font = '700 20px "Barlow Condensed","Arial Narrow",sans-serif';
-      g.fillText('PANEL GENSET', w / 2, 28);
-      ['#d83a2e', '#e8b520', '#33c46c'].forEach(function (c, i) { g.fillStyle = c; g.beginPath(); g.arc(66 + i * 62, 72, 9, 0, PI * 2); g.fill(); });
-      g.fillStyle = '#2b2f33'; g.fillRect(28, 100, w - 56, 24);
-      g.fillStyle = '#e6e6e6'; g.font = '500 13px "IBM Plex Mono",monospace';
-      g.fillText('380 V  50 Hz', w / 2, 112);
-      g.fillStyle = '#9aa0a6'; g.font = '500 11px "IBM Plex Mono",monospace';
-      g.fillText('kWh METER', w / 2, 146);
-      g.fillStyle = '#121417'; g.fillRect(48, 158, w - 96, 30);
-      g.fillStyle = '#7ee0a0'; g.font = '700 18px "IBM Plex Mono",monospace';
-      g.fillText('0 0 4 2 8', w / 2, 173);
+    pnOut.scale.y = panelScaleY;
+    /* Pelat dudukan solid di sisi luar wiremesh, dengan standoff galvanis ke rangka.
+       Ini memberi permukaan dinding yang jelas untuk kabinet panel, tanpa menutup
+       seluruh bidang ventilasi rumah genset. */
+    var mountM = mat(0xd9ddde, { roughness: 0.78, metalness: 0.22, map: metalTex }, wallMats);
+    var mountEdgeM = mat(0x697478, { roughness: 0.55, metalness: 0.65 }, wallMats);
+    var conduitM = mat(0x9ca5a9, { roughness: 0.46, metalness: 0.72 }, wallMats);
+    wallMeshes.push(box(0.03, 1.82, panelBoardW, mountM, -0.02, 1.51, panelZ, pnOut, false));
+    [-1, 1].forEach(function (side) {
+      var oz = side * (panelBoardW / 2 - 0.06);
+      [0.68, 2.32].forEach(function (yy) {
+        wallMeshes.push(box(0.035, 0.05, 0.05, mountEdgeM, 0.0125, yy, panelZ + oz, pnOut, false));
+        wallMeshes.push(cyl(0.018, 0.012, mountEdgeM, 'x', -0.043, yy, panelZ + oz, pnOut, 10));
+      });
     });
-    var pl = new T.Mesh(new T.PlaneGeometry(0.4, 0.31), decalMat(plTex, wallMats));
-    pl.position.set(-0.019, 1.45, zf - 1.75); pl.rotation.y = -PI / 2; pl.renderOrder = 3; pnOut.add(pl); wallMeshes.push(pl);
-    // kotak kWh terpisah di bawah panel
-    wallMeshes.push(box(0.18, 0.24, 0.3, mat(0xdfe3e5, { roughness: 0.55 }), -0.02, 1.02, zf - 1.75, pnOut, false));
+
+    /* Kabinet kontrol 3-fasa, proporsi dan susunan mengikuti foto acuan. */
+    var cabinetM = mat(0x81898c, { roughness: 0.48, metalness: 0.58, map: metalTex }, wallMats);
+    var cabinetDoorM = mat(0xc8cccd, { roughness: 0.48, metalness: 0.42, map: metalTex }, wallMats);
+    var panelBlackM = mat(0x242a2c, { roughness: 0.42, metalness: 0.42 }, wallMats);
+    wallMeshes.push(box(0.12, 1.08, 0.82, cabinetM, -0.095, 1.72, panelZ, pnOut, false));
+    wallMeshes.push(box(0.018, 1.02, 0.76, cabinetDoorM, -0.164, 1.72, panelZ, pnOut, false));
+    var plTex = ctex(512, 688, function (g, w, h) {
+      g.fillStyle = '#c8cbca'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#dde0df'; g.fillRect(9, 8, w - 18, h - 16);
+      g.strokeStyle = '#657174'; g.lineWidth = 5; g.strokeRect(10, 9, w - 20, h - 18);
+      g.fillStyle = '#20282b'; g.fillRect(24, 20, w - 48, 46);
+      g.fillStyle = '#eef1ef'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = '700 26px "Barlow Condensed","Arial Narrow",sans-serif';
+      g.fillText('PANEL KONTROL GENSET', w / 2, 43);
+      var colors = ['#35ad62', '#3978c2', '#ce4038'];
+      var rowLabels = [['PLN ON', 'BEBAN', 'GENSET'], ['NORMAL', 'AUTO', 'ALARM']];
+      var xs = [96, 256, 416], ys = [132, 252];
+      for (var r = 0; r < 2; r++) {
+        for (var c = 0; c < 3; c++) {
+          g.fillStyle = '#343b3d'; g.font = '600 15px "IBM Plex Mono",monospace';
+          g.fillText(rowLabels[r][c], xs[c], ys[r] - 28);
+          g.fillStyle = '#242a2c'; g.beginPath(); g.arc(xs[c], ys[r], 25, 0, Math.PI * 2); g.fill();
+          g.fillStyle = colors[c]; g.beginPath(); g.arc(xs[c], ys[r], 17, 0, Math.PI * 2); g.fill();
+          g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(xs[c] - 5, ys[r] - 6, 5, 0, Math.PI * 2); g.fill();
+        }
+      }
+      g.fillStyle = '#e6d99c'; g.fillRect(26, 292, w - 52, 226);
+      g.strokeStyle = '#817951'; g.lineWidth = 3; g.strokeRect(26, 292, w - 52, 226);
+      g.fillStyle = '#403b28'; g.font = '700 18px "Barlow Condensed","Arial Narrow",sans-serif';
+      g.fillText('AUTO START / TRANSFER CONTROL', w / 2, 316);
+      g.fillStyle = '#373d3e'; g.font = '600 13px "IBM Plex Mono",monospace';
+      g.fillText('ACCU VOLTAGE', 100, 343);
+      g.fillStyle = '#171d1f'; g.fillRect(39, 358, 125, 48);
+      g.fillStyle = '#9af0ad'; g.font = '700 25px "IBM Plex Mono",monospace';
+      g.fillText('24.8 V', 101, 382);
+      [['DELAY START', '00:30'], ['DELAY STOP', '02:00']].forEach(function (a, i) {
+        var x = 182 + i * 147;
+        g.fillStyle = '#373d3e'; g.font = '600 12px "IBM Plex Mono",monospace'; g.fillText(a[0], x + 61, 347);
+        g.fillStyle = '#171d1f'; g.fillRect(x, 360, 122, 48);
+        g.fillStyle = '#9af0ad'; g.font = '700 24px "IBM Plex Mono",monospace'; g.fillText(a[1], x + 61, 385);
+      });
+      g.fillStyle = '#474c4c'; g.fillRect(39, 426, w - 78, 70);
+      g.fillStyle = '#ecedeb'; g.font = '600 13px "IBM Plex Mono",monospace';
+      g.fillText('MODE    START    RESET    STOP', w / 2, 443);
+      g.strokeStyle = '#939995'; g.lineWidth = 2; g.strokeRect(39, 426, w - 78, 70);
+      g.fillStyle = '#303638'; g.font = '700 17px "Barlow Condensed","Arial Narrow",sans-serif';
+      g.fillText('OPERASI GENSET', w / 2, 542);
+      var controls = [['START', '#35ad62'], ['MAN / AUTO', '#747b7c'], ['ON / OFF', '#e5ae31'], ['STOP', '#cf3e35']];
+      controls.forEach(function (a, i) {
+        var x = 67 + i * 126;
+        g.fillStyle = '#343a3c'; g.fillRect(x - 38, 558, 76, 91);
+        g.fillStyle = a[1]; g.beginPath(); g.arc(x, 591, 21, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#252b2d'; g.font = '600 12px "IBM Plex Mono",monospace'; g.fillText(a[0], x, 629);
+      });
+      g.fillStyle = '#697174'; g.font = '500 11px "IBM Plex Mono",monospace';
+      g.textAlign = 'left'; g.fillText('380 V · 50 Hz', 25, h - 20);
+      g.textAlign = 'right'; g.fillText('3 PHASE', w - 25, h - 20);
+    });
+    var pl = new T.Mesh(new T.PlaneGeometry(0.73, 0.97), decalMat(plTex, wallMats));
+    pl.position.set(-0.176, 1.72, panelZ); pl.rotation.y = -PI / 2; pl.renderOrder = 3; pnOut.add(pl); wallMeshes.push(pl);
+
+    /* Indicator lamps and lower push-buttons stand proud of the cabinet face. */
+    var bezelM = mat(0x303638, { roughness: 0.4, metalness: 0.42 }, wallMats);
+    var lensMats = [0x35ad62, 0x3978c2, 0xce4038].map(function (h) {
+      var m = new T.MeshStandardMaterial({ color: col(h), emissive: col(h), emissiveIntensity: 0.18, roughness: 0.28, metalness: 0.12 });
+      wallMats.push(m); return m;
+    });
+    var indicatorZ = [panelZ - 0.23, panelZ, panelZ + 0.23];
+    [2.02, 1.85].forEach(function (yy) {
+      indicatorZ.forEach(function (zz, i) {
+        wallMeshes.push(cyl(0.031, 0.022, bezelM, 'x', -0.185, yy, zz, pnOut, 16));
+        wallMeshes.push(cyl(0.021, 0.024, lensMats[i], 'x', -0.207, yy, zz, pnOut, 18));
+      });
+    });
+    var controlMats = [lensMats[0], bezelM, mat(0xe0ad32, { roughness: 0.45, metalness: 0.12 }, wallMats), mat(0xc93c34, { roughness: 0.34, metalness: 0.12 }, wallMats)];
+    [-0.255, -0.085, 0.085, 0.255].forEach(function (oz, i) {
+      var zz = panelZ + oz;
+      wallMeshes.push(cyl(0.048, 0.024, bezelM, 'x', -0.187, 1.38, zz, pnOut, 18));
+      wallMeshes.push(cyl(0.033, 0.026, controlMats[i], 'x', -0.211, 1.38, zz, pnOut, 20));
+    });
+    // Door hardware, hinges, lock, and a short conduit into the top of the cabinet.
+    wallMeshes.push(box(0.035, 0.14, 0.025, panelBlackM, -0.204, 1.72, panelZ + 0.34, pnOut, false));
+    [1.36, 2.05].forEach(function (yy) { wallMeshes.push(box(0.024, 0.10, 0.03, mountEdgeM, -0.179, yy, panelZ - 0.35, pnOut, false)); });
+    wallMeshes.push(cyl(0.014, 0.18, conduitM, 'y', -0.075, 2.33, panelZ, pnOut, 10));
+    wallMeshes.push(cyl(0.024, 0.035, conduitM, 'y', -0.075, 2.28, panelZ, pnOut, 12));
+
+    /* Meter energi berada terpisah tepat di bawah kabinet utama. */
+    var kwhM = mat(0xbec4c5, { roughness: 0.5, metalness: 0.42, map: metalTex }, wallMats);
+    wallMeshes.push(box(0.12, 0.34, 0.52, cabinetM, -0.095, 0.92, panelZ, pnOut, false));
+    wallMeshes.push(box(0.018, 0.29, 0.47, kwhM, -0.164, 0.92, panelZ, pnOut, false));
+    var kwhTex = ctex(384, 220, function (g, w, h) {
+      g.fillStyle = '#cdd1d0'; g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#596365'; g.lineWidth = 6; g.strokeRect(5, 5, w - 10, h - 10);
+      g.fillStyle = '#263032'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = '700 24px "Barlow Condensed","Arial Narrow",sans-serif'; g.fillText('kWh METER', w / 2, 35);
+      g.fillStyle = '#111719'; g.fillRect(35, 62, w - 70, 82);
+      g.fillStyle = '#a5f0b0'; g.font = '700 29px "IBM Plex Mono",monospace'; g.fillText('002842.7', w / 2, 100);
+      g.fillStyle = '#424a4b'; g.font = '600 14px "IBM Plex Mono",monospace'; g.fillText('kWh  ·  3 PHASE', w / 2, 178);
+    });
+    var kwhFace = new T.Mesh(new T.PlaneGeometry(0.44, 0.25), decalMat(kwhTex, wallMats));
+    kwhFace.position.set(-0.176, 0.92, panelZ); kwhFace.rotation.y = -PI / 2; kwhFace.renderOrder = 3; pnOut.add(kwhFace); wallMeshes.push(kwhFace);
     // Dua kabel nyata-terlihat: keluar dari panel luar, menembus pagar samping,
     // turun sepanjang dinding dalam, lalu masuk ke slot panel kontrol genset.
-    var panelZ = zf - 1.75;
-    var feedThrough = cyl(0.032, 0.30, galvM, 'x', -(a + 0.125), 1.22, panelZ, panelG, 12);
+    var feedThrough = cyl(0.032, 0.30, conduitM, 'x', -(a + 0.125), panelCableY, panelZ, panelG, 12);
     wallMeshes.push(feedThrough);
-    var cableBlackM = mat(0x171a1d, { roughness: 0.82 });
-    var cableRedM = mat(0xb53028, { roughness: 0.72 });
+    var cableBlackM = mat(0x171a1d, { roughness: 0.82 }, wallMats);
+    var cableRedM = mat(0xb53028, { roughness: 0.72 }, wallMats);
     function cableToGenset(offset, cableM) {
       var route = [
-        [outX - 0.02, 1.22 + offset, panelZ],
-        [-(a + 0.17), 1.22 + offset, panelZ],
-        [-(a - 0.04), 1.22 + offset, panelZ],
+        [outX - 0.02, panelCableY + offset, panelZ],
+        [-(a + 0.17), panelCableY + offset, panelZ],
+        [-(a - 0.04), panelCableY + offset, panelZ],
         [-(a - 0.04), 0.18 + offset, panelZ],
         [-(a - 0.04), 0.18 + offset, 0.20],
         [-(a - 0.04), 0.18 + offset, 0.42],
@@ -1506,9 +1604,7 @@ function buildShelter(T, opts) {
     cableToGenset(0.022, cableBlackM);
     cableToGenset(-0.022, cableRedM);
     // gland masuk ke slot panel kontrol di muka genset
-    wallMeshes.push(cyl(0.032, 0.055, galvM, 'z', -0.62, 0.405, 0.565, panelG, 12));
-    // pipa conduit dari panel luar ke atas
-    wallMeshes.push(cyl(0.014, 0.7, galvM, 'y', -0.02, 2.0, panelZ, pnOut, 10));
+    wallMeshes.push(cyl(0.032, 0.055, conduitM, 'z', -0.62, 0.405, 0.565, panelG, 12));
   } else {
   wallMeshes.push(box(0.5, 0.64, 0.15, galvM, pnx, 1.45, pnz, panelG, false));
   wallMeshes.push(box(0.46, 0.6, 0.012, mat(0xc9cdcf, { roughness: 0.5, metalness: 0.5, map: metalTex }), pnx, 1.45, pnz + 0.081, panelG, false));
@@ -1708,17 +1804,19 @@ function buildShelter(T, opts) {
   }
 
   var lightsG = group(root, 'shLights');
-  var lampM = new T.MeshBasicMaterial({ color: col(0xfff2d2) });
+  var lampM = v2 ? null : new T.MeshBasicMaterial({ color: col(0xfff2d2) });
   var lampOff = col(0x8c8f90), lampOn = col(0xfff2d2);
   var lamps = [];
-  [[-a * 0.5, zf - 0.55], [a * 0.5, zf - 0.55], [-a * 0.5, 0.1], [a * 0.5, 0.1]].forEach(function (p) {
-    var ring = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 0.02, 24), mat(0xe2e4e5, { roughness: 0.5 }));
-    ring.position.set(p[0], roofBase - 0.012, p[1]); lightsG.add(ring);
-    var disc = new T.Mesh(new T.CircleGeometry(0.075, 24), lampM);
-    disc.rotation.x = PI / 2; disc.position.set(p[0], roofBase - 0.024, p[1]); lightsG.add(disc);
-  });
-  var pl1 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl1.position.set(-a * 0.5, roofBase - 0.35, 0.4); lightsG.add(pl1); lamps.push(pl1);
-  var pl2 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl2.position.set(a * 0.5, roofBase - 0.35, 0.4); lightsG.add(pl2); lamps.push(pl2);
+  if (!v2) {
+    [[-a * 0.5, zf - 0.55], [a * 0.5, zf - 0.55], [-a * 0.5, 0.1], [a * 0.5, 0.1]].forEach(function (p) {
+      var ring = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 0.02, 24), mat(0xe2e4e5, { roughness: 0.5 }));
+      ring.position.set(p[0], roofBase - 0.012, p[1]); lightsG.add(ring);
+      var disc = new T.Mesh(new T.CircleGeometry(0.075, 24), lampM);
+      disc.rotation.x = PI / 2; disc.position.set(p[0], roofBase - 0.024, p[1]); lightsG.add(disc);
+    });
+    var pl1 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl1.position.set(-a * 0.5, roofBase - 0.35, 0.4); lightsG.add(pl1); lamps.push(pl1);
+    var pl2 = new T.PointLight(0xfff0d0, 0.55, 7, 2); pl2.position.set(a * 0.5, roofBase - 0.35, 0.4); lightsG.add(pl2); lamps.push(pl2);
+  }
 
   /* ---------- panel ventilasi atas (hanya versi plester) ---------- */
   var scrG = group(root, 'shScreen');
@@ -1811,40 +1909,95 @@ function buildShelter(T, opts) {
 
   /* ---------- knalpot tembus dinding ---------- */
   var exG = group(root, 'shExhaust');
+  var exhaustOn = true;
   var exY = v2 ? fenceH - 0.42 : 2.66;
   var ez = zb + 0.03;                        // V1: menembus dinding belakang
   var ezCanopy = -0.55;                      // knalpot keluar dari muka belakang kanopi
   var elbowZ, risH, risTop;
   if (v2) {
-    /* V2: knalpot kanopi TIDAK menembus atap. Ujung knalpot yang sudah ada cukup
-       ditambah collar, tiga penopang tudung, dan tudung hujan — semuanya berhenti
-       di bawah bidang atap spandek. Pagar juga tidak dilubangi. */
-    var crossZ = ezCanopy;                  // sumbu knalpot = ujung knalpot kanopi
+    /* V2: ganti pipa lama dengan jalur kontinu dari turbo, elbow halus,
+       sambungan fleksibel, lalu stack tegak yang berhenti di bawah spandek. */
+    var crossZ = ezCanopy;
     var xSt = 0.88;
-    var muffTop = 2.66;                     // ujung atas knalpot kanopi (dari model genset)
-    // tinggi bidang atap tepat di atas knalpot, lalu sisakan ruang bebas
-    var yRoofHere = roofYAt(crossZ);
-    var capTop = Math.min(muffTop + 0.16, yRoofHere - 0.1, ridgeY - 0.1);
-    var capH = 0.08, capR = 0.14;
+    var stackBase = 1.96;
     elbowZ = crossZ;
-    // collar di ujung knalpot
-    cyl(0.1, 0.03, steelM, 'y', xSt, muffTop + 0.01, crossZ, exG, 20, 0.112);
-    // tiga penopang tudung
+    var heatPath = [
+      [0.10, 1.27, -0.12],
+      [0.20, 1.40, -0.15],
+      [0.38, 1.51, -0.22],
+      [0.58, 1.58, -0.32],
+      [0.75, 1.67, -0.44],
+      [0.84, 1.76, -0.52],
+      [xSt, 1.81, crossZ]
+    ].map(function (p) { return new T.Vector3(p[0], p[1], p[2]); });
+    var heatCurve = new T.CatmullRomCurve3(heatPath, false, 'centripetal');
+    var wrappedPipe = new T.Mesh(new T.TubeGeometry(heatCurve, 64, 0.058, 14, false), pipeM);
+    wrappedPipe.castShadow = true; wrappedPipe.receiveShadow = true; exG.add(wrappedPipe);
+    // Ring jahitan tipis pada pembungkus panas, mengikuti arah kurva.
+    for (var wi = 1; wi <= 5; wi++) {
+      var wp = heatCurve.getPointAt(wi / 6), wt = heatCurve.getTangentAt(wi / 6);
+      var wrapBand = new T.Mesh(new T.TorusGeometry(0.059, 0.003, 6, 18), steelM);
+      wrapBand.position.copy(wp); wrapBand.quaternion.setFromUnitVectors(new T.Vector3(0, 0, 1), wt); exG.add(wrapBand);
+    }
+    // Flexible metal bellows at the elbow, with two flanges.
+    var flexBottom = 1.80, flexTop = stackBase, flexH = flexTop - flexBottom;
+    cyl(0.058, flexH, steelM, 'y', xSt, (flexBottom + flexTop) / 2, crossZ, exG, 20);
+    for (var fi = 0; fi <= 5; fi++) {
+      var fy = flexBottom + flexH * fi / 5;
+      var flexRing = new T.Mesh(new T.TorusGeometry(0.06, 0.005, 6, 20), steelM);
+      flexRing.rotation.x = PI / 2; flexRing.position.set(xSt, fy, crossZ); exG.add(flexRing);
+    }
+    cyl(0.073, 0.025, stainM, 'y', xSt, stackBase + 0.012, crossZ, exG, 22);
+
+    // Cap height is calculated from the actual roof plane at the stack location.
+    // A 16 cm air gap keeps the cap below the spandek for every supported height.
+    var yRoofHere = roofYAt(crossZ);
+    var capTop = Math.min(stackBase + 0.92, yRoofHere - 0.16, ridgeY - 0.16);
+    var capH = 0.035, capR = 0.11;
+    var capBottom = capTop - capH;
+    var stackTop = capBottom - 0.07;
+    var stackH = Math.max(0.08, stackTop - stackBase);
+    cyl(0.058, stackH, stainM, 'y', xSt, (stackBase + stackTop) / 2, crossZ, exG, 22);
+    // Small top clamp and a rain hood with open sides.
+    var topClamp = new T.Mesh(new T.TorusGeometry(0.064, 0.006, 8, 22), steelM);
+    topClamp.rotation.x = PI / 2; topClamp.position.set(xSt, stackTop - 0.012, crossZ); exG.add(topClamp);
+    var cap = new T.Mesh(new T.CylinderGeometry(capR * 0.82, capR, capH, 24), steelM);
+    cap.position.set(xSt, capTop - capH / 2, crossZ); exG.add(cap);
     for (var ci = 0; ci < 3; ci++) {
       var ca = ci / 3 * PI * 2;
-      cyl(0.008, Math.max(0.02, capTop - capH / 2 - muffTop - 0.02), steelM, 'y',
-        xSt + Math.cos(ca) * capR * 0.72, (muffTop + 0.02 + capTop - capH / 2) / 2, crossZ + Math.sin(ca) * capR * 0.72, exG, 8);
+      var supportR = 0.061, supportH = capBottom - stackTop;
+      cyl(0.006, supportH, steelM, 'y',
+        xSt + Math.cos(ca) * supportR, (stackTop + capBottom) / 2,
+        crossZ + Math.sin(ca) * supportR, exG, 8);
     }
-    // tudung hujan (di bawah atap)
-    var cap = new T.Mesh(new T.ConeGeometry(capR, capH, 20), steelM);
-    cap.position.set(xSt, capTop - capH / 2, crossZ); exG.add(cap);
-    // gantungan knalpot ke rangka atap, tetap di bawah bidang atap
-    var hangZ = crossZ - 0.34, hangY = Math.min(muffTop - 0.04, roofYAt(hangZ) - 0.06);
-    cyl(0.011, 0.34, steelM, 'z', xSt, hangY, crossZ - 0.17, exG, 8);
-    box(0.05, 0.03, 0.045, steelM, xSt, hangY, hangZ, exG, false);
-    // batang pendek naik dari knalpot ke gantungan
-    cyl(0.011, 0.12, steelM, 'y', xSt, hangY - 0.06, hangZ, exG, 8);
-    risH = 0;
+
+    // Two diagonal hanger straps connect the pipe clamp to the nearest roof purlin.
+    var purlinChoices = [0.25, 0.6, 0.9].filter(function (f) {
+      var ss = halfRun * f;
+      return !(ss > ventSlotS0 - 0.04 && ss < ventSlotS1 + 0.04);
+    }).map(function (f) {
+      var ss = halfRun * f;
+      return { f: f, z: roofZmid - ss, y: roofBase + rise * (1 - f) - 0.06 };
+    });
+    purlinChoices.sort(function (u, v) { return Math.abs(u.z - crossZ) - Math.abs(v.z - crossZ); });
+    if (purlinChoices.length) {
+      var support = purlinChoices[0];
+      var braceY = Math.min(stackTop - 0.12, stackBase + 0.42);
+      var braceEndY = support.y - 0.045;
+      var clampRing = new T.Mesh(new T.TorusGeometry(0.066, 0.007, 8, 22), steelM);
+      clampRing.rotation.x = PI / 2; clampRing.position.set(xSt, braceY, crossZ); exG.add(clampRing);
+      [-0.07, 0.07].forEach(function (dx) {
+        var p0 = new T.Vector3(xSt + dx, braceY, crossZ);
+        var p1 = new T.Vector3(xSt + dx, braceEndY, support.z);
+        var axis = new T.Vector3().subVectors(p1, p0), length = axis.length();
+        var rod = new T.Mesh(new T.CylinderGeometry(0.009, 0.009, length, 8), steelM);
+        rod.position.copy(p0).add(p1).multiplyScalar(0.5);
+        rod.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), axis.normalize());
+        rod.castShadow = true; exG.add(rod);
+      });
+      box(0.22, 0.025, 0.06, steelM, xSt, support.y - 0.035, support.z, exG, false);
+    }
+    risH = stackH;
     risTop = capTop;
   } else {
     var ezLen = Math.max(0.4, ezCanopy - ez), ezMid = (ezCanopy + ez) / 2;
@@ -1975,9 +2128,15 @@ function buildShelter(T, opts) {
     meshes.forEach(function (me) { me.visible = op > 0.02; });
   }
   function setLights(on) {
+    if (v2) return;
     lampM.color.copy(on ? lampOn : lampOff);
     lamps.forEach(function (l) { l.intensity = on ? 0.55 : 0; });
   }
+  function setExhaust(on) {
+    exhaustOn = !!on;
+    if (v2) exG.visible = exhaustOn;
+  }
+  function isExhaustVisible() { return !v2 || exhaustOn; }
   function poseDoor(d) {
     var e = d.cur * d.cur * (3 - 2 * d.cur);
     if (d.slide) {
@@ -2028,14 +2187,14 @@ function buildShelter(T, opts) {
     { part: 'shVentOut', label: 'Kisi udara keluar', pos: [a + 0.2, 1.8, 0.1], n: [1, 0, 0] },
     { part: 'shSign', label: 'Papan peringatan', pos: [-(a + 0.25), 1.9, zf - 0.7], n: [-1, 0, 0] },
     { part: 'shFloor', label: v2 ? 'Lantai beton + sloof 15 cm' : 'Lantai beton', pos: [0, v2 ? -0.06 : -0.1, platZ1 + 0.25], n: [0, 0, 1] },
-    { part: 'shExhaust', label: v2 ? 'Cerobong di bawah atap' : 'Knalpot tembus dinding', pos: v2 ? [0.88, risTop - 0.15, elbowZ] : [0.88, exY + risH + 0.16, elbowZ], n: null },
+    { part: 'shExhaust', label: v2 ? 'Cerobong di bawah atap' : 'Knalpot tembus dinding', pos: v2 ? [0.88, risTop - 0.15, elbowZ] : [0.88, exY + risH + 0.16, elbowZ], n: null, need: v2 ? 'roofFade' : null },
     { part: 'shLights', label: 'Lampu downlight', pos: [-a * 0.5, roofBase - 0.1, zf - 0.55], n: null, need: 'roofFade' },
-    { part: 'shPanel', label: v2 ? 'Panel genset + kWh' : 'Panel distribusi', pos: v2 ? [-(a + 0.28), 1.85, zf - 1.75] : [pnx, 1.85, zb + 0.2], n: v2 ? [-1, 0, 0] : null },
+    { part: 'shPanel', label: v2 ? 'Panel genset + kWh' : 'Panel distribusi', pos: v2 ? [outX - 0.18, 1.72 * panelScaleY, panelZ] : [pnx, 1.85, zb + 0.2], n: v2 ? [-1, 0, 0] : null },
     { part: 'shApar', label: 'APAR', pos: [apx, 1.55, v2 ? zb + 0.3 : zb + 0.2], n: null, need: 'inside' }
   ];
 
   if (v2) {
-    callouts = callouts.filter(function (c) { return c.part !== 'shVentIn' && c.part !== 'shVentOut' && c.part !== 'shScreen'; });
+    callouts = callouts.filter(function (c) { return c.part !== 'shVentIn' && c.part !== 'shVentOut' && c.part !== 'shScreen' && c.part !== 'shLights'; });
     callouts.push({ part: 'shWalls', label: 'Pagar wiremesh 10 × 10', pos: [-(a + 0.24), fenceH - 0.3, zf - 1.0], n: [-1, 0, 0] });
     callouts.push({ part: 'shPosts', label: 'Tiang hollow 60 × 60 · 4 sudut', pos: [a + 0.15, fenceH - 0.35, zf], n: [1, 0, 0] });
     callouts.push({ part: 'shGableFrame', label: 'Gable terbuka · rangka baja ringan', pos: [-(a + 0.15), roofBase + rise * 0.58, (roofRG0 + roofRG1) / 2], n: [-1, 0, 0] });
@@ -2048,9 +2207,11 @@ function buildShelter(T, opts) {
     rearGap: rearGap, canopyZ: 0.55, fenceTop: fenceH, topY: v2 ? ridgeY + 0.1 : roofBase + roofTh,
     wallT: tW, doorH: doorH, rise: rise, ridgeY: ridgeY, roofBase: roofBase,
     variant: v2 ? 'mesh' : 'plaster',
+    panelScaleY: v2 ? panelScaleY : 1, panelZ: v2 ? panelZ : zb, panelBoardW: v2 ? panelBoardW : 0,
     setWalls: function (op) { fade(wallMats, wallMeshes, op); },
     setRoof: function (op) { fade(roofMats, roofMeshes, op); },
-    setLights: setLights, setGarden: function (on) { gardenG.visible = on; },
+    setLights: setLights, setExhaust: setExhaust, isExhaustVisible: isExhaustVisible,
+    setGarden: function (on) { gardenG.visible = on; },
     setHuman: function (on) { humanG.visible = on; },
     toggleDoor: toggleDoor, update: update, dispose: dispose, pickables: pickables
   };
@@ -2111,7 +2272,7 @@ function buildShelter(T, opts) {
     gateL: { n: 'Pintu louvre kiri', mn: 'Pintu geser kiri', k: 'Rumah genset', d: 'Daun pintu dari rangka baja hitam dengan kisi miring. Engsel di tiang luar, terbuka ke depan sekitar 100 derajat. Klik pintunya untuk buka atau tutup.', md: 'Daun geser kiri, sama lebar dengan daun kanan. Gagang berada pada stile pertemuan di tengah; geser ke kiri untuk membuka.', c: function (S) { return { t: [-S.a * 0.5, S.gateH / 2, S.zf], az: -0.45, pol: 1.4, r: 5.4 }; }, gates: true },
     gateR: { n: 'Pintu louvre kanan', mn: 'Pintu geser kanan', k: 'Rumah genset', d: 'Pasangan pintu kiri. Dua daun bertemu di tengah dan dikunci dengan palang di sisi dalam.', md: 'Daun geser kanan identik dengan kiri; gagangnya berada simetris pada stile pertemuan, tanpa saling menyilang.', c: function (S) { return { t: [S.a * 0.5, S.gateH / 2, S.zf], az: 0.45, pol: 1.4, r: 5.4 }; }, gates: true },
     shWalls: { n: 'Dinding beton', k: 'Rumah genset', d: 'Dinding belakang, kiri, dan kanan setebal 20 cm, plester kuning kasar dengan alur horizontal, noda air hujan, retak rambut, dan plint abu-abu di bawah. Geser slider Dinding untuk membuatnya tembus pandang.',
-      mn: 'Pagar wiremesh', md: 'Pagar keliling dari rangka ringan dengan jaring wiremesh 10 × 10 cm, dua lapis bidang jaring, tiga rel mendatar, dan balok ring di puncak. Hanya empat tiang hollow utama 60 × 60 mm berada di sudut; jaring tidak memakai tiang pembagi besar. Wiremesh menjadi jalur udara masuk; udara panas keluar melalui louvre pada kedua bidang atap dan melalui gable terbuka. Sisi belakang dibuat panel lepas untuk servis.', c: function (S) { return { t: [0, 1.4, -0.5], az: 2.6, pol: 1.25, r: 8 }; } },
+      mn: 'Pagar wiremesh', md: 'Pagar keliling dari rangka ringan dengan jaring wiremesh 10 × 10 cm, dua lapis bidang jaring, tiga rel mendatar, dan balok ring di puncak. Hanya empat tiang hollow utama 60 × 60 mm berada di sudut; jaring tidak memakai tiang pembagi besar. Wiremesh menjadi jalur udara masuk; udara panas keluar melalui louvre pada kedua bidang atap dan melalui gable terbuka. Di sisi luar ada satu pelat dudukan solid lokal untuk kabinet listrik, bukan dinding masif keliling. Sisi belakang dibuat panel lepas untuk servis.', c: function (S) { return { t: [0, 1.4, -0.5], az: 2.6, pol: 1.25, r: 8 }; } },
     shVentIn: { n: 'Kisi udara masuk (dinding kiri)', k: 'Rumah genset', d: 'Lubang kisi di dinding kiri, sejajar kisi masuk kanopi. Udara segar masuk dari sini ke mesin.', c: function (S) { return { t: [-S.a, 1.2, 0.1], az: -1.2, pol: 1.4, r: 4.6 }; } },
     shVentOut: { n: 'Kisi udara keluar (dinding kanan)', k: 'Rumah genset', d: 'Lubang kisi di dinding kanan, sejajar kipas radiator. Udara panas dibuang ke luar lewat sini.', c: function (S) { return { t: [S.a, 1.2, 0.1], az: 1.2, pol: 1.4, r: 4.6 }; } },
     shFloor: { n: 'Lantai beton dan tangga', k: 'Rumah genset', d: 'Plat beton setinggi 16 cm dari tanah dengan keramik abu-abu yang warnanya sedikit berbeda tiap kotak, garis kuning-hitam di tepi depan, dan satu anak tangga. Menahan beban genset dan menjaga air hujan dari mesin.',
@@ -2120,10 +2281,10 @@ function buildShelter(T, opts) {
       mn: 'Tiang hollow 60 × 60 (4 sudut)', md: 'Empat tiang utama saja, masing-masing hollow 60 × 60 mm di sudut depan dan belakang. Tiang naik sampai balok ring; wiremesh ditopang rel ringan tanpa tiang pembagi tambahan.', c: function (S) { return { t: [S.a + 0.15, S.H / 2, S.zf], az: 0.7, pol: 1.3, r: 5 }; } },
     shSign: { n: 'Papan peringatan', k: 'Rumah genset', d: 'Papan "AWAS RUANG GENSET" di dinding kiri luar dekat pintu: listrik tegangan tinggi dan dilarang masuk bagi yang tidak berkepentingan.', c: function (S) { return { t: [-(S.a + 0.2), 1.65, S.zf - 0.7], az: -1.15, pol: 1.4, r: 3.0 }; } },
     shPanel: { n: 'Panel distribusi', k: 'Rumah genset', d: 'Kotak panel galvanis di dinding belakang dengan lampu indikator tiga fasa dan pipa konduit naik ke plafon. Pintu depan harus terbuka untuk melihatnya.',
-      mn: 'Panel genset + kWh (luar)', md: 'Sesuai sketsa, panel genset dan kotak kWh dipasang di dinding samping luar, bukan di dalam. Sepasang kabel merah dan hitam keluar dari panel, menembus pagar melalui gland, berjalan di sisi dalam lalu tersambung ke slot panel kontrol genset. Kotak kWh terpisah di bawah panel.', c: function (S) { return { t: [-S.a + 0.45, 1.45, S.zb], az: -0.35, pol: 1.4, r: 4.2 }; }, gates: true },
+      mn: 'Panel genset + kWh (luar)', md: 'Kabinet kontrol abu-abu mengikuti foto acuan: dua baris lampu indikator hijau, biru, dan merah; layar voltase serta dua modul timer; dan tombol kontrol di bagian bawah. Kabinet dan meter kWh terpisah dipasang pada pelat dinding solid lokal di sisi luar wiremesh. Dua kabel merah/hitam melewati gland, turun di sisi dalam, lalu terhubung ke slot panel kontrol genset.', c: function (S) { return variant === 'mesh' ? { t: [-(S.a + 0.40), 1.48 * (S.panelScaleY || 1), S.panelZ], az: -Math.PI / 2, pol: 1.35, r: 3.4 } : { t: [-S.a + 0.45, 1.45, S.zb], az: -0.35, pol: 1.4, r: 4.2 }; }, gates: true },
     shApar: { n: 'APAR (pemadam api)', k: 'Rumah genset', d: 'Alat pemadam api ringan 6 kg ABC dengan pengikat di dinding belakang dekat radiator, lengkap dengan tanda hijau di atasnya.', c: function (S) { return { t: [S.a - 0.4, 1.2, S.zb], az: 0.35, pol: 1.4, r: 4.2 }; }, gates: true },
     shExhaust: { n: 'Knalpot tembus dinding', k: 'Rumah genset', d: 'Pipa knalpot menembus dinding belakang lewat flens, lalu naik dan ditutup tudung anti hujan di luar. Gas buang keluar jauh dari ruang genset.',
-      mn: 'Cerobong (di bawah atap)', md: 'Knalpot kanopi disambung pipa tegak (cerobong) di sisi kanan dekat belakang — posisi yang sama dengan lingkaran “cerobong knalpot” pada sketsa denah. Cerobong ini naik hanya di dalam rumah genset dan berhenti di bawah bidang atap spandek; atap tidak dilubangi. Ujungnya diberi tudung supaya gas buang tidak menyembur langsung ke bidang atap, dan dipasang gantungan ke rangka atap. Pagar juga tidak dilubangi sama sekali.', c: function (S) { return { t: [0.88, 2.7, -1.05], az: 2.9, pol: 1.2, r: 5 }; } },
+      mn: 'Cerobong (di bawah atap)', md: 'V2 mengganti jalur pipa lama dengan elbow berbalut panas yang menyambung langsung dari turbo, joint fleksibel bergelang, dan stack tegak berpenutup hujan. Pipa ditahan dua hanger ke gording atap. Ujung stack tetap sekurangnya 16 cm di bawah bidang atap, tidak menembus spandek atau wiremesh, dan posisinya dekat sudut kanan-belakang sesuai denah.', c: function (S) { return variant === 'mesh' ? { t: [0.88, 2.30, -0.55], az: 2.5, pol: 1.18, r: 3.6 } : { t: [0.88, 2.7, -1.05], az: 2.9, pol: 1.2, r: 5 }; } },
     shGarden: { n: 'Taman dan pohon palem', k: 'Rumah genset', d: 'Pohon palem berbatang cincin dengan daun berjari, semak berdaun, dan rumput bertekstur di sebelah kanan, seperti pada foto acuan. Bisa dimatikan di tab Rumah.', c: function (S) { return { t: [S.a + 2.5, 1.5, S.zf - 0.3], az: 0.9, pol: 1.3, r: 9 }; } }
   };
   var ORDER = [
@@ -2311,6 +2472,9 @@ function buildShelter(T, opts) {
   }
 
   function buildShelterNow() {
+    if (model.layers && model.layers.exhaust) {
+      model.setLayer('exhaust', variant !== 'mesh' && $('#layer_exhaust').checked);
+    }
     var gateState = { gateL: 0, gateR: 0 };
     if (shelter) {
       gateState.gateL = shelter.doors.gateL.target; gateState.gateR = shelter.doors.gateR.target;
@@ -2321,14 +2485,14 @@ function buildShelter(T, opts) {
     shelter = window.buildShelter(T, { W: dims.W, D: dims.D, H: dims.H, variant: variant });
     shelter.group.visible = shelterOn;
     scene.add(shelter.group);
-    shelter.setRoof(opRoof); shelter.setWalls(opWall); shelter.setLights(lightsOn); shelter.setGarden(gardenOn); shelter.setHuman(humanOn);
+    shelter.setRoof(opRoof); shelter.setWalls(opWall); shelter.setLights(lightsOn); shelter.setExhaust($('#layer_exhaust').checked); shelter.setGarden(gardenOn); shelter.setHuman(humanOn);
     shelter.toggleDoor('gateL', !!gateState.gateL, true); shelter.toggleDoor('gateR', !!gateState.gateR, true);
     shelter.callouts.forEach(function (c) {
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'co sh'; b.textContent = c.label; b.tabIndex = -1;
       b.addEventListener('click', function (e) { e.stopPropagation(); focusPart(c.part); });
       coWrap.appendChild(b);
-      shCallouts.push({ el: b, v: new T.Vector3(c.pos[0], c.pos[1], c.pos[2]), n: c.n ? new T.Vector3(c.n[0], c.n[1], c.n[2]) : null, need: c.need });
+      shCallouts.push({ el: b, v: new T.Vector3(c.pos[0], c.pos[1], c.pos[2]), n: c.n ? new T.Vector3(c.n[0], c.n[1], c.n[2]) : null, need: c.need, part: c.part });
     });
     applyGround();
     applySun();
@@ -2510,6 +2674,10 @@ function buildShelter(T, opts) {
     var P = PARTS[id]; if (!P) return;
     var isShelter = typeof P.c === 'function';
     if (isShelter && !shelterOn) setShelter(true);
+    if (id === 'shExhaust' && variant === 'mesh' && shelter && !shelter.isExhaustVisible()) {
+      $('#layer_exhaust').checked = true;
+      shelter.setExhaust(true);
+    }
     if (!isShelter && shelterOn && shelter) {
       shelter.toggleDoor('gateL', true); shelter.toggleDoor('gateR', true);
     }
@@ -2517,7 +2685,7 @@ function buildShelter(T, opts) {
     if (P.open) P.open.forEach(function (k) { model.toggleDoor(k, true); });
     if (P.door) model.toggleDoor(P.door, true);
     if (P.ghost && opacity > 0.4) setOpacity(0.15);
-    if (P.atap && opRoof > 0.4) setRoofOp(0.1);
+    if ((P.atap || (id === 'shExhaust' && variant === 'mesh')) && opRoof > 0.4) setRoofOp(0.1);
     syncDoors();
     var obj = findObj(id);
     select(id, obj);
@@ -2590,7 +2758,14 @@ function buildShelter(T, opts) {
     var li = document.createElement('li');
     li.innerHTML = '<span class="row-name">' + l[1] + '</span><label class="sw"><input type="checkbox" checked id="layer_' + l[0] + '" aria-label="' + l[1] + '"><span class="sw-ui"></span></label>';
     layerList.appendChild(li);
-    $('#layer_' + l[0]).addEventListener('change', function (e) { model.setLayer(l[0], e.target.checked); kick(); });
+    $('#layer_' + l[0]).addEventListener('change', function (e) {
+      var visible = e.target.checked;
+      if (l[0] === 'exhaust' && variant === 'mesh') {
+        model.setLayer('exhaust', false);
+        if (shelter) shelter.setExhaust(visible);
+      } else model.setLayer(l[0], visible);
+      kick();
+    });
   });
   $('#callouts').checked = calloutsOn;
   $('#callouts').addEventListener('change', function (e) { calloutsOn = e.target.checked; kick(); });
@@ -2665,11 +2840,21 @@ function buildShelter(T, opts) {
     var mesh = variant === 'mesh';
     var lead = $('#houseLead'), note = $('#houseNote');
     if (lead) lead.textContent = mesh
-      ? 'Versi pagar: modul 4,50 × 2,50 m, gable segitiga terbuka berangka baja ringan, louvre pada kedua bidang spandek, empat tiang hollow 60 × 60 di sudut, dan dua daun pintu geser simetris.'
+      ? 'Versi pagar: modul 4,50 × 2,50 m, gable terbuka berangka baja ringan, louvre di kedua bidang spandek, empat tiang hollow 60 × 60 di sudut, dan dua daun pintu simetris; tanpa lampu plafon, dengan panel luar.'
       : 'Rumah genset berpintu louvre ganda, atap beton, dan lantai plat seperti pada foto acuan.';
     if (note) note.textContent = mesh
-      ? 'Ukuran dalam meter, diukur dari bagian dalam pagar (4,00 × 2,00 m). Dinding pagar isi 25 cm, jadi modul luar 4,50 × 2,50 m. Tinggi 3,00 m = pagar 2,40 m + balok ring 10 cm + naik atap 50 cm; kedua gable tetap terbuka, louvre hanya di bidang spandek, dan cerobong berhenti di bawah atap tanpa melubanginya. Panel genset + kWh berada di dinding samping luar.'
+      ? 'Ukuran dalam meter, diukur dari bagian dalam pagar (4,00 × 2,00 m). Dinding pagar isi 25 cm, jadi modul luar 4,50 × 2,50 m. Tinggi 3,00 m = pagar 2,40 m + balok ring 10 cm + naik atap 50 cm; kedua gable tetap terbuka, louvre hanya di bidang spandek, dan cerobong berhenti di bawah atap tanpa melubanginya. Downlight tidak dipasang. Kabinet kontrol mengikuti foto acuan dan meter kWh dipasang pada pelat dinding solid di sisi luar wiremesh; pasangan kabel terhubung ke genset.'
       : 'Ukuran dalam meter, diukur dari bagian dalam dinding. Dinding plester kuning setebal 20 cm, atap menjorok 0,6 m di depan.';
+    var lightToggle = $('#lights'), lightRow = lightToggle && lightToggle.closest('li');
+    if (lightRow) lightRow.hidden = mesh;
+    var exhaustToggle = $('#layer_exhaust'), exhaustRow = exhaustToggle && exhaustToggle.closest('li');
+    if (exhaustRow) {
+      exhaustRow.hidden = false;
+      var exhaustName = exhaustRow.querySelector('.row-name');
+      if (exhaustName) exhaustName.textContent = mesh ? 'Cerobong V2' : 'Knalpot genset';
+      exhaustToggle.setAttribute('aria-label', mesh ? 'Cerobong V2' : 'Knalpot genset');
+    }
+    if (model.layers && model.layers.exhaust) model.setLayer('exhaust', !mesh && (!exhaustToggle || exhaustToggle.checked));
     // nama bagian di tab "Bagian" ikut versi
     document.querySelectorAll('.part-row').forEach(function (b) {
       var P = PARTS[b.dataset.id];
@@ -2678,6 +2863,11 @@ function buildShelter(T, opts) {
         var row = b.closest('li');
         if (row) row.hidden = !mesh;
         if (!mesh && (sel === 'shGableFrame' || sel === 'shVentSide' || sel === 'shGateStop')) select(null);
+      }
+      if (b.dataset.id === 'shLights' || b.dataset.id === 'exhaust') {
+        var detailRow = b.closest('li');
+        if (detailRow) detailRow.hidden = mesh;
+        if (mesh && sel === b.dataset.id) select(null);
       }
       var sp = b.querySelector('span');
       if (sp) sp.textContent = (mesh && P.mn) ? P.mn : P.n;
@@ -2763,6 +2953,7 @@ function buildShelter(T, opts) {
     g[1].forEach(function (id) {
       var li = document.createElement('li');
       if (id === 'shGableFrame' || id === 'shVentSide' || id === 'shGateStop') li.hidden = variant !== 'mesh';
+      if (id === 'shLights' || id === 'exhaust') li.hidden = variant === 'mesh';
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'part-row'; b.dataset.id = id; b.setAttribute('aria-pressed', 'false');
       b.innerHTML = '<span>' + ((variant === 'mesh' && PARTS[id].mn) ? PARTS[id].mn : PARTS[id].n) + '</span><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
@@ -2790,11 +2981,11 @@ function buildShelter(T, opts) {
 
   /* ---------- denah konsep 2D multi-tampak ---------- */
   var PLAN_VIEWS = {
-    sheet: { name: 'Lembar 4 sisi', desc: 'Denah tata letak, tampak depan, sisi panel, dan rencana atap. Semua ukuran mengikuti slider dimensi rumah.' },
-    plan: { name: 'Denah atas', desc: 'Tata letak ruang bersih, footprint genset, panel kWh, jalur kabel, bukaan pintu, rel, dan ganjal.' },
+    sheet: { name: 'Lembar 4 sisi', desc: 'Denah tata letak, tampak depan, sisi panel luar, dan rencana atap. Semua ukuran mengikuti slider dimensi rumah.' },
+    plan: { name: 'Denah atas', desc: 'Tata letak ruang bersih, footprint genset, kabinet panel dan kWh, jalur kabel, bukaan pintu, rel, dan ganjal.' },
     front: { name: 'Tampak depan', desc: 'Elevasi akses utama dengan dua daun pintu, gagang di tepi pertemuan, rel/pemandu, serta tinggi rangka.' },
     rear: { name: 'Tampak belakang', desc: 'Elevasi sisi belakang dan catatan jarak servis. Bentuk dinding mengikuti versi rumah aktif.' },
-    left: { name: 'Sisi kiri · panel', desc: 'Potongan/elevasi sisi panel untuk menunjukkan panel kWh dan pasangan kabel menuju genset.' },
+    left: { name: 'Sisi kiri · panel', desc: 'Elevasi sisi luar: pelat dudukan, kabinet kontrol, meter kWh terpisah, dan pasangan kabel menuju genset.' },
     right: { name: 'Sisi kanan', desc: 'Elevasi sisi seberang dengan posisi knalpot di bawah bidang atap dan detail ventilasi bubungan.' },
     roof: { name: 'Rencana atap', desc: 'Tata bidang atap, garis bubungan, bukaan louvre, dan ventilasi ujung. Knalpot tidak menembus atap.' }
   };
@@ -2896,15 +3087,16 @@ function buildShelter(T, opts) {
     // Jalur panel luar dan dua kabel output menuju unit; garis putus mewakili kabel.
     if (mesh) {
       var panelY = Y + Math.max(.34, Math.min(D - .5, D - 1.75 + t / 2));
-      var panelX = X - .38;
-      out += '<rect x="' + panelX + '" y="' + (panelY - .22) + '" width=".30" height=".44" rx=".025" fill="#d5dcda" stroke="#35413f" stroke-width=".025"/>';
-      out += '<rect x="' + (panelX + .045) + '" y="' + (panelY - .13) + '" width=".21" height=".13" fill="#25312f"/>';
-      out += planSvgText(panelX + .15, panelY + .08, 'kWh', .095, 'middle', '#33413e', 700);
-      var cablePath = 'M' + (panelX + .30) + ' ' + panelY + 'L' + (X + .10) + ' ' + panelY + 'L' + (X + .10) + ' ' + (genY + genD * .62) + 'L' + (genX + genW * .40) + ' ' + (genY + genD * .62);
+      var panelX = X - .12;
+      // Backboard plus the projecting cabinet footprint; meter is mounted below on the same wall.
+      out += '<rect x="' + panelX + '" y="' + (panelY - geom.panelBoardW / 2) + '" width=".06" height="' + geom.panelBoardW + '" rx=".015" fill="#d9ddde" stroke="#35413f" stroke-width=".025"/>';
+      out += '<rect x="' + (panelX - .13) + '" y="' + (panelY - .40) + '" width=".14" height=".80" rx=".025" fill="#c8cecf" stroke="#35413f" stroke-width=".025"/>';
+      out += '<rect x="' + (panelX - .15) + '" y="' + (panelY - .25) + '" width=".025" height=".30" fill="#273033"/>';
+      out += planSvgText(panelX - .08, panelY + .63, 'PANEL + kWh', .10, 'middle', '#33413e', 700);
+      var cablePath = 'M' + (panelX + .06) + ' ' + panelY + 'L' + (X + .10) + ' ' + panelY + 'L' + (X + .10) + ' ' + (genY + genD * .62) + 'L' + (genX + genW * .40) + ' ' + (genY + genD * .62);
       out += '<path d="' + cablePath + '" fill="none" stroke="#c84c40" stroke-width=".022" stroke-dasharray=".07 .045"/>';
       out += '<path d="' + cablePath + '" fill="none" stroke="#252a2b" stroke-width=".015" stroke-dasharray=".07 .045" transform="translate(0 .055)"/>';
       out += '<circle cx="' + (X + .08) + '" cy="' + panelY + '" r=".045" fill="#f7f5eb" stroke="#35413f" stroke-width=".018"/>';
-      out += planSvgText(X - .02, panelY - .30, 'PANEL + kWh', .13, 'middle', '#35413f', 700);
       var exhaustPlanX = genX + genW / 2 + .88;
       out += '<path d="M' + (exhaustPlanX - .08) + ' ' + (genY + .06) + 'l.08 -.08l.08 .08l-.08 .08Z" fill="#d84b3d" stroke="#532a24" stroke-width=".012"/>';
       out += planSvgText(exhaustPlanX + .14, genY + .16, 'KNALPOT', .11, 'start', '#a44639', 700);
@@ -3062,27 +3254,73 @@ function buildShelter(T, opts) {
     // Control panel and its paired cables are only on the left/negative-X face.
     if (side === 'left' && mesh) {
       var panelAlong = Math.max(.35, Math.min(outerD - .50, D - 1.75 + t / 2));
-      var panelTop = ground - 1.77, panelX = bx + panelAlong - .25;
-      out += '<path d="M' + (bx + panelAlong) + ' ' + (ground - .30) + 'H' + (bx + .70) + '" fill="none" stroke="#c34c40" stroke-width=".025" stroke-dasharray=".08 .05"/>';
-      out += '<path d="M' + (bx + panelAlong) + ' ' + (ground - .34) + 'H' + (bx + .70) + '" fill="none" stroke="#252a2b" stroke-width=".022" stroke-dasharray=".08 .05"/>';
-      out += '<rect x="' + panelX + '" y="' + panelTop + '" width=".50" height=".64" rx=".025" fill="#d9dfdc" stroke="#26322f" stroke-width=".035"/>';
-      out += '<rect x="' + (panelX + .06) + '" y="' + (panelTop + .09) + '" width=".38" height=".19" fill="#26312f"/>';
-      out += planSvgText(panelX + .25, panelTop + .44, 'PANEL', .10, 'middle', '#293632', 700);
-      out += planSvgText(panelX + .25, panelTop + .56, 'kWh', .10, 'middle', '#293632', 700);
+      var panelScale = Math.min(1, Math.max(.7, (wallH - .08) / 2.42));
+      var boardX = bx + panelAlong - geom.panelBoardW / 2, boardTop = ground - 2.42 * panelScale;
+      var cabinetX = bx + panelAlong - .41, cabinetTop = ground - 2.26 * panelScale;
+      var meterX = bx + panelAlong - .26, meterTop = ground - 1.09 * panelScale;
+      // Solid local mounting surface, large control cabinet, and the separate kWh meter.
+      out += '<rect x="' + boardX + '" y="' + boardTop + '" width="' + geom.panelBoardW + '" height="' + (1.82 * panelScale) + '" fill="#d9ddde" stroke="#596568" stroke-width=".035"/>';
+      out += '<rect x="' + cabinetX + '" y="' + cabinetTop + '" width=".82" height="' + (1.08 * panelScale) + '" rx=".025" fill="#c8cecf" stroke="#26322f" stroke-width=".035"/>';
+      out += '<rect x="' + (cabinetX + .08) + '" y="' + (cabinetTop + .08 * panelScale) + '" width=".66" height="' + (.92 * panelScale) + '" fill="#e0e2df" stroke="#657174" stroke-width=".018"/>';
+      out += '<rect x="' + (cabinetX + .13) + '" y="' + (cabinetTop + .13 * panelScale) + '" width=".56" height="' + (.16 * panelScale) + '" fill="#20282b"/>';
+      [0, 1].forEach(function (row) {
+        [-.22, 0, .22].forEach(function (zoff, i) {
+          var cx = bx + panelAlong + zoff;
+          var cy = cabinetTop + (.30 + row * .16) * panelScale;
+          out += '<circle cx="' + cx + '" cy="' + cy + '" r=".035" fill="' + ['#35ad62', '#3978c2', '#ce4038'][i] + '" stroke="#303638" stroke-width=".018"/>';
+        });
+      });
+      out += planSvgText(bx + panelAlong, cabinetTop + .68 * panelScale, 'PANEL CONTROL', .09, 'middle', '#293632', 700);
+      out += '<rect x="' + meterX + '" y="' + meterTop + '" width=".52" height="' + (.34 * panelScale) + '" rx=".02" fill="#c2c8c8" stroke="#26322f" stroke-width=".03"/>';
+      out += '<rect x="' + (meterX + .06) + '" y="' + (meterTop + .05 * panelScale) + '" width=".40" height="' + (.22 * panelScale) + '" fill="#20282b"/>';
+      out += planSvgText(bx + panelAlong, meterTop + .17 * panelScale, 'kWh', .085, 'middle', '#b8f0c0', 700);
+      // The paired output cables pass through the side fence and continue to the unit.
+      var cablePath = 'M' + (bx + panelAlong) + ' ' + (ground - .75 * panelScale) + 'V' + (ground - .18) + 'H' + (bx + .70);
+      out += '<path d="' + cablePath + '" fill="none" stroke="#c34c40" stroke-width=".025" stroke-dasharray=".08 .05"/>';
+      out += '<path d="' + cablePath + '" fill="none" stroke="#252a2b" stroke-width=".022" stroke-dasharray=".08 .05" transform="translate(0 .055)"/>';
     } else if (side === 'right' && mesh) {
       var aparAlong = .40;
       out += '<rect x="' + (bx + aparAlong) + '" y="' + (ground - 1.43) + '" width=".10" height=".47" rx=".045" fill="#c94b3e" stroke="#742c26" stroke-width=".025"/>';
       out += '<path d="M' + (bx + aparAlong + .05) + ' ' + (ground - 1.50) + 'v-.08h.08" fill="none" stroke="#303936" stroke-width=".025"/>';
       out += planSvgText(bx + aparAlong + .05, ground - 1.56, 'APAR', .10, 'middle', '#a34135', 700);
     }
-    // Exhaust stack is drawn below the sloping roof line, with a visible clearance gap.
+    // Curved heat-wrapped lead, flexible joint, and vertical exhaust stack below the roof.
     if (mesh) {
-      var exAlong = Math.max(.5, Math.min(outerD - .5, .55 + geom.rearGap + t / 2));
-      var exY = Math.min(2.66, totalH - .34, roofBase + .5 - .12);
-      var exTop = ground - exY;
-      out += '<path d="M' + (bx + exAlong) + ' ' + (ground - 1.90) + 'V' + exTop + '" stroke="#5a6060" stroke-width=".075"/>';
-      out += '<path d="M' + (bx + exAlong - .12) + ' ' + (exTop - .035) + 'H' + (bx + exAlong + .12) + '" stroke="#3c4242" stroke-width=".055"/>';
-      out += planSvgText(bx + exAlong + .18, exTop + .18, 'KNALPOT DI BAWAH ATAP', .10, 'start', '#a34135', 700, ' paint-order="stroke" stroke="#f8f7ef" stroke-width=".045"');
+      var exAlong = geom.rearGap + t / 2;
+      var roofMidZ = -(.55 + geom.rearGap) - t / 2 + D / 2;
+      var roofAtStack = roofBase + .5 * Math.max(0, 1 - Math.abs(-.55 - roofMidZ) / (geom.roofD / 2));
+      var exY = Math.min(2.88, roofAtStack - .16, totalH - .16);
+      var capY = ground - exY, pipeTopY = ground - (exY - .105);
+      var stackX = bx + exAlong;
+      var elbowStartX = stackX + .42;
+      out += '<path d="M' + elbowStartX + ' ' + (ground - 1.27) + ' C' + (stackX + .29) + ' ' + (ground - 1.43) + ' ' + (stackX + .07) + ' ' + (ground - 1.56) + ' ' + stackX + ' ' + (ground - 1.80) + ' V' + (ground - 1.96) + ' V' + pipeTopY + '" fill="none" stroke="#655744" stroke-width=".065" stroke-linecap="round" stroke-linejoin="round"/>';
+      [1.82, 1.85, 1.88, 1.91, 1.94].forEach(function (yy) {
+        out += '<path d="M' + (stackX - .055) + ' ' + (ground - yy) + 'H' + (stackX + .055) + '" stroke="#aeb5b7" stroke-width=".018"/>';
+      });
+      out += '<path d="M' + (stackX - .12) + ' ' + (capY + .035) + 'H' + (stackX + .12) + ' M' + (stackX - .10) + ' ' + capY + 'H' + (stackX + .10) + '" stroke="#42494b" stroke-width=".045"/>';
+      out += '<path d="M' + (stackX - .06) + ' ' + (capY + .035) + 'V' + (pipeTopY - .01) + ' M' + (stackX + .06) + ' ' + (capY + .035) + 'V' + (pipeTopY - .01) + '" stroke="#737b7d" stroke-width=".018"/>';
+      // Mirror the nearest non-louvre purlin and hanger pair shown in the 3D model.
+      var halfRoofRun = geom.roofD / 2, roofRise = totalH - roofBase;
+      var slopeLength = Math.sqrt(halfRoofRun * halfRoofRun + roofRise * roofRise);
+      var slotCenter = slopeLength * .52, slotS0 = slotCenter - .15, slotS1 = slotCenter + .15;
+      var rearOuterZ = -(.55 + geom.rearGap) - t / 2;
+      var purlins = [.25, .6, .9].filter(function (f) {
+        var ss = halfRoofRun * f;
+        return !(ss > slotS0 - .04 && ss < slotS1 + .04);
+      }).map(function (f) {
+        var ss = halfRoofRun * f;
+        var z = roofMidZ - ss;
+        return { f: f, x: bx + z - rearOuterZ, y: roofBase + roofRise * (1 - f) - .06, z: z };
+      });
+      purlins.sort(function (a, b) { return Math.abs(a.z + .55) - Math.abs(b.z + .55); });
+      if (purlins.length) {
+        var support = purlins[0];
+        var braceY = Math.min(exY - .225, 2.38);
+        var braceEndY = support.y - .045;
+        out += '<path d="M' + (stackX - .035) + ' ' + (ground - braceY) + 'L' + support.x + ' ' + (ground - braceEndY) + ' M' + (stackX + .035) + ' ' + (ground - braceY) + 'L' + support.x + ' ' + (ground - braceEndY) + '" fill="none" stroke="#889397" stroke-width=".025"/>';
+        out += '<path d="M' + (support.x - .035) + ' ' + (ground - support.y + .025) + 'H' + (support.x + .035) + '" stroke="#535c5e" stroke-width=".035"/>';
+      }
+      out += planSvgText(stackX + .18, capY + .18, 'KNALPOT DI BAWAH ATAP', .10, 'start', '#a34135', 700, ' paint-order="stroke" stroke="#f8f7ef" stroke-width=".045"');
     }
     out += '<rect x="' + (bx - .06) + '" y="' + (ground - .12) + '" width="' + (bw + .12) + '" height=".12" fill="#929895" stroke="#4b5451" stroke-width=".025"/>';
     out += planDimH(bx, bx + bw, ground + .36, ground, planCM(outerD));
@@ -3145,7 +3383,7 @@ function buildShelter(T, opts) {
       'Rel/pemandu sepanjang modul luar ' + fmt(geom.outerW) + ' m; roda ditahan ganjal saat parkir. Ruang bukaan ditampilkan putus-putus.',
       'Empat tiang sudut hollow 60 × 60 mm; wiremesh konsep 10 × 10 cm; tinggi puncak ' + fmt(geom.totalH) + ' m.',
       'Atap spandek bubungan dengan louvre pada kedua bidang; kedua gable terbuka memakai rangka baja ringan.',
-      'Panel + kWh di sisi kiri; dua jalur kabel menuju genset. Knalpot tetap di bawah atap dan tidak melubangi spandek.'
+      'Kabinet kontrol + meter kWh berada pada pelat dudukan solid lokal di sisi luar wiremesh; dua jalur kabel terhubung ke genset. Knalpot berbelok halus, memakai joint fleksibel dan hanger, lalu berhenti 16 cm di bawah spandek tanpa melubanginya.'
     ];
     return [
       'Versi V1 dipertahankan: dinding plester dan atap beton/overhang sesuai model aktif.',
@@ -3166,6 +3404,7 @@ function buildShelter(T, opts) {
       outerW: W + 2 * t, outerD: D + 2 * t,
       wallH: wallH, roofBase: roofBase, totalH: totalH,
       doorH: mesh ? wallH - .1 : H - .7,
+      panelBoardW: mesh ? Math.min(1.04, Math.max(.90, D - 1.10)) : 0,
       roofW: mesh ? W + .7 : W + 1.0,
       roofD: mesh ? D + t + .7 : D + t + .65,
       rearGap: mesh ? .4 : 1.5,
@@ -3289,7 +3528,7 @@ function buildShelter(T, opts) {
     b.type = 'button'; b.className = 'co'; b.textContent = c[1]; b.tabIndex = -1;
     b.addEventListener('click', function (e) { e.stopPropagation(); focusPart(c[0]); });
     coWrap.appendChild(b);
-    coEls.push({ el: b, v: new T.Vector3(c[2][0], c[2][1], c[2][2]), mode: c[3] });
+    coEls.push({ el: b, v: new T.Vector3(c[2][0], c[2][1], c[2][2]), mode: c[0] === 'exhaust' ? 'v1Exhaust' : c[3] });
   });
   var tmpV = new T.Vector3();
   function put(el, v, w, h) {
@@ -3305,6 +3544,7 @@ function buildShelter(T, opts) {
       if (show) {
         if (c.mode === 'shell') show = opacity > 0.15 && model.layers.canopy.visible;
         else if (c.mode === 'inner') show = opacity < 0.5;
+        else if (c.mode === 'v1Exhaust') show = variant !== 'mesh';
       }
       if (show && shelterOn && (opWall > 0.9 || opRoof > 0.9)) {
         // label di dalam rumah hanya muncul bila kamera melihat lewat bukaan depan
@@ -3315,6 +3555,7 @@ function buildShelter(T, opts) {
     });
     shCallouts.forEach(function (c) {
       var show = calloutsOn && shelterOn;
+      if (show && c.part === 'shExhaust' && shelter && shelter.isExhaustVisible) show = shelter.isExhaustVisible();
       if (show && c.need === 'roofFade') show = opRoof < 0.5;
       if (show && c.need === 'inside') show = !!(shelter && shelter.doors.gateL.cur > 0.3);
       if (show && c.n) {
