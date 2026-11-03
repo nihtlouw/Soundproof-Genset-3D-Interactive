@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200" font-family="'IBM Plex Sans',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3a4147"/>
+    </marker>
+    <marker id="arr" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3a4147"/>
+    </marker>
+    <pattern id="mesh" width="6" height="6" patternUnits="userSpaceOnUse">
+      <path d="M0 0 H6 M0 0 V6" stroke="#8d97a0" stroke-width="0.9" fill="none"/>
+    </pattern>
+    <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#b9c1c7" stroke-width="3"/>
+    </pattern>
+    <style>
+      .frame{fill:#fff;stroke:#232a2f;stroke-width:1}
+      .wall{fill:#eef1f3;stroke:#232a2f;stroke-width:1.6}
+      .inner{fill:#fafcfd;stroke:#232a2f;stroke-width:1.2}
+      .ring{fill:#5b6a73}
+      .genset{fill:#dbe7ed;stroke:#3a4147;stroke-width:1.4}
+      .roof{fill:#f2f5f6;stroke:#232a2f;stroke-width:1.5}
+      .leaf{fill:#cfd8dd;stroke:#3a4147;stroke-width:1.2}
+      .dash{fill:none;stroke:#3a4147;stroke-width:1.2;stroke-dasharray:6 5}
+      .dim{stroke:#3a4147;stroke-width:1;marker-start:url(#ar);marker-end:url(#ar)}
+      .dimv{stroke:#3a4147;stroke-width:1;marker-start:url(#ar);marker-end:url(#ar)}
+      .dimt{font-size:11.5px;fill:#232a2f;font-family:'IBM Plex Mono',monospace}
+      .h1{font-size:20px;font-weight:700;fill:#101619;letter-spacing:.3px}
+      .h2{font-size:13.5px;font-weight:700;fill:#101619;letter-spacing:.8px}
+      .lbl{font-size:11px;fill:#2b3339}
+      .lblb{font-size:11px;font-weight:700;fill:#2b3339}
+      .note{font-size:10px;fill:#6a747b}
+      .acc{stroke:#c2201a;stroke-width:1.4;fill:none}
+      .wheel{fill:#3a4147}
+      .lead{stroke:#8d97a0;stroke-width:.9;fill:none}
+    </style>
+  </defs>
+
+  <rect class="frame" x="10" y="10" width="1180" height="1180"/>
+  <text class="h1" x="34" y="46">RUMAH GENSET SOUNDPROOF · V2 — PAGAR WIREMESH</text>
+  <text class="lbl" x="34" y="66">Usulan bentuk berdasarkan sketsa lapangan · modul 4,50 × 2,50 m · dinding isi 25 cm · atap spandek bubungan · pintu geser samping</text>
+  <line x1="34" y1="78" x2="1166" y2="78" stroke="#232a2f"/>
+  <line x1="640" y1="78" x2="640" y2="1166" stroke="#dfe4e7"/>
+
+  <!-- ============================================================ A · DENAH -->
+  <text class="h2" x="34" y="104">A · DENAH (TAMPAK ATAS)</text>
+  <g transform="translate(150,200) scale(0.70)">
+    <!-- satuan cm; 0,85 px per cm -->
+    <rect x="0" y="0" width="450" height="250" class="wall"/>
+    <rect x="25" y="25" width="400" height="200" class="inner"/>
+    <!-- genset 300 x 110 : x 75..375, z 70..180 -->
+    <rect x="75" y="70" width="300" height="110" class="genset"/>
+    <text class="lblb" x="225" y="118" text-anchor="middle">GENSET SOUNDPROOF</text>
+    <text class="note" x="225" y="134" text-anchor="middle">3,00 × 1,10 m · exhaust di sisi kanan</text>
+    <!-- cerobong -->
+    <circle cx="410" cy="92" r="15" fill="url(#mesh)" stroke="#3a4147"/>
+    <line x1="410" y1="92" x2="548" y2="60" class="lead"/>
+    <text class="lbl" x="552" y="50">Cerobong /</text>
+    <text class="lbl" x="552" y="64">knalpot</text>
+    <text class="note" x="552" y="78">naik lewat atap</text>
+    <!-- pintu geser: 2 daun menutup bukaan depan + arah geser -->
+    <rect x="25" y="250" width="200" height="9" class="leaf"/>
+    <rect x="225" y="250" width="200" height="9" class="leaf"/>
+    <rect x="25" y="259" width="200" height="9" class="leaf"/>
+    <rect x="-175" y="259" width="200" height="9" class="leaf" opacity="0.55"/>
+    <path class="dash" d="M-160 254 L-30 254"/>
+    <path class="dash" d="M425 254 L515 254"/>
+    <text class="note" x="25" y="286">daun geser kiri — 200</text>
+    <text class="note" x="225" y="286">daun geser kanan — 200</text>
+    <text class="note" x="-175" y="240">posisi daun saat dibuka</text>
+    <!-- panel + kWh di dinding samping luar -->
+    <rect x="-30" y="40" width="22" height="96" fill="#e7ebee" stroke="#3a4147"/>
+    <line x1="-30" y1="60" x2="-96" y2="60" class="lead"/>
+    <text class="note" x="-150" y="50">panel genset</text>
+    <text class="note" x="-150" y="64">+ kWh</text>
+    <line x1="-30" y1="118" x2="-96" y2="118" class="lead"/>
+    <text class="note" x="-150" y="114">dinding</text>
+    <text class="note" x="-150" y="128">samping</text>
+    <!-- kabel genset dari genset ke panel -->
+    <path class="dash" d="M75 150 L-24 150"/>
+    <path class="dash" d="M75 166 L-24 166"/>
+    <text class="note" x="-4" y="192" text-anchor="end">kabel genset (2 jalur)</text>
+    <!-- dimensi -->
+    <path class="dim" d="M0 -26 L450 -26"/>
+    <text class="dimt" x="225" y="-33" text-anchor="middle">450 (luar)</text>
+    <path class="dim" d="M25 -58 L425 -58"/>
+    <text class="dimt" x="225" y="-65" text-anchor="middle">400 (dalam)</text>
+    <path class="dimv" d="M492 0 L492 250"/>
+    <text class="dimt" x="499" y="128">250</text>
+    <path class="dimv" d="M462 25 L462 225"/>
+    <text class="dimt" x="455" y="128" text-anchor="end">200</text>
+    <path class="dim" d="M0 316 L25 316"/>
+    <text class="dimt" x="34" y="320">25 cm</text>
+  </g>
+
+  <!-- ========================================================= B · TAMPAK SAMPING -->
+  <text class="h2" x="670" y="104">B · TAMPAK SAMPING</text>
+  <g transform="translate(800,262) scale(0.70)">
+    <!-- dinding pagar: 250 lebar, 240 tinggi -->
+    <rect x="0" y="0" width="250" height="240" fill="url(#mesh)" stroke="#3a4147" stroke-width="1.4"/>
+    <rect x="0" y="4" width="250" height="6" fill="#cfd8dd" stroke="#3a4147"/>
+    <rect x="0" y="116" width="250" height="5" fill="#cfd8dd" stroke="#3a4147"/>
+    <rect x="0" y="230" width="250" height="6" fill="#cfd8dd" stroke="#3a4147"/>
+    <text class="note" x="125" y="72" text-anchor="middle">wiremesh 10 × 10 cm</text>
+    <text class="note" x="125" y="86" text-anchor="middle">sekeliling</text>
+    <!-- balok ring -->
+    <rect x="-16" y="-16" width="282" height="16" class="ring"/>
+    <!-- atap spandek bubungan -->
+    <path class="roof" d="M-40 -16 L125 -94 L290 -16 Z"/>
+    <line x1="125" y1="-94" x2="125" y2="-16" stroke="#aeb7bd" stroke-width="1" stroke-dasharray="4 4"/>
+    <text class="note" x="125" y="-60" text-anchor="middle">spandek + reng</text>
+    <!-- pondasi -->
+    <rect x="-16" y="240" width="282" height="15" fill="url(#hatch)" stroke="#232a2f"/>
+    <rect x="-40" y="255" width="330" height="4" fill="#e7ebee" stroke="#232a2f"/>
+    <!-- dimensi -->
+    <path class="dimv" d="M-58 0 L-58 240"/>
+    <text class="dimt" x="-66" y="124" text-anchor="end">240</text>
+    <path class="dimv" d="M-86 -16 L-86 -94"/>
+    <text class="dimt" x="-94" y="-50" text-anchor="end">60</text>
+    <path class="dim" d="M0 264 L250 264"/>
+    <text class="dimt" x="125" y="279" text-anchor="middle">250 cm</text>
+    <path class="dimv" d="M264 240 L264 256"/>
+    <text class="dimt" x="272" y="254">15</text>
+  </g>
+  <line x1="860" y1="170" x2="1010" y2="146" class="lead"/>
+  <text class="note" x="1014" y="142">tiang hollow 60 × 60</text>
+  <text class="note" x="1014" y="156">+ balok ring keliling</text>
+  <line x1="1156" y1="252" x2="1000" y2="268" class="lead"/>
+  <text class="note" x="1014" y="272">3 rel hollow</text>
+  <text class="note" x="1014" y="286">(atas, tengah, bawah)</text>
+
+  <!-- ============================================================ D · CATATAN -->
+  <line x1="670" y1="486" x2="1166" y2="486" stroke="#dfe4e7"/>
+  <text class="h2" x="670" y="512">D · CATATAN RENCANA</text>
+  <g class="lbl">
+    <text x="670" y="556">1 · Modul luar 4,50 × 2,50 m. Dinding isi 25 cm →</text>
+    <text x="686" y="571">ruang bersih 4,00 × 2,00 m.</text>
+    <text x="670" y="591">2 · Tinggi pagar 2,40 m; puncak atap ±3,00 m;</text>
+    <text x="686" y="606">pondasi/sloof 15 cm.</text>
+    <text x="670" y="626">3 · Wiremesh 10 × 10 cm keliling, rangka hollow</text>
+    <text x="686" y="641">60 × 60 + 3 rel (atas, tengah, bawah).</text>
+    <text x="670" y="661">4 · Pintu geser samping 2 × 2,00 m, roda bawah,</text>
+    <text x="686" y="676">bukaan bersih 4,00 m.</text>
+    <text x="670" y="696">5 · Sisi belakang dibuat panel lepas untuk servis.</text>
+    <text x="670" y="716">6 · Cerobong hanya menembus atap, bukan pagar.</text>
+    <text x="670" y="736">7 · Panel genset + kWh di dinding samping luar,</text>
+    <text x="686" y="751">kabel masuk lewat satu jalur.</text>
+    <text x="670" y="771">8 · Atap menonjol 30–60 cm tiap sisi + talang.</text>
+    <text x="670" y="791">9 · Ventilasi lewat seluruh bidang wiremesh.</text>
+  </g>
+
+  <!-- ============================================================ C · TAMPAK DEPAN -->
+  <text class="h2" x="34" y="516">C · TAMPAK DEPAN — SISI PINTU GESER</text>
+  <g transform="translate(150,706) scale(0.82)">
+    <rect x="0" y="0" width="450" height="240" class="wall"/>
+    <!-- dua daun 200 -->
+    <rect x="25" y="18" width="196" height="212" fill="url(#mesh)" stroke="#3a4147" stroke-width="1.5"/>
+    <rect x="229" y="18" width="196" height="212" fill="url(#mesh)" stroke="#3a4147" stroke-width="1.5"/>
+    <!-- rangka daun -->
+    <rect x="21" y="14" width="9" height="220" class="leaf"/>
+    <rect x="216" y="14" width="9" height="220" class="leaf"/>
+    <rect x="225" y="14" width="9" height="220" class="leaf"/>
+    <rect x="420" y="14" width="9" height="220" class="leaf"/>
+    <rect x="25" y="18" width="196" height="7" class="leaf"/>
+    <rect x="229" y="18" width="196" height="7" class="leaf"/>
+    <rect x="25" y="223" width="196" height="7" class="leaf"/>
+    <rect x="229" y="223" width="196" height="7" class="leaf"/>
+    <!-- pegangan -->
+    <rect x="198" y="108" width="14" height="36" rx="3" fill="#3a4147"/>
+    <rect x="238" y="108" width="14" height="36" rx="3" fill="#3a4147"/>
+    <!-- roda geser -->
+    <circle class="wheel" cx="40" cy="242" r="6"/><circle class="wheel" cx="206" cy="242" r="6"/>
+    <circle class="wheel" cx="244" cy="242" r="6"/><circle class="wheel" cx="410" cy="242" r="6"/>
+    <!-- balok ring -->
+    <rect x="-16" y="-16" width="482" height="16" class="ring"/>
+    <!-- atap: bubungan memanjang, jadi dari depan terlihat lis + talang -->
+    <path class="roof" d="M-44 -16 L494 -16 L494 -44 L-44 -44 Z"/>
+    <rect x="-44" y="-46" width="538" height="3" fill="#aeb7bd" stroke="#232a2f" stroke-width=".8"/>
+    <!-- pondasi -->
+    <rect x="-16" y="240" width="482" height="15" fill="url(#hatch)" stroke="#232a2f"/>
+    <!-- cerobong -->
+    <rect x="336" y="-54" width="34" height="11" fill="#aab3b9" stroke="#3a4147" stroke-width="1"/>
+    <line x1="353" y1="-46" x2="353" y2="-124" stroke="#b6bec4" stroke-width="9"/>
+    <line x1="353" y1="-46" x2="353" y2="-124" stroke="#3a4147" stroke-width="1"/>
+    <path d="M332 -124 L374 -124 L353 -145 Z" fill="#cfd8dd" stroke="#3a4147" stroke-width="1.2"/>
+    <!-- dimensi -->
+    <path class="dim" d="M0 300 L450 300"/>
+    <text class="dimt" x="225" y="315" text-anchor="middle">450</text>
+    <path class="dim" d="M25 278 L225 278"/>
+    <text class="dimt" x="125" y="272" text-anchor="middle">200</text>
+    <path class="dim" d="M225 278 L425 278"/>
+    <text class="dimt" x="325" y="272" text-anchor="middle">200</text>
+    <path class="dimv" d="M-62 0 L-62 240"/>
+    <text class="dimt" x="-70" y="124" text-anchor="end">240</text>
+    <path class="dimv" d="M-96 -44 L-96 240"/>
+    <text class="dimt" x="-104" y="102" text-anchor="end">284</text>
+  </g>
+  <line x1="440" y1="586" x2="482" y2="566" class="lead"/>
+  <text class="note" x="486" y="562">cerobong + penutup hujan</text>
+  <text class="note" x="486" y="576">flashing di titik tembus atap</text>
+  <line x1="700" y1="890" x2="724" y2="884" class="lead"/>
+  <text class="note" x="728" y="882">roda geser + rel bawah</text>
+
+  <!-- ============================================================ E · BAHAN -->
+  <line x1="670" y1="826" x2="1166" y2="826" stroke="#dfe4e7"/>
+  <text class="h2" x="670" y="852">E · BAHAN</text>
+  <g class="note">
+    <text x="670" y="876">Hollow 60×60×1,8 (tiang) · hollow 40×40 (rel) · wiremesh</text>
+    <text x="670" y="890">10×10 galvanis · spandek 0,35 + reng · beton sloof 15/20</text>
+    <text x="670" y="904">· lantai beton 10 cm · engsel roda + rel pintu geser</text>
+  </g>
+  <line x1="670" y1="926" x2="1166" y2="926" stroke="#dfe4e7"/>
+  <text class="h2" x="670" y="952">F · BELUM DIPUTUSKAN</text>
+  <g class="lbl">
+    <text x="670" y="976">• Ketinggian total: 2,40 m (sesuai sketsa) atau</text>
+    <text x="686" y="991">2,75–3,00 m (agar panel kanopi bisa dibuka)?</text>
+    <text x="670" y="1011">• Jumlah daun pintu: 2 daun geser atau 1 daun?</text>
+    <text x="670" y="1031">• Modul 4,50 × 2,50 m dipakai apa adanya, atau</text>
+    <text x="686" y="1046">dibulatkan jadi 4,50 × 2,60 m (ruang bersih 2,10)?</text>
+  </g>
+  <text class="note" x="34" y="1176">Soundproof-Genset-3D-Interactive · usulan V2 dari sketsa klien · satuan cm · gambar berskala, bukan acuan pelaksanaan</text>
+</svg>
