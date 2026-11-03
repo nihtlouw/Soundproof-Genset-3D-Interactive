@@ -1,9 +1,9 @@
 # Analisis Sketsa & Implementasi V2 — Rumah Genset Pagar Wiremesh
 
 Dokumen ini awalnya disusun sebagai **analisis + rencana**. Setelah konfirmasi klien,
-rancangan V2 telah diterapkan pada model 3D; revisi terakhir menambahkan **kisi ventilasi
-keluar di kedua ujung bubungan** karena knalpot berhenti di bawah atap. **V1 · Dinding
-plester tidak diubah.**
+rancangan V2 telah diterapkan pada model 3D. Koreksi terbaru menambahkan louvre pada
+kedua bidang miring atap, merapikan rel/stopper pintu, dan memastikan kabel panel tersambung
+ke panel kontrol genset. **V1 · Dinding plester tidak diubah.**
 
 Model V2 tersedia di [Soundproof-Genset-3D-Interactive](https://nihtlouw.github.io/Soundproof-Genset-3D-Interactive/)
 pada tab **Rumah → Versi rumah → V2 · Pagar wiremesh**.
@@ -39,7 +39,7 @@ Catatan tepi: **tinggi pondasi 15 cm**, **besi hollow 6×6** (60 × 60 mm) untuk
 | Profil tiang | hollow 60 × 60 mm | jelas |
 | Tinggi dinding | **tidak tertulis** | perlu keputusan (lihat §5) |
 | Tinggi atap | **tidak tertulis** | perlu keputusan |
-| Lebar daun pintu | **tidak tertulis** | diusulkan 2 × 200 cm |
+| Lebar daun pintu | **tidak tertulis** | dua daun sama lebar, ±2,16 m per daun; overlap 32 cm di tengah |
 
 ## 3 · Perubahan terhadap V2 sebelum revisi
 
@@ -51,8 +51,8 @@ Sebelum rancangan ini diterapkan, V2 masih memakai pagar wiremesh **datar (tanpa
 | Tinggi | 2,35 m (dipotong otomatis dari tinggi ruangan) | pagar **2,40 m** + ring 10 cm + naik atap 50 cm = **puncak 3,00 m** |
 | Pintu | 2 daun **engsel**, buka ke depan | 2 daun **geser samping** dengan roda (“seperti pagar roda”) |
 | Bukaan | pintu menutup sebagian depan | **seluruh sisi depan** bisa dibuka (bukaan 4,00 m) |
-| Knalpot & ventilasi | knalpot kanopi menembus atap; belum ada kisi bubungan | **knalpot khusus berhenti di bawah atap**, spandek utuh; udara panas keluar lewat **kisi louvre di kedua ujung bubungan** |
-| Kelistrikan | panel distribusi di dalam | **panel + kWh di dinding samping luar**, kabel masuk satu jalur |
+| Knalpot & ventilasi | knalpot kanopi menembus atap; belum ada kisi bubungan | **knalpot khusus berhenti di bawah atap**, spandek utuh; outlet melalui **kisi bubungan + bukaan louvre pada dua bidang atap** |
+| Kelistrikan | panel distribusi di dalam | **panel + kWh di dinding samping luar**, sepasang kabel tampak tersambung sampai panel kontrol genset |
 | Dinding | rangka + jaring | rangka + jaring, **tiang hollow 60 × 60** di sudut, **3 rel** (atas/tengah/bawah) |
 | Pondasi | plat beton | **sloof/pondasi 15 cm** + lantai beton |
 
@@ -66,33 +66,33 @@ Lihat gambar: `docs/img/v2-pagar-rencana.svg`.
 - **Dinding**: tiang hollow 60 × 60 di 4 sudut + tiang pembagi tiap ±1,3 m; rel atas, tengah, bawah; wiremesh 10 × 10 cm di semua bidang. Pagar belakang dibuat **panel lepas** (sekrup) supaya servis dari belakang tetap mungkin walau ruangnya sempit.
 - **Tinggi dinding**: 2,40 m, ditambah balok ring 10 cm dan naik atap 50 cm → total 3,00 m (keputusan klien).
 - **Atap**: baja ringan + spandek pelana (gable), **bubungan memanjang** dengan kemiringan ±19°, naik 50 cm dari balok ring → puncak 3,00 m. Menonjol 35 cm di depan-belakang, dilengkapi nok, lis, dan talang.
-- **Ventilasi keluar**: karena gas buang berhenti di dalam, ditambah **kisi louvre di kedua ujung bubungan** (tinggi 22 cm, lebar 86 cm) sebagai outlet di titik tertinggi; inlet tetap seluruh bidang wiremesh. Kisi dibuat miring bertingkat + dinding gelap di belakangnya supaya terbaca sebagai bukaan dan air hujan tidak masuk.
+- **Ventilasi keluar**: inlet tetap seluruh bidang wiremesh. Outlet berupa **kisi louvre di kedua ujung bubungan** (±86 × 22 cm) dan **bukaan pada kedua bidang miring spandek** (±2,90 × 0,30 m per sisi), dilindungi bilah louvre agar udara panas keluar dan tampias berkurang.
 - **Knalpot / cerobong**: tetap di posisi yang sama seperti sketsa (sisi kanan, dekat belakang), tetapi **berhenti di bawah atap** — atap spandek tidak dilubangi. Ujung knalpot diberi collar + tudung hujan dan digantung ke rangka atap supaya tidak menggantung bebas.
-- **Pintu geser**: 2 daun @ ±2,00 × 2,30 m, rangka hollow + wiremesh, roda di rel bawah, daun kiri bergeser ke kiri dan daun kanan ke kanan (di luar modul, perlu ruang parkir ±2 m di tiap sisi — atau daun kedua menumpang di belakang daun pertama bila lahan sempit).
-- **Kelistrikan**: panel genset + kWh di dinding samping luar (kiri), satu jalur kabel masuk lewat dinding.
+- **Pintu geser**: 2 daun simetris @ ±2,16 × 2,30 m, rangka hollow + wiremesh, gagang/pengunci di tepi tengah dan roda bawah. Rel/pemandu hanya sepanjang modul luar 4,50 m; saat daun diparkir di kiri/kanan, roda ditahan pengganjal di lantai.
+- **Kelistrikan**: panel genset + kWh di dinding samping luar (kiri); sepasang kabel merah/hitam melewati gland, turun mengikuti dinding dalam, lalu masuk ke slot panel kontrol genset.
 - **Pondasi**: sloof 15 × 20 cm + lantai beton 10 cm, dinaikkan 15 cm dari tanah seperti sketsa.
 
 ## 5 · Keputusan yang sudah diambil
 
 1. **Tinggi total** — **3,00 m** (pagar 2,40 m + balok ring 10 cm + naik atap 50 cm), supaya panel kanopi genset tetap bisa dibuka di dalam.
-2. **Pintu geser** — **2 daun**, masing-masing ±2,16 m, roda di rel bawah.
+2. **Pintu geser** — **2 daun sama lebar**, masing-masing ±2,16 m dengan overlap 32 cm; gagang di tepi pertemuan, roda bawah, dan pengganjal saat diparkir.
 3. **Modul** — **4,50 × 2,50 m dipakai apa adanya** (ruang bersih 4,00 × 2,00 m).
 4. **Sisi depan** — **sisi panjang 450 cm**, jadi bubungan memanjang.
 5. **Atap & knalpot** — atap tetap **spandek bubungan**; **knalpot tidak menembus atap**, berhenti di bawahnya.
-6. **Ventilasi keluar** — atas persetujuan klien, **kisi louvre di kedua ujung bubungan sudah ditambahkan** sebagai outlet tertinggi.
+6. **Ventilasi keluar** — kisi louvre pada kedua ujung bubungan dan bukaan louvre pada kedua bidang atap sudah dimodelkan; wiremesh tetap menjadi inlet.
 
 ## 6 · Implementasi yang sudah selesai
 
 Model statis ini tidak memerlukan build step; geometri dan interaksi berada di `index.html`.
 
 1. **Preset V2 baru**: tombol versi rumah tetap “V2 · Pagar wiremesh”, parameternya modul sketsa (4,50 × 2,50 m, isi 25 cm, total tinggi 3,00 m). Ukuran di slider diukur dari dalam pagar.
-2. **Atap bubungan**: ganti atap seng datar dengan dua bidang spandek + reng + lis, plus talang; kamera “3D” tetap enak melihat bubungannya.
-3. **Pintu geser**: daun pintu baru dengan rel bawah + roda, animasi geser (bukan putar), rel parkir di kiri-kanan, dan label “geser” di tab Pintu.
+2. **Atap bubungan**: dua bidang spandek + reng + lis, plus talang; dibuat bukaan louvre pada kedua bidang miring dan kisi pada kedua ujung bubungan.
+3. **Pintu geser**: dua daun sama lebar dengan gagang di tengah, rel bawah sepanjang kotak saja, animasi geser kiri/kanan, serta pengganjal roda di posisi parkir.
 4. **Knalpot**: naik hanya di dalam rumah genset, berhenti di bawah atap dengan collar + tudung hujan; atap spandek utuh tanpa lubang.
-5. **Panel + kWh di luar**: dipindah ke dinding samping luar, dua jalur kabel masuk.
+5. **Panel + kWh di luar**: dipindah ke dinding samping luar; dua kabel merah/hitam digambar kontinu dari panel sampai genset.
 6. **Pondasi 15 cm + lantai beton**: diangkat dari tanah, dengan tangga/step di depan pintu.
 7. **Label & teks**: semua callout, teks tab Rumah, README, gambar rencana, dan tautan *Bagikan* ikut diperbarui (hash versi dinaikkan supaya tautan lama tidak menampilkan campuran).
-8. **Kisi ventilasi bubungan**: dua kisi louvre berukuran ±86 × 22 cm pada kedua ujung bubungan; bilah miring dan panel gelap di belakangnya membuat bukaan terbaca sekaligus membantu menahan tampias.
-9. **Cek visual**: render beberapa sudut (pratinjau di `docs/img/v2-pagar-pratinjau.png`) untuk memastikan tidak ada bagian yang saling menembus — termasuk jarak ujung knalpot ke bidang atap. V1 tetap tersedia tanpa perubahan.
+8. **Ventilasi atap**: dua kisi louvre ±86 × 22 cm pada ujung bubungan ditambah bukaan louvre ±2,90 × 0,30 m pada masing-masing bidang spandek; jalur inlet wiremesh tetap terbuka.
+9. **Pratinjau**: gambar empat sudut diperbarui untuk menampilkan rute kabel, louvre bidang atap, bukaan pintu dengan pengganjal, dan gagang tengah. Jalur knalpot tetap berhenti di bawah spandek; V1 tetap tersedia tanpa perubahan.
 
 Kalau ada angka lain dari lapangan (misal gensetnya 2,5 m atau 3 m panjang), sebutkan saja — modul 4,50 m masih cukup untuk genset sampai 3,2 m.
