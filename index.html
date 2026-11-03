@@ -1411,6 +1411,12 @@ function buildShelter(T, opts) {
   var roofRG0 = zb - tW - 0.35, roofRG1 = zf + 0.35;   // atap menonjol 35 cm tiap sisi
   var halfRun = (roofRG1 - roofRG0) / 2;
   var slope = Math.atan2(rise, halfRun);  // kemiringan bidang atap
+  /* tinggi (y) permukaan atap pada koordinat z tertentu — dipakai untuk menaruh
+     knalpot & gantungan supaya tetap di bawah bidang spandek */
+  function roofYAt(z) {
+    var f = Math.max(0, Math.min(1, (z - roofRG0) / (roofRG1 - roofRG0)));
+    return roofBase + rise * (1 - Math.abs(2 * f - 1));
+  }
   if (v2) {
     zincM = new T.MeshStandardMaterial({
       map: ctex(128, 128, function (g, w, h) {
@@ -1604,28 +1610,36 @@ function buildShelter(T, opts) {
   var ezCanopy = -0.55;                      // knalpot keluar dari muka belakang kanopi
   var elbowZ, risH, risTop;
   if (v2) {
-    /* V2: cerobong naik dari knalpot kanopi, menembus bidang atap spandek di sisi
-       kanan dekat belakang (posisi lingkaran pada sketsa denah). Pagar tidak
-       dilubangi. Ditambah collar/flashing + penutup hujan di atas atap. */
-    var crossZ = ezCanopy;                  // sumbu cerobong = ujung knalpot kanopi
+    /* V2: knalpot kanopi TIDAK menembus atap. Ujung knalpot yang sudah ada cukup
+       ditambah collar, tiga penopang tudung, dan tudung hujan — semuanya berhenti
+       di bawah bidang atap spandek. Pagar juga tidak dilubangi. */
+    var crossZ = ezCanopy;                  // sumbu knalpot = ujung knalpot kanopi
     var xSt = 0.88;
-    // tinggi bidang atap di titik tembus (interpolasi lereng)
-    var fZ = (crossZ - roofRG0) / (roofRG1 - roofRG0);
-    var yRoof = roofBase + rise * (1 - Math.abs(2 * Math.max(0, Math.min(1, fZ)) - 1));
+    var muffTop = 2.66;                     // ujung atas knalpot kanopi (dari model genset)
+    // tinggi bidang atap tepat di atas knalpot, lalu sisakan ruang bebas
+    var yRoofHere = roofYAt(crossZ);
+    var capTop = Math.min(muffTop + 0.16, yRoofHere - 0.1, ridgeY - 0.1);
+    var capH = 0.08, capR = 0.14;
     elbowZ = crossZ;
-    cyl(0.1, 0.11, steelM, 'y', xSt, yRoof + 0.03, crossZ, exG, 22);
-    box(0.4, 0.02, 0.4, steelM, xSt, yRoof + 0.085, crossZ, exG, false);
-    // cerobong: dari ujung knalpot kanopi sampai 1,0 m di atas atap
-    var chTop = ridgeY + 0.75, chBot = 2.58;   // dari ujung knalpot kanopi sampai atas atap
-    cyl(0.075, chTop - chBot, stainM, 'y', xSt, (chTop + chBot) / 2, crossZ, exG, 20);
-    [0.35, 0.55, 0.75].forEach(function (f) { cyl(0.082, 0.02, steelM, 'y', xSt, chBot + f * (chTop - chBot), crossZ, exG, 18); });
-    // penutup hujan (cap) di ujung atas
-    cyl(0.075, 0.05, steelM, 'y', xSt, chTop + 0.02, crossZ, exG, 20, 0.11);
-    cyl(0.012, 0.2, steelM, 'y', xSt, chTop + 0.14, crossZ, exG, 10);
-    var cap = new T.Mesh(new T.ConeGeometry(0.17, 0.14, 20), steelM);
-    cap.position.set(xSt, chTop + 0.2, crossZ); exG.add(cap);
+    // collar di ujung knalpot
+    cyl(0.1, 0.03, steelM, 'y', xSt, muffTop + 0.01, crossZ, exG, 20, 0.112);
+    // tiga penopang tudung
+    for (var ci = 0; ci < 3; ci++) {
+      var ca = ci / 3 * PI * 2;
+      cyl(0.008, Math.max(0.02, capTop - capH / 2 - muffTop - 0.02), steelM, 'y',
+        xSt + Math.cos(ca) * capR * 0.72, (muffTop + 0.02 + capTop - capH / 2) / 2, crossZ + Math.sin(ca) * capR * 0.72, exG, 8);
+    }
+    // tudung hujan (di bawah atap)
+    var cap = new T.Mesh(new T.ConeGeometry(capR, capH, 20), steelM);
+    cap.position.set(xSt, capTop - capH / 2, crossZ); exG.add(cap);
+    // gantungan knalpot ke rangka atap, tetap di bawah bidang atap
+    var hangZ = crossZ - 0.34, hangY = Math.min(muffTop - 0.04, roofYAt(hangZ) - 0.06);
+    cyl(0.011, 0.34, steelM, 'z', xSt, hangY, crossZ - 0.17, exG, 8);
+    box(0.05, 0.03, 0.045, steelM, xSt, hangY, hangZ, exG, false);
+    // batang pendek naik dari knalpot ke gantungan
+    cyl(0.011, 0.12, steelM, 'y', xSt, hangY - 0.06, hangZ, exG, 8);
     risH = 0;
-    risTop = chTop;
+    risTop = capTop;
   } else {
     var ezLen = Math.max(0.4, ezCanopy - ez), ezMid = (ezCanopy + ez) / 2;
     cyl(0.058, ezLen, pipeM, 'z', 0.88, exY, ezMid, exG, 18);
@@ -1808,7 +1822,7 @@ function buildShelter(T, opts) {
     { part: 'shVentOut', label: 'Kisi udara keluar', pos: [a + 0.2, 1.8, 0.1], n: [1, 0, 0] },
     { part: 'shSign', label: 'Papan peringatan', pos: [-(a + 0.25), 1.9, zf - 0.7], n: [-1, 0, 0] },
     { part: 'shFloor', label: v2 ? 'Lantai beton + sloof 15 cm' : 'Lantai beton', pos: [0, v2 ? -0.06 : -0.1, platZ1 + 0.25], n: [0, 0, 1] },
-    { part: 'shExhaust', label: v2 ? 'Cerobong menembus atap' : 'Knalpot tembus dinding', pos: v2 ? [0.88, risTop - 0.3, elbowZ] : [0.88, exY + risH + 0.16, elbowZ], n: null },
+    { part: 'shExhaust', label: v2 ? 'Cerobong di bawah atap' : 'Knalpot tembus dinding', pos: v2 ? [0.88, risTop - 0.15, elbowZ] : [0.88, exY + risH + 0.16, elbowZ], n: null },
     { part: 'shLights', label: 'Lampu downlight', pos: [-a * 0.5, roofBase - 0.1, zf - 0.55], n: null, need: 'roofFade' },
     { part: 'shPanel', label: v2 ? 'Panel genset + kWh' : 'Panel distribusi', pos: v2 ? [-(a + 0.28), 1.85, zf - 1.75] : [pnx, 1.85, zb + 0.2], n: v2 ? [-1, 0, 0] : null },
     { part: 'shApar', label: 'APAR', pos: [apx, 1.55, v2 ? zb + 0.3 : zb + 0.2], n: null, need: 'inside' }
@@ -1889,7 +1903,7 @@ function buildShelter(T, opts) {
       mn: 'Panel genset + kWh (luar)', md: 'Sesuai sketsa, panel genset dan kotak kWh dipasang di dinding samping luar, bukan di dalam. Dua jalur kabel genset masuk menembus pagar menuju panel, jadi operator bisa memantau beban tanpa masuk ke rumah genset. Kotak kWh terpisah di bawahnya, dengan konduit naik ke atas.', c: function (S) { return { t: [-S.a + 0.45, 1.45, S.zb], az: -0.35, pol: 1.4, r: 4.2 }; }, gates: true },
     shApar: { n: 'APAR (pemadam api)', k: 'Rumah genset', d: 'Alat pemadam api ringan 6 kg ABC dengan pengikat di dinding belakang dekat radiator, lengkap dengan tanda hijau di atasnya.', c: function (S) { return { t: [S.a - 0.4, 1.2, S.zb], az: 0.35, pol: 1.4, r: 4.2 }; }, gates: true },
     shExhaust: { n: 'Knalpot tembus dinding', k: 'Rumah genset', d: 'Pipa knalpot menembus dinding belakang lewat flens, lalu naik dan ditutup tudung anti hujan di luar. Gas buang keluar jauh dari ruang genset.',
-      mn: 'Cerobong menembus atap', md: 'Knalpot kanopi disambung pipa tegak (cerobong) yang menembus bidang atap spandek di sisi kanan dekat belakang — posisi yang sama dengan lingkaran “cerobong knalpot” pada sketsa denah. Di titik tembus ada collar dan flashing supaya air hujan tidak masuk, dan ujungnya diberi penutup hujan. Pagar tidak dilubangi sama sekali.', c: function (S) { return { t: [0.88, 2.8, -1.2], az: 2.9, pol: 1.2, r: 5 }; } },
+      mn: 'Cerobong (di bawah atap)', md: 'Knalpot kanopi disambung pipa tegak (cerobong) di sisi kanan dekat belakang — posisi yang sama dengan lingkaran “cerobong knalpot” pada sketsa denah. Cerobong ini naik hanya di dalam rumah genset dan berhenti di bawah bidang atap spandek; atap tidak dilubangi. Ujungnya diberi tudung supaya gas buang tidak menyembur langsung ke bidang atap, dan dipasang gantungan ke rangka atap. Pagar juga tidak dilubangi sama sekali.', c: function (S) { return { t: [0.88, 2.7, -1.05], az: 2.9, pol: 1.2, r: 5 }; } },
     shGarden: { n: 'Taman dan pohon palem', k: 'Rumah genset', d: 'Pohon palem berbatang cincin dengan daun berjari, semak berdaun, dan rumput bertekstur di sebelah kanan, seperti pada foto acuan. Bisa dimatikan di tab Rumah.', c: function (S) { return { t: [S.a + 2.5, 1.5, S.zf - 0.3], az: 0.9, pol: 1.3, r: 9 }; } }
   };
   var ORDER = [
@@ -2431,7 +2445,7 @@ function buildShelter(T, opts) {
       ? 'Versi pagar (sketsa lapangan): modul 4,50 × 2,50 m, pagar wiremesh isi 25 cm, atap spandek bubungan, dan pintu geser samping seperti pagar roda.'
       : 'Rumah genset berpintu louvre ganda, atap beton, dan lantai plat seperti pada foto acuan.';
     if (note) note.textContent = mesh
-      ? 'Ukuran dalam meter, diukur dari bagian dalam pagar (4,00 × 2,00 m). Dinding pagar isi 25 cm, jadi modul luar 4,50 × 2,50 m. Tinggi 3,00 m = pagar 2,40 m + naik atap 0,60 m; cerobong menembus atap, panel genset + kWh di dinding samping luar.'
+      ? 'Ukuran dalam meter, diukur dari bagian dalam pagar (4,00 × 2,00 m). Dinding pagar isi 25 cm, jadi modul luar 4,50 × 2,50 m. Tinggi 3,00 m = pagar 2,40 m + balok ring 10 cm + naik atap 50 cm; cerobong berhenti di bawah atap, panel genset + kWh di dinding samping luar.'
       : 'Ukuran dalam meter, diukur dari bagian dalam dinding. Dinding plester kuning setebal 20 cm, atap menjorok 0,6 m di depan.';
     // nama bagian di tab "Bagian" ikut versi
     document.querySelectorAll('.part-row').forEach(function (b) {
