@@ -38,7 +38,7 @@
   <rect x="0" y="0" width="1200" height="1250" fill="#ffffff"/>
   <rect class="frame" x="10" y="10" width="1180" height="1230"/>
   <text class="h1" x="34" y="46">RUMAH GENSET SOUNDPROOF · V2 — PAGAR WIREMESH</text>
-  <text class="lbl" x="34" y="66">Usulan bentuk berdasarkan sketsa lapangan · modul 4,50 × 2,50 m · dinding isi 25 cm · atap spandek pelana (gable) · pintu geser samping</text>
+  <text class="lbl" x="34" y="66">Referensi visual awal · modul 4,50 × 2,50 m hanya usulan; ukuran kerja mengikuti kontrol aplikasi · gable terbuka · pintu geser</text>
   <line x1="34" y1="78" x2="1166" y2="78" stroke="#232a2f"/>
   <line x1="640" y1="78" x2="640" y2="1216" stroke="#dfe4e7"/>
 
@@ -48,6 +48,11 @@
     <!-- satuan cm; 0,85 px per cm -->
     <rect x="0" y="0" width="450" height="250" class="wall"/>
     <rect x="25" y="25" width="400" height="200" class="inner"/>
+    <!-- hanya empat tiang hollow 6 × 6 cm di sudut -->
+    <rect x="19" y="19" width="6" height="6" fill="#323a40"/>
+    <rect x="419" y="19" width="6" height="6" fill="#323a40"/>
+    <rect x="19" y="225" width="6" height="6" fill="#323a40"/>
+    <rect x="419" y="225" width="6" height="6" fill="#323a40"/>
     <!-- genset 300 x 110 : x 75..375, z 70..180 -->
     <rect x="75" y="70" width="300" height="110" class="genset"/>
     <text class="lblb" x="225" y="118" text-anchor="middle">GENSET SOUNDPROOF</text>
@@ -98,6 +103,8 @@
   <g transform="translate(800,262) scale(0.70)">
     <!-- dinding pagar: 250 lebar, 240 tinggi -->
     <rect x="0" y="0" width="250" height="240" fill="url(#mesh)" stroke="#3a4147" stroke-width="1.4"/>
+    <rect x="0" y="0" width="6" height="240" fill="#323a40"/>
+    <rect x="244" y="0" width="6" height="240" fill="#323a40"/>
     <rect x="0" y="4" width="250" height="6" fill="#cfd8dd" stroke="#3a4147"/>
     <rect x="0" y="116" width="250" height="5" fill="#cfd8dd" stroke="#3a4147"/>
     <rect x="0" y="230" width="250" height="6" fill="#cfd8dd" stroke="#3a4147"/>
@@ -105,17 +112,12 @@
     <text class="note" x="125" y="86" text-anchor="middle">sekeliling</text>
     <!-- balok ring -->
     <rect x="-16" y="-16" width="282" height="16" class="ring"/>
-    <!-- atap spandek bubungan -->
-    <path class="roof" d="M-40 -16 L125 -94 L290 -16 Z"/>
-    <line x1="125" y1="-94" x2="125" y2="-16" stroke="#aeb7bd" stroke-width="1" stroke-dasharray="4 4"/>
+    <!-- Dua bidang spandek sebagai garis atap; ujung segitiga tetap terbuka. -->
+    <path d="M-40 -16 L125 -94 L290 -16" fill="none" stroke="#232a2f" stroke-width="5"/>
+    <!-- Rangka ringan gable: rafters, tie beam, dan king post; tanpa panel/end-louvre. -->
+    <path d="M0 0 L125 -78 L250 0 M0 0 H250 M125 0 V-78" fill="none" stroke="#5b6a73" stroke-width="2.6"/>
     <text class="note" x="48" y="-32" text-anchor="middle">spandek + reng</text>
-    <!-- kisi ventilasi keluar di ujung bubungan -->
-    <rect x="96" y="-44" width="58" height="19" fill="#eef1f3" stroke="#3a4147" stroke-width="1.2"/>
-    <line x1="98" y1="-37" x2="152" y2="-37" stroke="#8d97a0" stroke-width="1.5"/>
-    <line x1="98" y1="-31" x2="152" y2="-31" stroke="#8d97a0" stroke-width="1.5"/>
-    <line x1="98" y1="-44" x2="98" y2="-25" stroke="#c8ced2" stroke-width="1"/>
-    <line x1="152" y1="-44" x2="152" y2="-25" stroke="#c8ced2" stroke-width="1"/>
-    <!-- celah louvre pada kedua bidang miring spandek -->
+    <!-- Louvre hanya pada kedua bidang miring spandek -->
     <path d="M25 -45 L55 -61" stroke="#252a2e" stroke-width="8" stroke-linecap="square"/>
     <path d="M195 -61 L225 -45" stroke="#252a2e" stroke-width="8" stroke-linecap="square"/>
     <path d="M29 -47 L53 -60 M198 -60 L221 -47" stroke="#aeb7bd" stroke-width="1.4"/>
@@ -134,14 +136,14 @@
     <text class="dimt" x="272" y="254">15</text>
   </g>
   <line x1="860" y1="170" x2="1010" y2="146" class="lead"/>
-  <text class="note" x="1014" y="142">tiang hollow 60 × 60</text>
-  <text class="note" x="1014" y="156">+ balok ring keliling</text>
+  <text class="note" x="1014" y="142">4 tiang hollow 60 × 60</text>
+  <text class="note" x="1014" y="156">di sudut + balok ring</text>
   <line x1="908" y1="232" x2="1008" y2="182" class="lead"/>
-  <text class="note" x="1014" y="180">kisi ventilasi keluar</text>
-  <text class="note" x="1014" y="194">di kedua ujung bubungan</text>
+  <text class="note" x="1014" y="180">gable terbuka</text>
+  <text class="note" x="1014" y="194">rangka baja ringan</text>
   <line x1="829" y1="225" x2="1008" y2="210" class="lead"/>
   <text class="note" x="1014" y="210">louvre pada dua bidang</text>
-  <text class="note" x="1014" y="224">miring spandek (ventilasi)</text>
+  <text class="note" x="1014" y="224">miring spandek saja</text>
   <line x1="1156" y1="252" x2="1000" y2="268" class="lead"/>
   <text class="note" x="1014" y="272">3 rel hollow</text>
   <text class="note" x="1014" y="286">(atas, tengah, bawah)</text>
@@ -154,23 +156,25 @@
     <text x="686" y="571">ruang bersih 4,00 × 2,00 m.</text>
     <text x="670" y="591">2 · Tinggi pagar 2,40 m; puncak atap ±3,00 m;</text>
     <text x="686" y="606">pondasi/sloof 15 cm.</text>
-    <text x="670" y="626">3 · Wiremesh 10 × 10 cm keliling, rangka hollow</text>
-    <text x="686" y="641">60 × 60 + 3 rel (atas, tengah, bawah).</text>
-    <text x="670" y="661">4 · Dua daun geser simetris 2 × 2,16 m; gagang tengah.</text>
-    <text x="686" y="676">Rel sepanjang modul; bukaan bersih 4,00 m.</text>
+    <text x="670" y="626">3 · Wiremesh 10 × 10 cm; hanya 4 tiang sudut</text>
+    <text x="686" y="641">hollow 60 × 60 mm + 3 rel ringan.</text>
+    <text x="670" y="661">4 · Dua daun geser sama lebar; gagang simetris.</text>
+    <text x="686" y="676">Di stile pertemuan, tidak menyilang; rel sepanjang modul.</text>
     <text x="670" y="696">5 · Sisi belakang dibuat panel lepas untuk servis.</text>
     <text x="670" y="716">6 · Knalpot berhenti di bawah atap; spandek tidak dilubangi.</text>
     <text x="670" y="736">7 · Panel genset + kWh di dinding samping luar;</text>
     <text x="686" y="751">kabel merah/hitam tersambung ke kontrol genset.</text>
     <text x="670" y="771">8 · Atap menonjol 30–60 cm tiap sisi + talang.</text>
-    <text x="670" y="791">9 · Inlet wiremesh; outlet kisi bubungan + louvre</text>
-    <text x="686" y="806">pada kedua bidang miring spandek.</text>
+    <text x="670" y="791">9 · Louvre hanya pada dua bidang miring spandek;</text>
+    <text x="686" y="806">gable terbuka dengan rangka baja ringan.</text>
   </g>
 
   <!-- ============================================================ C · TAMPAK DEPAN -->
   <text class="h2" x="34" y="516">C · TAMPAK DEPAN — SISI PINTU GESER</text>
   <g transform="translate(150,706) scale(0.82)">
     <rect x="0" y="0" width="450" height="240" class="wall"/>
+    <rect x="0" y="0" width="6" height="240" fill="#323a40"/>
+    <rect x="444" y="0" width="6" height="240" fill="#323a40"/>
     <!-- dua daun 200 -->
     <rect x="25" y="18" width="216" height="212" fill="url(#mesh)" stroke="#3a4147" stroke-width="1.5"/>
     <rect x="209" y="18" width="216" height="212" fill="url(#mesh)" stroke="#3a4147" stroke-width="1.5"/>
@@ -183,9 +187,9 @@
     <rect x="209" y="18" width="216" height="7" class="leaf"/>
     <rect x="25" y="223" width="216" height="7" class="leaf"/>
     <rect x="209" y="223" width="216" height="7" class="leaf"/>
-    <!-- pegangan -->
-    <rect x="212" y="108" width="9" height="36" rx="3" fill="#3a4147"/>
-    <rect x="229" y="108" width="9" height="36" rx="3" fill="#3a4147"/>
+    <!-- pegangan simetris pada stile pertemuan; ada jarak, tidak saling menyilang -->
+    <rect x="207.5" y="108" width="9" height="36" rx="3" fill="#3a4147"/>
+    <rect x="233.5" y="108" width="9" height="36" rx="3" fill="#3a4147"/>
     <!-- roda geser -->
     <circle class="wheel" cx="40" cy="242" r="6"/><circle class="wheel" cx="226" cy="242" r="6"/>
     <circle class="wheel" cx="224" cy="242" r="6"/><circle class="wheel" cx="410" cy="242" r="6"/>
@@ -220,7 +224,7 @@
   <line x1="670" y1="826" x2="1166" y2="826" stroke="#dfe4e7"/>
   <text class="h2" x="670" y="852">E · BAHAN</text>
   <g class="note">
-    <text x="670" y="878">Hollow 60×60×1,8 (tiang) · hollow 40×40 (rel) · wiremesh</text>
+    <text x="670" y="878">4 hollow 60×60×1,8 (tiang sudut) · hollow ringan (rel) · mesh</text>
     <text x="670" y="892">10×10 galvanis · spandek 0,35 + reng · beton sloof 15/20</text>
     <text x="670" y="906">· lantai beton 10 cm · roda pemandu + pengganjal pintu</text>
   </g>
@@ -236,10 +240,10 @@
     <text x="670" y="1083">• Pintu di sisi panjang 450 cm.</text>
     <text x="670" y="1103">• Atap spandek bubungan; knalpot berhenti di</text>
     <text x="686" y="1118">bawah atap (tidak menembus).</text>
-    <text x="670" y="1138">• Ventilasi atap: kisi bubungan + louvre pada</text>
-    <text x="686" y="1153">kedua bidang spandek; knalpot tetap di bawah atap.</text>
+    <text x="670" y="1138">• Louvre hanya pada dua bidang spandek;</text>
+    <text x="686" y="1153">gable terbuka; knalpot tetap di bawah atap.</text>
     <text x="670" y="1173">• Rel hanya sepanjang modul; ganjal menahan roda</text>
-    <text x="686" y="1188">saat dibuka; gagang daun berhadapan di tengah.</text>
+    <text x="686" y="1188">saat dibuka; gagang simetris, tidak menyilang.</text>
   </g>
-  <text class="note" x="34" y="1226">Soundproof-Genset-3D-Interactive · usulan V2 dari sketsa klien · satuan cm · gambar berskala, bukan acuan pelaksanaan</text>
+  <text class="note" x="34" y="1226">Soundproof-Genset-3D-Interactive · referensi visual V2 · ukuran ilustratif, bukan dimensi terkonfirmasi atau acuan pelaksanaan</text>
 </svg>
