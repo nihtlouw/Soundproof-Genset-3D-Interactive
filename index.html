@@ -122,6 +122,70 @@ input[type=range]{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
 .field input{width:100%;padding:8px 9px;background:var(--bg);border:1px solid var(--line);border-radius:0;min-width:0}
 .field input:focus{border-color:var(--accent)}
 .note{margin:14px 0 0;padding-top:10px;border-top:1px solid var(--line);color:var(--mut);font-size:12px}
+
+/* Lembar denah konsep multi-tampak */
+.plan-modal{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:rgba(3,8,9,.82);backdrop-filter:blur(8px);padding:0}
+.plan-modal[hidden]{display:none}
+.plan-backdrop{position:absolute;inset:0}
+.plan-window{position:relative;z-index:1;width:100%;height:100%;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:#0d1515;color:#e5efee;border:1px solid #263837;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.plan-head{display:grid;grid-template-columns:minmax(165px,210px) minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 14px;background:#101918;border-bottom:1px solid #2a3a38}
+.plan-brand h2{margin:0;font:800 20px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+.plan-brand p{margin:4px 0 0;font:500 9px/1.25 var(--f-mono);letter-spacing:.08em;color:#8fa3a0;text-transform:uppercase}
+.plan-view-tabs{display:flex;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:thin}
+.plan-tab,.plan-action{flex:none;border:1px solid #2b3b39;background:#162120;color:#bbcac7;padding:7px 9px;font:600 10px/1 var(--f-mono);letter-spacing:.035em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.plan-tab:hover,.plan-action:hover{border-color:#59a896;color:#ecffff}
+.plan-tab[aria-pressed="true"]{background:#6ed5b6;color:#09211c;border-color:#6ed5b6}
+.plan-actions{display:flex;gap:6px}
+.plan-action.pri{background:#75dfbd;color:#08231d;border-color:#75dfbd}
+.plan-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.plan-canvas-area{min-width:0;min-height:0;display:flex;align-items:stretch;justify-content:center;overflow:auto;padding:18px;background:radial-gradient(ellipse at 50% 38%,#263331,#151e1d)}
+.plan-paper{display:block;width:min(100%,1450px);height:auto;min-height:0;flex:0 0 auto;align-self:center;background:#f2f0e5;box-shadow:0 10px 32px rgba(0,0,0,.3);border:1px solid #d4d3c8}
+.plan-side{min-width:0;overflow:auto;padding:14px;background:#101918;border-left:1px solid #2a3a38}
+.plan-card{padding:12px;margin:0 0 10px;border:1px solid #2a3b38;background:#131e1c;border-radius:10px}
+.plan-card h3{margin:0 0 9px;color:#a8c0bb;font:700 10px/1.2 var(--f-mono);letter-spacing:.11em;text-transform:uppercase}
+.plan-card-title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:7px}
+.plan-card-title strong{font:700 15px/1.1 var(--f-display);letter-spacing:.03em;text-transform:uppercase;color:#e7f1ef}
+.plan-card-title span{font:500 9px/1.2 var(--f-mono);color:#7bd6b7;text-align:right}
+.plan-description{margin:0;color:#9eb0ac;font-size:12px;line-height:1.45}
+.plan-metrics{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#263735;border:1px solid #263735;border-radius:6px;overflow:hidden}
+.plan-metric{padding:9px;background:#101918;min-width:0}
+.plan-metric small{display:block;font:500 8px/1.25 var(--f-mono);letter-spacing:.08em;color:#78918b;text-transform:uppercase}
+.plan-metric b{display:block;margin-top:4px;font:600 12px/1.2 var(--f-mono);color:#e0ece8;overflow-wrap:anywhere}
+.plan-variant-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.plan-variant{width:100%;min-width:0;border:1px solid #2b3b39;background:#162120;color:#aabbb7;padding:8px 6px;font:600 9px/1.2 var(--f-mono);cursor:pointer}
+.plan-variant[aria-pressed="true"]{border-color:#75dfbd;color:#75dfbd;background:#122522}
+.plan-notes{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.plan-notes li{position:relative;padding-left:19px;color:#9eafab;font-size:11px;line-height:1.4}
+.plan-notes li::before{content:"";position:absolute;left:0;top:3px;width:9px;height:9px;border:1px solid #73d9b6;border-radius:50%;box-shadow:inset 0 0 0 2px #13201e}
+.plan-warning{margin:10px 0 0;padding:9px;border:1px dashed #64583b;background:#211f16;color:#cdbf91;font:500 9px/1.45 var(--f-mono)}
+@media (max-width:980px){
+  .plan-head{grid-template-columns:minmax(150px,190px) minmax(0,1fr);}
+  .plan-actions{grid-column:1 / -1;justify-content:flex-end}
+  .plan-layout{grid-template-columns:minmax(0,1fr) 280px}
+}
+@media (max-width:700px){
+  .plan-head{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:9px}
+  .plan-brand h2{font-size:17px}
+  .plan-view-tabs{grid-column:1 / -1;grid-row:2;max-width:100%;padding-bottom:2px}
+  .plan-actions{grid-column:2;grid-row:1}
+  .plan-action{padding:7px}
+  .plan-layout{grid-template-columns:1fr;grid-template-rows:minmax(250px,1fr) minmax(170px,34vh)}
+  .plan-canvas-area{padding:10px;justify-content:flex-start}
+  .plan-paper{width:max(720px,100%);align-self:flex-start}
+  .plan-side{border-left:0;border-top:1px solid #2a3a38;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;padding:9px;overflow:auto}
+  .plan-card{margin:0}
+  .plan-warning{grid-column:1 / -1}
+}
+@media print{
+  @page{size:landscape;margin:8mm}
+  body{overflow:visible;background:#fff}
+  .app{display:none!important}
+  .plan-modal{position:static;display:block!important;background:#fff;padding:0;backdrop-filter:none}
+  .plan-window{display:block;width:100%;height:auto;border:0;box-shadow:none;background:#fff;color:#111}
+  .plan-head,.plan-side{display:none!important}
+  .plan-layout,.plan-canvas-area{display:block;overflow:visible;padding:0;background:#fff}
+  .plan-paper{width:100%;max-width:none;max-height:none;border:0;box-shadow:none}
+}
 </style>
 
 <div class="app">
@@ -142,6 +206,7 @@ input[type=range]{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
         <button class="vbtn" data-view="iso" aria-pressed="true" type="button">3D</button>
       </div>
       <div class="tools">
+        <button class="vbtn" id="planOpen" type="button" title="Buka denah konsep dari berbagai sisi" aria-label="Buka denah konsep 2D" aria-haspopup="dialog" aria-controls="planModal" aria-expanded="false">Denah 2D</button>
         <button class="vbtn" id="share" type="button" title="Salin tautan ke tampilan ini" aria-label="Salin tautan ke tampilan ini">Bagikan</button>
         <span class="sr" id="shareStatus" role="status" aria-live="polite"></span>
       </div>
@@ -267,6 +332,60 @@ input[type=range]{width:100%;margin:4px 0 10px;accent-color:var(--accent)}
         <div class="btnrow"><button class="btn" id="resetLabels" type="button">Kembalikan teks</button></div>
         <p class="note">Logo pembuat mesin dan merek genset digambar sebagai lencana teks biasa, bukan salinan logo aslinya. Ketik teks lencana Anda sendiri di atas.</p>
       </div>
+    </div>
+  </section>
+</div>
+
+<div class="plan-modal" id="planModal" hidden>
+  <div class="plan-backdrop" data-plan-close aria-hidden="true"></div>
+  <section class="plan-window" role="dialog" aria-modal="true" aria-labelledby="planDialogTitle">
+    <header class="plan-head">
+      <div class="plan-brand">
+        <h2 id="planDialogTitle">Denah Konsep</h2>
+        <p>Rumah genset · lembar multi-tampak</p>
+      </div>
+      <nav class="plan-view-tabs" id="planViewTabs" aria-label="Pilih sudut gambar">
+        <button class="plan-tab" data-plan-view="sheet" aria-pressed="true" type="button">Lembar</button>
+        <button class="plan-tab" data-plan-view="plan" aria-pressed="false" type="button">Denah</button>
+        <button class="plan-tab" data-plan-view="front" aria-pressed="false" type="button">Depan</button>
+        <button class="plan-tab" data-plan-view="rear" aria-pressed="false" type="button">Belakang</button>
+        <button class="plan-tab" data-plan-view="left" aria-pressed="false" type="button">Kiri</button>
+        <button class="plan-tab" data-plan-view="right" aria-pressed="false" type="button">Kanan</button>
+        <button class="plan-tab" data-plan-view="roof" aria-pressed="false" type="button">Atap</button>
+      </nav>
+      <div class="plan-actions">
+        <button class="plan-action" id="planDownload" type="button" title="Simpan gambar vektor SVG">Unduh SVG</button>
+        <button class="plan-action" id="planPrint" type="button" title="Cetak lembar konsep">Cetak</button>
+        <button class="plan-action pri" id="planClose" type="button" aria-label="Tutup denah konsep">Tutup</button>
+      </div>
+    </header>
+    <div class="plan-layout">
+      <main class="plan-canvas-area" aria-label="Gambar denah konsep">
+        <svg class="plan-paper" id="planSvg" viewBox="0 0 1200 820" role="img" aria-label="Lembar denah multi-tampak rumah genset"></svg>
+      </main>
+      <aside class="plan-side" aria-label="Detail rencana">
+        <section class="plan-card">
+          <div class="plan-card-title"><strong id="planCurrentView">Lembar 4 sisi</strong><span id="planVersionBadge">V1 · Dinding plester</span></div>
+          <p class="plan-description" id="planViewDescription">Denah, tampak depan, tampak samping, dan tata atap dalam satu lembar konsep.</p>
+        </section>
+        <section class="plan-card">
+          <h3>Ukuran utama</h3>
+          <div class="plan-metrics" id="planMetrics"></div>
+        </section>
+        <section class="plan-card">
+          <h3>Versi konsep</h3>
+          <div class="plan-variant-row">
+            <button class="plan-variant" data-plan-variant="plaster" aria-pressed="true" type="button">V1 · Plester</button>
+            <button class="plan-variant" data-plan-variant="mesh" aria-pressed="false" type="button">V2 · Wiremesh</button>
+          </div>
+          <p class="plan-description" style="margin-top:8px">Ukuran mengikuti slider di tab Rumah. Ganti versi di sini juga memperbarui model 3D.</p>
+        </section>
+        <section class="plan-card">
+          <h3>Catatan lapangan</h3>
+          <ul class="plan-notes" id="planNotes"></ul>
+        </section>
+        <p class="plan-warning">GAMBAR KONSEP · Untuk koordinasi ukuran dan tata letak. Bukan gambar kerja struktur, pondasi, atau izin pelaksanaan.</p>
+      </aside>
     </div>
   </section>
 </div>
@@ -1971,6 +2090,8 @@ function buildShelter(T, opts) {
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var stage = $('#stage'), canvas = $('#gl');
   var fmt = function (v) { return v.toFixed(1).replace('.', ','); };
+  var planModal = $('#planModal'), planSvg = $('#planSvg');
+  var planIsOpen = false, planCurrent = 'sheet', planFocusReturn = null, planBodyOverflow = '';
 
   /* ---------- daftar bagian ---------- */
   var PARTS = {
@@ -2240,6 +2361,7 @@ function buildShelter(T, opts) {
     updateDoorLimits();
     if (sel) { var o = findObj(sel); if (o) select(sel, o); else select(null); }
     kick(60);
+    if (planIsOpen) renderPlan();
   }
   function getDoor(k) { return model.doors[k] || (shelter && shelter.doors[k]) || null; }
   function toggleAny(k, force) {
@@ -2553,6 +2675,8 @@ function buildShelter(T, opts) {
   function applyVariant(v) {
     var wasMesh = variant === 'mesh', nowMesh = (v === 'mesh');
     variant = nowMesh ? 'mesh' : 'plaster';
+    var depthInput = $('#dimD');
+    if (depthInput) depthInput.min = nowMesh ? '2.0' : '2.4';
     /* ukuran ikut modul versi yang dipilih, kecuali pengguna sudah mengubah manual */
     if (wasMesh !== nowMesh && !keepDims) {
       var m = nowMesh ? MESH_MOD : PL_MOD;
@@ -2690,6 +2814,500 @@ function buildShelter(T, opts) {
     model.redraw(); kick();
   });
 
+  /* ---------- denah konsep 2D multi-tampak ---------- */
+  var PLAN_VIEWS = {
+    sheet: { name: 'Lembar 4 sisi', desc: 'Denah tata letak, tampak depan, sisi panel, dan rencana atap. Semua ukuran mengikuti slider dimensi rumah.' },
+    plan: { name: 'Denah atas', desc: 'Tata letak ruang bersih, footprint genset, panel kWh, jalur kabel, bukaan pintu, rel, dan ganjal.' },
+    front: { name: 'Tampak depan', desc: 'Elevasi akses utama dengan dua daun pintu, gagang di tepi pertemuan, rel/pemandu, serta tinggi rangka.' },
+    rear: { name: 'Tampak belakang', desc: 'Elevasi sisi belakang dan catatan jarak servis. Bentuk dinding mengikuti versi rumah aktif.' },
+    left: { name: 'Sisi kiri · panel', desc: 'Potongan/elevasi sisi panel untuk menunjukkan panel kWh dan pasangan kabel menuju genset.' },
+    right: { name: 'Sisi kanan', desc: 'Elevasi sisi seberang dengan posisi knalpot di bawah bidang atap dan detail ventilasi bubungan.' },
+    roof: { name: 'Rencana atap', desc: 'Tata bidang atap, garis bubungan, bukaan louvre, dan ventilasi ujung. Knalpot tidak menembus atap.' }
+  };
+  function planEsc(v) { return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]; }); }
+  function planCM(v) { return Math.round(v * 100) + ' cm'; }
+  function planSvgText(x, y, text, size, anchor, fill, weight, extra) {
+    return '<text x="' + x + '" y="' + y + '" font-family="Arial, sans-serif" font-size="' + size + '" text-anchor="' + (anchor || 'start') + '" fill="' + (fill || '#263431') + '" font-weight="' + (weight || 500) + '"' + (extra || '') + '>' + planEsc(text) + '</text>';
+  }
+  function planFit(frame, worldW, worldH) {
+    var scale = Math.min(frame.w / worldW, frame.h / worldH);
+    var x = frame.x + (frame.w - worldW * scale) / 2;
+    var y = frame.y + (frame.h - worldH * scale) / 2;
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + scale + ')">';
+  }
+  function planDimH(x1, x2, y, refY, label) {
+    return '<g fill="none" stroke="#52615e" stroke-width=".012">' +
+      '<path d="M' + x1 + ' ' + refY + 'V' + y + ' M' + x2 + ' ' + refY + 'V' + y + '" stroke-dasharray=".025 .025"/>' +
+      '<path d="M' + x1 + ' ' + y + 'H' + x2 + '" marker-start="url(#dimArrow)" marker-end="url(#dimArrow)"/>' +
+      '</g>' + planSvgText((x1 + x2) / 2, y - .055, label, .17, 'middle', '#263431', 700, ' paint-order="stroke" stroke="#f5f3e9" stroke-width=".055" stroke-linejoin="round"');
+  }
+  function planDimV(y1, y2, x, refX, label) {
+    var mid = (y1 + y2) / 2;
+    return '<g fill="none" stroke="#52615e" stroke-width=".012">' +
+      '<path d="M' + refX + ' ' + y1 + 'H' + x + ' M' + refX + ' ' + y2 + 'H' + x + '" stroke-dasharray=".025 .025"/>' +
+      '<path d="M' + x + ' ' + y1 + 'V' + y2 + '" marker-start="url(#dimArrow)" marker-end="url(#dimArrow)"/>' +
+      '</g><text x="' + (x - .06) + '" y="' + mid + '" transform="rotate(-90 ' + (x - .06) + ' ' + mid + ')" font-family="Arial,sans-serif" font-size=".17" text-anchor="middle" fill="#263431" font-weight="700" paint-order="stroke" stroke="#f5f3e9" stroke-width=".055" stroke-linejoin="round">' + planEsc(label) + '</text>';
+  }
+  function planDefs() {
+    return '<defs>' +
+      '<pattern id="planGrid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#d9ddd3" stroke-width=".7"/></pattern>' +
+      '<pattern id="planMesh" width=".16" height=".16" patternUnits="userSpaceOnUse"><path d="M0 0H.16M0 0V.16M0 0L.16 .16M.16 0L0 .16" fill="none" stroke="#778985" stroke-width=".012"/></pattern>' +
+      '<pattern id="planRoof" width=".16" height=".16" patternUnits="userSpaceOnUse"><path d="M.03 0V.16M.10 0V.16" fill="none" stroke="#71818a" stroke-width=".026"/><path d="M.14 0V.16" fill="none" stroke="#e8ece8" stroke-width=".012"/></pattern>' +
+      '<pattern id="planPlaster" width=".24" height=".24" patternUnits="userSpaceOnUse"><rect width=".24" height=".24" fill="#ded0a2"/><path d="M0 .08H.24M0 .20H.24" stroke="#c9b77c" stroke-width=".018"/><circle cx=".05" cy=".04" r=".012" fill="#a98f55"/><circle cx=".17" cy=".15" r=".015" fill="#f0e5c1"/></pattern>' +
+      '<pattern id="planConcrete" width=".24" height=".24" patternUnits="userSpaceOnUse"><rect width=".24" height=".24" fill="#e3e2d8"/><path d="M.02 .04l.025 .02M.13 .16l.03-.015M.20 .06l.018 .01" stroke="#a7aaa4" stroke-width=".018"/></pattern>' +
+      '<marker id="dimArrow" markerWidth=".10" markerHeight=".10" refX=".05" refY=".05" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M.10 .01L0 .05L.10 .09" fill="none" stroke="#52615e" stroke-width=".012"/></marker>' +
+      '<marker id="moveArrow" markerWidth=".18" markerHeight=".18" refX=".14" refY=".09" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 .01L.16 .09L0 .17Z" fill="#c55240"/></marker>' +
+      '</defs>';
+  }
+  function planPanel(x, y, w, h, title, body) {
+    var titleText = planSvgText(x + 13, y + 20, title, 12, 'start', '#283633', 700, ' letter-spacing=".7"');
+    return '<g><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="#f8f7ef" stroke="#8e9992" stroke-width="1"/>' + titleText +
+      '<path d="M' + (x + 12) + ' ' + (y + 28) + 'H' + (x + w - 12) + '" stroke="#c6cbc2" stroke-width="1"/>' + body + '</g>';
+  }
+  function planWireBand(x, y, w, h, fill, opacity) {
+    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + fill + '"' + (opacity ? ' opacity="' + opacity + '"' : '') + ' stroke="#56635f" stroke-width=".025"/>';
+  }
+  function drawPlanView(frame, geom) {
+    var W = geom.W, D = geom.D, t = geom.t, outerW = geom.outerW, outerD = geom.outerD, mesh = geom.mesh;
+    var doorW = mesh ? W / 2 + .16 : W / 2;
+    var sidePad = 2.2, topPad = .78, bottomPad = 1.55;
+    var worldW = outerW + sidePad * 2, worldH = outerD + topPad + bottomPad;
+    var X = sidePad, Y = topPad, front = Y + outerD, gateY = front - t / 2;
+    var roofW = geom.roofW, roofD = geom.roofD;
+    var roofX = X + (outerW - roofW) / 2, roofY = Y + (outerD - roofD) / 2;
+    var s = planFit(frame, worldW, worldH), out = s;
+    out += '<rect x="' + (X - .2) + '" y="' + (Y - .16) + '" width="' + (outerW + .4) + '" height="' + (outerD + .32) + '" fill="url(#planConcrete)" stroke="#9a9d96" stroke-width=".018"/>';
+    out += '<rect x="' + roofX + '" y="' + roofY + '" width="' + roofW + '" height="' + roofD + '" fill="url(#planRoof)" fill-opacity=".28" stroke="#44524f" stroke-width=".035" stroke-dasharray=".16 .10"/>';
+    if (mesh) {
+      var ridgeY = roofY + roofD / 2;
+      out += '<path d="M' + roofX + ' ' + ridgeY + 'H' + (roofX + roofW) + '" stroke="#33423f" stroke-width=".035" stroke-dasharray=".12 .07"/>';
+      out += planSvgText(roofX + roofW / 2, roofY + .20, 'GARIS ATAP / BUBUNGAN', .13, 'middle', '#52605c', 700);
+    } else {
+      out += planSvgText(roofX + roofW / 2, roofY + .20, 'TEPI ATAP BETON / OVERHANG', .13, 'middle', '#52605c', 700);
+    }
+    out += '<rect x="' + X + '" y="' + Y + '" width="' + outerW + '" height="' + outerD + '" fill="#fbfaf4" stroke="#263431" stroke-width=".045"/>';
+    out += '<rect x="' + (X + t) + '" y="' + (Y + t) + '" width="' + W + '" height="' + D + '" fill="#f7f6ed" stroke="#76827d" stroke-width=".018"/>';
+    var wallFill = mesh ? 'url(#planMesh)' : 'url(#planPlaster)';
+    out += planWireBand(X, Y, outerW, t, wallFill);
+    out += planWireBand(X, Y + t, t, D, wallFill);
+    out += planWireBand(X + t + W, Y + t, t, D, wallFill);
+    // Balok ring/tiang pembagi dibaca sebagai elemen struktur, bukan garis dimensi.
+    if (mesh) {
+      out += planWireBand(X + t, Y, W, t, 'url(#planMesh)', '.55');
+      for (var postI = 0; postI <= 4; postI++) {
+        var postX = X + t + W * postI / 4;
+        out += '<rect x="' + (postX - .035) + '" y="' + (Y - .012) + '" width=".07" height=".09" fill="#35423f"/>';
+        out += '<rect x="' + (postX - .035) + '" y="' + (Y + outerD - .075) + '" width=".07" height=".09" fill="#35423f"/>';
+      }
+      var nSidePosts = Math.max(2, Math.ceil(D / 1.25));
+      for (var ps = 1; ps < nSidePosts; ps++) {
+        var py = Y + t + D * ps / nSidePosts;
+        out += '<rect x="' + (X - .012) + '" y="' + (py - .035) + '" width=".09" height=".07" fill="#35423f"/>';
+        out += '<rect x="' + (X + outerW - .078) + '" y="' + (py - .035) + '" width=".09" height=".07" fill="#35423f"/>';
+      }
+    }
+    // Genset footprint, separated into radiator, engine, alternator and base zones.
+    var genW = Math.min(3.0, W), genD = Math.min(1.10, D - .25);
+    var genX = X + t + (W - genW) / 2;
+    var genY = Y + t + geom.rearGap;
+    if (genY + genD > Y + t + D) genY = Y + t + D - genD;
+    var clearW = Math.min(W, genW + .56), clearD = Math.min(D, genD + .5);
+    out += '<rect x="' + (X + t + (W - clearW) / 2) + '" y="' + (genY - (clearD - genD) / 2) + '" width="' + clearW + '" height="' + clearD + '" fill="none" stroke="#a4aaa1" stroke-width=".022" stroke-dasharray=".08 .06"/>';
+    out += '<rect x="' + genX + '" y="' + genY + '" width="' + genW + '" height="' + genD + '" rx=".035" fill="#b9c1c1" stroke="#303b3a" stroke-width=".045"/>';
+    out += '<rect x="' + (genX + genW * .04) + '" y="' + (genY + genD * .10) + '" width="' + (genW * .22) + '" height="' + (genD * .80) + '" fill="#8c999c" stroke="#56605f" stroke-width=".018"/>';
+    out += '<rect x="' + (genX + genW * .29) + '" y="' + (genY + genD * .12) + '" width="' + (genW * .43) + '" height="' + (genD * .76) + '" fill="#c8cfcd" stroke="#606b68" stroke-width=".018"/>';
+    out += '<rect x="' + (genX + genW * .76) + '" y="' + (genY + genD * .08) + '" width="' + (genW * .20) + '" height="' + (genD * .84) + '" fill="#687578" stroke="#35413f" stroke-width=".018"/>';
+    out += planSvgText(genX + genW * .14, genY + genD * .58, 'ALT', .12, 'middle', '#fff', 700);
+    out += planSvgText(genX + genW * .50, genY + genD * .58, 'MESIN DIESEL', .14, 'middle', '#35413f', 700);
+    out += planSvgText(genX + genW * .86, genY + genD * .58, 'RAD', .11, 'middle', '#fff', 700);
+    out += planSvgText(genX + genW / 2, genY + genD + .11, 'GENSET 3,00 × 1,10 m', .14, 'middle', '#35413f', 700);
+    // Jalur panel luar dan dua kabel output menuju unit; garis putus mewakili kabel.
+    if (mesh) {
+      var panelY = Y + Math.max(.34, Math.min(D - .5, D - 1.75 + t / 2));
+      var panelX = X - .38;
+      out += '<rect x="' + panelX + '" y="' + (panelY - .22) + '" width=".30" height=".44" rx=".025" fill="#d5dcda" stroke="#35413f" stroke-width=".025"/>';
+      out += '<rect x="' + (panelX + .045) + '" y="' + (panelY - .13) + '" width=".21" height=".13" fill="#25312f"/>';
+      out += planSvgText(panelX + .15, panelY + .08, 'kWh', .095, 'middle', '#33413e', 700);
+      var cablePath = 'M' + (panelX + .30) + ' ' + panelY + 'L' + (X + .10) + ' ' + panelY + 'L' + (X + .10) + ' ' + (genY + genD * .62) + 'L' + (genX + genW * .40) + ' ' + (genY + genD * .62);
+      out += '<path d="' + cablePath + '" fill="none" stroke="#c84c40" stroke-width=".022" stroke-dasharray=".07 .045"/>';
+      out += '<path d="' + cablePath + '" fill="none" stroke="#252a2b" stroke-width=".015" stroke-dasharray=".07 .045" transform="translate(0 .055)"/>';
+      out += '<circle cx="' + (X + .08) + '" cy="' + panelY + '" r=".045" fill="#f7f5eb" stroke="#35413f" stroke-width=".018"/>';
+      out += planSvgText(X - .02, panelY - .30, 'PANEL + kWh', .13, 'middle', '#35413f', 700);
+      var exhaustPlanX = genX + genW / 2 + .88;
+      out += '<path d="M' + (exhaustPlanX - .08) + ' ' + (genY + .06) + 'l.08 -.08l.08 .08l-.08 .08Z" fill="#d84b3d" stroke="#532a24" stroke-width=".012"/>';
+      out += planSvgText(exhaustPlanX + .14, genY + .16, 'KNALPOT', .11, 'start', '#a44639', 700);
+    }
+    // APAR tetap terlihat sebagai zona keselamatan.
+    var aparX = X + t + W - .40, aparY = Y + t + .22;
+    out += '<circle cx="' + aparX + '" cy="' + aparY + '" r=".10" fill="#c94c3f" stroke="#6f2824" stroke-width=".025"/><path d="M' + aparX + ' ' + (aparY - .13) + 'v.06m-.04-.06h.08" stroke="#293330" stroke-width=".022"/>';
+    out += planSvgText(aparX, aparY + .21, 'APAR', .105, 'middle', '#9c3f35', 700);
+    // Rel pendek berhenti di batas modul; pintu terbuka digambar solid, posisi tutup sebagai ghost.
+    var gateLineY = gateY;
+    if (mesh) {
+      var leaf = doorW, closedL = X + t, closedR = X + t + W - leaf;
+      var openL = closedL - leaf - .06, openR = closedR + leaf + .06;
+      out += '<rect x="' + (X + t) + '" y="' + (gateLineY - .025) + '" width="' + W + '" height=".05" fill="none" stroke="#c55240" stroke-width=".022" stroke-dasharray=".08 .06"/>';
+      out += '<rect x="' + openL + '" y="' + (gateLineY - .065) + '" width="' + leaf + '" height=".13" fill="url(#planMesh)" stroke="#34413e" stroke-width=".035"/>';
+      out += '<rect x="' + openR + '" y="' + (gateLineY - .065) + '" width="' + leaf + '" height=".13" fill="url(#planMesh)" stroke="#34413e" stroke-width=".035"/>';
+      out += '<path d="M' + (X + t + W * .30) + ' ' + (gateLineY + .22) + 'H' + (openL + leaf * .45) + '" fill="none" stroke="#c55240" stroke-width=".025" marker-end="url(#moveArrow)"/>';
+      out += '<path d="M' + (X + t + W * .70) + ' ' + (gateLineY + .22) + 'H' + (openR + leaf * .55) + '" fill="none" stroke="#c55240" stroke-width=".025" marker-end="url(#moveArrow)"/>';
+      // Dua rel sepanjang modul, dengan pengganjal di posisi parkir.
+      [-.10, .10].forEach(function (dz) {
+        out += '<path d="M' + X + ' ' + (gateLineY + dz) + 'H' + (X + outerW) + '" stroke="#303b39" stroke-width=".038"/>';
+      });
+      var stopOffset = W / 2 + leaf + .06 - .28 + .04;
+      [-1, 1].forEach(function (side) {
+        var sx = X + outerW / 2 + side * stopOffset;
+        out += '<path d="M' + (sx - .11) + ' ' + (gateLineY + .08) + 'h.22v.04l-.22 .07Z" fill="#d9ad32" stroke="#765d21" stroke-width=".018"/>';
+        out += '<rect x="' + (sx - .09) + '" y="' + (gateLineY - .015) + '" width=".18" height=".04" fill="none" stroke="#c7a139" stroke-width=".018" stroke-dasharray=".035 .025"/>';
+      });
+      out += planSvgText(X + outerW / 2, gateLineY + .70, 'PINTU PARKIR · 2 REL · GANJAL', .13, 'middle', '#a34135', 700);
+    } else {
+      // Pintu V1 tetap daun louvre berengsel; lengkung ayun tidak mengubah versi dinding.
+      out += '<path d="M' + (X + t) + ' ' + gateLineY + 'H' + (X + t + W) + '" stroke="#555b58" stroke-width=".045"/>';
+      out += '<path d="M' + (X + t) + ' ' + gateLineY + 'l-.40 .42 M' + (X + t + W) + ' ' + gateLineY + 'l.40 .42" stroke="#6d716d" stroke-width=".04" stroke-dasharray=".07 .05"/>';
+      out += '<path d="M' + (X + t) + ' ' + (gateLineY + .48) + 'A.48 .48 0 0 1 ' + (X + t + .48) + ' ' + gateLineY + ' M' + (X + t + W - .48) + ' ' + gateLineY + 'A.48 .48 0 0 1 ' + (X + t + W) + ' ' + (gateLineY + .48) + '" fill="none" stroke="#8e7d4f" stroke-width=".025" stroke-dasharray=".06 .045"/>';
+      out += planSvgText(X + outerW / 2, gateLineY + .72, 'PINTU LOUVRE · ENGSEL SISI LUAR', .14, 'middle', '#665630', 700);
+    }
+    // Garis dimensi luar/ruang bersih dan arah akses.
+    out += planDimH(X, X + outerW, Y - .35, Y, planCM(outerW));
+    out += planDimH(X + t, X + t + W, genY - .20, genY, 'RUANG BERSIH ' + planCM(W));
+    out += planDimV(Y, Y + outerD, X + outerW + .42, X + outerW, planCM(outerD));
+    out += '<path d="M' + (X + outerW / 2) + ' ' + (front + 1.10) + 'v-.28" stroke="#33413e" stroke-width=".035" marker-end="url(#moveArrow)"/>';
+    out += planSvgText(X + outerW / 2, front + 1.38, 'DEPAN / AKSES SERVIS', .13, 'middle', '#33413e', 700);
+    out += '</g>';
+    return out;
+  }
+  function drawLongElevation(frame, geom, which) {
+    var mesh = geom.mesh, W = geom.W, H = geom.H, t = geom.t, outerW = geom.outerW;
+    var wallH = geom.wallH, roofBase = geom.roofBase, totalH = geom.totalH, doorH = geom.doorH;
+    var gateW = mesh ? W / 2 + .16 : W / 2;
+    var extra = mesh ? Math.max(1.8, W / 2 + gateW + .15 - outerW / 2) : .75;
+    var worldW = outerW + extra * 2, worldH = totalH + .94;
+    var X = extra, ground = worldH - .34, s = planFit(frame, worldW, worldH), out = s;
+    var title = which === 'front' ? (mesh ? 'AKSES DEPAN · 2 DAUN GESER' : 'AKSES DEPAN · DAUN LOUVRE BERENGSEL') : (mesh ? 'BELAKANG · WIREMESH + RANGKA POST' : 'BELAKANG · DINDING PLESTER');
+    var isFront = which === 'front';
+    out += '<path d="M' + (X - extra + .18) + ' ' + ground + 'H' + (X + outerW + extra - .18) + '" stroke="#58615e" stroke-width=".035"/>';
+    out += '<rect x="' + X + '" y="' + (ground - wallH) + '" width="' + outerW + '" height="' + wallH + '" fill="' + (mesh ? 'url(#planMesh)' : 'url(#planPlaster)') + '" stroke="#293632" stroke-width=".045"/>';
+    if (mesh) {
+      var nPosts = Math.max(3, Math.ceil(outerW / 1.25));
+      for (var e = 0; e <= nPosts; e++) {
+        var px = X + outerW * e / nPosts;
+        out += '<rect x="' + (px - .045) + '" y="' + (ground - wallH) + '" width=".09" height="' + wallH + '" fill="#667471" opacity=".85"/>';
+      }
+      out += '<rect x="' + X + '" y="' + (ground - wallH) + '" width="' + outerW + '" height=".10" fill="#65716d" stroke="#303b38" stroke-width=".025"/>';
+      if (isFront) {
+        // Opening is two equal sliding leaves with a 32 cm overlap at the meeting edges.
+        var leftX = X + t, rightX = X + t + W - gateW, topGate = ground - doorH;
+        out += '<rect x="' + leftX + '" y="' + topGate + '" width="' + gateW + '" height="' + doorH + '" fill="url(#planMesh)" stroke="#34413e" stroke-width=".045"/>';
+        out += '<rect x="' + rightX + '" y="' + topGate + '" width="' + gateW + '" height="' + doorH + '" fill="url(#planMesh)" fill-opacity=".82" stroke="#34413e" stroke-width=".045"/>';
+        out += '<path d="M' + leftX + ' ' + topGate + 'H' + (leftX + gateW) + ' M' + rightX + ' ' + topGate + 'H' + (rightX + gateW) + '" stroke="#293330" stroke-width=".055"/>';
+        // meeting-edge pull handles, both in the centre line of the closed doors.
+        var handleY = ground - doorH * .52, mid = X + t + W / 2;
+        [-.075, .075].forEach(function (hx) {
+          out += '<rect x="' + (mid + hx - .025) + '" y="' + (handleY - .16) + '" width=".05" height=".32" rx=".018" fill="#d4d9d6" stroke="#26312f" stroke-width=".025"/>';
+          out += '<circle cx="' + (mid + hx) + '" cy="' + handleY + '" r=".026" fill="#293330"/>';
+        });
+        // Bottom/top guide rails end exactly at the module; wedges sit outboard.
+        out += '<path d="M' + X + ' ' + (ground - .035) + 'H' + (X + outerW) + ' M' + X + ' ' + (topGate - .06) + 'H' + (X + outerW) + '" stroke="#303936" stroke-width=".045"/>';
+        var stop = W / 2 + gateW + .06 - .28 + .04;
+        [-1, 1].forEach(function (side) {
+          var sx = X + outerW / 2 + side * stop;
+          out += '<path d="M' + (sx - .12) + ' ' + ground + 'h.24v-.09l-.24 .05Z" fill="#d8ad32" stroke="#745e25" stroke-width=".02"/>';
+        });
+        out += planDimH(leftX, leftX + gateW, topGate + .12, topGate, planCM(gateW));
+        out += planSvgText(X + outerW / 2, ground - doorH + .42, '2 DAUN SAMA · OVERLAP 32 cm', .14, 'middle', '#35413f', 700, ' paint-order="stroke" stroke="#f8f7ef" stroke-width=".06" stroke-linejoin="round"');
+      } else {
+        out += '<path d="M' + (X + .12) + ' ' + (ground - .18) + 'H' + (X + outerW - .12) + '" stroke="#4b5955" stroke-width=".045"/>';
+        out += planSvgText(X + outerW / 2, ground - wallH * .52, 'PANEL WIREMESH · MODUL BELAKANG', .17, 'middle', '#34413e', 700);
+      }
+    } else {
+      if (isFront) {
+        // V1 remains the original plaster enclosure and hinged louvre leaves.
+        var doorTop = ground - doorH, halfDoor = W / 2;
+        out += '<rect x="' + (X + t) + '" y="' + doorTop + '" width="' + halfDoor + '" height="' + doorH + '" fill="#38403e" stroke="#202826" stroke-width=".045"/>';
+        out += '<rect x="' + (X + t + halfDoor) + '" y="' + doorTop + '" width="' + halfDoor + '" height="' + doorH + '" fill="#38403e" stroke="#202826" stroke-width=".045"/>';
+        var slats = Math.floor(doorH / .14);
+        for (var si = 1; si < slats; si++) {
+          var sy = doorTop + doorH * si / slats;
+          out += '<path d="M' + (X + t + .08) + ' ' + sy + 'H' + (X + t + halfDoor - .08) + ' M' + (X + t + halfDoor + .08) + ' ' + sy + 'H' + (X + t + W - .08) + '" stroke="#aeb3ad" stroke-width=".035"/>';
+        }
+        out += '<rect x="' + (X + t + W / 2 - .025) + '" y="' + (doorTop + doorH * .48) + '" width=".05" height=".30" fill="#c9ccc5"/>';
+        out += '<rect x="' + (X + t + W / 2 + .12) + '" y="' + (doorTop + doorH * .48) + '" width=".05" height=".30" fill="#c9ccc5"/>';
+      } else {
+        out += planSvgText(X + outerW / 2, ground - wallH * .50, 'DINDING PLESTER', .18, 'middle', '#574923', 700);
+      }
+    }
+    // Roof edge/ring line across the long elevation; ridge height is dimensioned on the gable view.
+    var roofX = X + (outerW - geom.roofW) / 2;
+    var fasciaY = ground - roofBase;
+    if (mesh) {
+      out += '<rect x="' + roofX + '" y="' + (fasciaY - .09) + '" width="' + geom.roofW + '" height=".13" fill="url(#planRoof)" stroke="#3a4543" stroke-width=".035"/>';
+      out += '<path d="M' + roofX + ' ' + (ground - totalH) + 'H' + (roofX + geom.roofW) + '" stroke="#53605c" stroke-width=".025" stroke-dasharray=".10 .08"/>';
+    } else {
+      out += '<rect x="' + roofX + '" y="' + (fasciaY - .22) + '" width="' + geom.roofW + '" height=".24" fill="url(#planConcrete)" stroke="#3e4542" stroke-width=".04"/>';
+      out += '<path d="M' + roofX + ' ' + (fasciaY - .02) + 'H' + (roofX + geom.roofW) + '" stroke="#8c7b55" stroke-width=".03"/>';
+    }
+    out += '<rect x="' + (X - .05) + '" y="' + (ground - .10) + '" width="' + (outerW + .10) + '" height=".10" fill="#8c918e" stroke="#47514e" stroke-width=".025"/>';
+    out += planDimH(X, X + outerW, ground + .34, ground, planCM(outerW));
+    if (mesh) {
+      out += planDimV(ground - wallH, ground, X + outerW + .36, X + outerW, planCM(wallH));
+      out += planDimV(ground - totalH, ground, X + outerW + .72, X + outerW, 'PUNCAK ' + planCM(totalH));
+    } else {
+      out += planDimV(ground - wallH, ground, X + outerW + .48, X + outerW, 'TINGGI ' + planCM(totalH));
+    }
+    out += planSvgText(X + outerW / 2, ground + .62, title, .15, 'middle', mesh ? '#a34135' : '#665630', 700);
+    out += '</g>';
+    return out;
+  }
+  function drawSideElevation(frame, geom, side) {
+    var mesh = geom.mesh, t = geom.t, D = geom.D, outerD = geom.outerD, W = geom.W;
+    var roofD = geom.roofD, roofBase = geom.roofBase, totalH = geom.totalH, wallH = geom.wallH;
+    var backOH = mesh ? t / 2 + .35 : t / 2 + .05;
+    var frontOH = mesh ? Math.max(.12, .35 - t / 2) : .60 - t / 2;
+    var worldW = roofD + 1.75, worldH = totalH + .90, X0 = .88 + backOH;
+    var ground = worldH - .33, bx = X0, bw = outerD, s = planFit(frame, worldW, worldH), out = s;
+    var roofStart = bx - backOH, roofEnd = bx + bw + frontOH;
+    var eaveY = ground - roofBase, peakY = ground - totalH, wallTop = ground - wallH;
+    out += '<path d="M.12 ' + ground + 'H' + (worldW - .12) + '" stroke="#58615e" stroke-width=".035"/>';
+    out += '<rect x="' + bx + '" y="' + wallTop + '" width="' + bw + '" height="' + wallH + '" fill="' + (mesh ? 'url(#planMesh)' : 'url(#planPlaster)') + '" stroke="#303b38" stroke-width=".045"/>';
+    if (mesh) {
+      var n = Math.max(2, Math.ceil(bw / 1.2));
+      for (var i = 0; i <= n; i++) {
+        var xx = bx + bw * i / n;
+        out += '<rect x="' + (xx - .035) + '" y="' + wallTop + '" width=".07" height="' + wallH + '" fill="#64726e" opacity=".8"/>';
+      }
+      out += '<rect x="' + bx + '" y="' + (wallTop - .10) + '" width="' + bw + '" height=".10" fill="#5d6965" stroke="#2f3936" stroke-width=".025"/>';
+    } else {
+      out += '<path d="M' + bx + ' ' + (wallTop + .15) + 'H' + (bx + bw) + ' M' + bx + ' ' + (wallTop + wallH * .65) + 'H' + (bx + bw) + '" stroke="#c2ae73" stroke-width=".035"/>';
+    }
+    if (mesh) {
+      // Gable infill and louvre at each roof end, aligned below the ridge.
+      out += '<path d="M' + roofStart + ' ' + eaveY + 'L' + ((roofStart + roofEnd) / 2) + ' ' + peakY + 'L' + roofEnd + ' ' + eaveY + 'Z" fill="#c6d0cc" fill-opacity=".58" stroke="#384541" stroke-width=".045"/>';
+      out += '<path d="M' + (roofStart + .08) + ' ' + (eaveY - .02) + 'L' + ((roofStart + roofEnd) / 2) + ' ' + peakY + 'L' + (roofEnd - .08) + ' ' + (eaveY - .02) + '" fill="none" stroke="url(#planRoof)" stroke-width=".10"/>';
+      var ventCx = (roofStart + roofEnd) / 2, ventTop = peakY + .15, ventW = Math.min(.86, roofD * .36), ventH = .22;
+      out += '<rect x="' + (ventCx - ventW / 2) + '" y="' + ventTop + '" width="' + ventW + '" height="' + ventH + '" fill="#303b39" stroke="#7c8984" stroke-width=".035"/>';
+      for (var v = 1; v < 5; v++) out += '<path d="M' + (ventCx - ventW / 2 + .04) + ' ' + (ventTop + ventH * v / 5) + 'H' + (ventCx + ventW / 2 - .04) + '" stroke="#c1cbc6" stroke-width=".035"/>';
+      out += '<path d="M' + roofStart + ' ' + eaveY + 'L' + ventCx + ' ' + peakY + 'L' + roofEnd + ' ' + eaveY + '" fill="none" stroke="#34403d" stroke-width=".05"/>';
+    } else {
+      out += '<rect x="' + roofStart + '" y="' + (eaveY - .22) + '" width="' + (roofEnd - roofStart) + '" height=".24" fill="url(#planConcrete)" stroke="#3d4542" stroke-width=".04"/>';
+    }
+    // Control panel and its paired cables are only on the left/negative-X face.
+    if (side === 'left' && mesh) {
+      var panelAlong = Math.max(.35, Math.min(outerD - .50, D - 1.75 + t / 2));
+      var panelTop = ground - 1.77, panelX = bx + panelAlong - .25;
+      out += '<path d="M' + (bx + panelAlong) + ' ' + (ground - .30) + 'H' + (bx + .70) + '" fill="none" stroke="#c34c40" stroke-width=".025" stroke-dasharray=".08 .05"/>';
+      out += '<path d="M' + (bx + panelAlong) + ' ' + (ground - .34) + 'H' + (bx + .70) + '" fill="none" stroke="#252a2b" stroke-width=".022" stroke-dasharray=".08 .05"/>';
+      out += '<rect x="' + panelX + '" y="' + panelTop + '" width=".50" height=".64" rx=".025" fill="#d9dfdc" stroke="#26322f" stroke-width=".035"/>';
+      out += '<rect x="' + (panelX + .06) + '" y="' + (panelTop + .09) + '" width=".38" height=".19" fill="#26312f"/>';
+      out += planSvgText(panelX + .25, panelTop + .44, 'PANEL', .10, 'middle', '#293632', 700);
+      out += planSvgText(panelX + .25, panelTop + .56, 'kWh', .10, 'middle', '#293632', 700);
+    } else if (side === 'right' && mesh) {
+      var aparAlong = .40;
+      out += '<rect x="' + (bx + aparAlong) + '" y="' + (ground - 1.43) + '" width=".10" height=".47" rx=".045" fill="#c94b3e" stroke="#742c26" stroke-width=".025"/>';
+      out += '<path d="M' + (bx + aparAlong + .05) + ' ' + (ground - 1.50) + 'v-.08h.08" fill="none" stroke="#303936" stroke-width=".025"/>';
+      out += planSvgText(bx + aparAlong + .05, ground - 1.56, 'APAR', .10, 'middle', '#a34135', 700);
+    }
+    // Exhaust stack is drawn below the sloping roof line, with a visible clearance gap.
+    if (mesh) {
+      var exAlong = Math.max(.5, Math.min(outerD - .5, .55 + geom.rearGap + t / 2));
+      var exY = Math.min(2.66, totalH - .34, roofBase + .5 - .12);
+      var exTop = ground - exY;
+      out += '<path d="M' + (bx + exAlong) + ' ' + (ground - 1.90) + 'V' + exTop + '" stroke="#5a6060" stroke-width=".075"/>';
+      out += '<path d="M' + (bx + exAlong - .12) + ' ' + (exTop - .035) + 'H' + (bx + exAlong + .12) + '" stroke="#3c4242" stroke-width=".055"/>';
+      out += planSvgText(bx + exAlong + .18, exTop + .18, 'KNALPOT DI BAWAH ATAP', .10, 'start', '#a34135', 700, ' paint-order="stroke" stroke="#f8f7ef" stroke-width=".045"');
+    }
+    out += '<rect x="' + (bx - .06) + '" y="' + (ground - .12) + '" width="' + (bw + .12) + '" height=".12" fill="#929895" stroke="#4b5451" stroke-width=".025"/>';
+    out += planDimH(bx, bx + bw, ground + .36, ground, planCM(outerD));
+    out += planDimV(ground - totalH, ground, bx + bw + .48, bx + bw, 'PUNCAK ' + planCM(totalH));
+    var sideCaption = mesh ? (side === 'left' ? 'KIRI · PANEL + JALUR KABEL' : 'KANAN · SISI SEBERANG / AKSES SERVIS') : (side === 'left' ? 'KIRI · PLESTER' : 'KANAN · PLESTER');
+    out += planSvgText(bx + bw / 2, ground + .64, sideCaption, .14, 'middle', '#34413e', 700);
+    out += '</g>';
+    return out;
+  }
+  function drawRoofView(frame, geom) {
+    var mesh = geom.mesh, roofW = geom.roofW, roofD = geom.roofD;
+    var side = .65, top = .48, worldW = roofW + side * 2, worldH = roofD + top + .72;
+    var X = side, Y = top, mid = Y + roofD / 2, out = planFit(frame, worldW, worldH);
+    out += '<rect x="' + X + '" y="' + Y + '" width="' + roofW + '" height="' + roofD + '" fill="' + (mesh ? 'url(#planRoof)' : 'url(#planConcrete)') + '" stroke="#34413f" stroke-width=".045"/>';
+    if (mesh) {
+      out += '<rect x="' + X + '" y="' + Y + '" width="' + roofW + '" height="' + (roofD / 2) + '" fill="url(#planRoof)" stroke="#67736f" stroke-width=".025"/>';
+      out += '<rect x="' + X + '" y="' + mid + '" width="' + roofW + '" height="' + (roofD / 2) + '" fill="url(#planRoof)" stroke="#67736f" stroke-width=".025"/>';
+      out += '<path d="M' + X + ' ' + mid + 'H' + (X + roofW) + '" stroke="#303b38" stroke-width=".06"/>';
+      var halfRun = roofD / 2, slotCenter = halfRun * .52, slotH = .30;
+      var slotW = Math.min(2.9, roofW - .9), slotX = X + Math.max(.35, (roofW - slotW) / 2);
+      [mid - slotCenter, mid + slotCenter].forEach(function (slotY) {
+        out += '<rect x="' + slotX + '" y="' + (slotY - slotH / 2) + '" width="' + slotW + '" height="' + slotH + '" fill="#333e3c" stroke="#202a28" stroke-width=".035"/>';
+        for (var l = 1; l < 6; l++) {
+          var ly = slotY - slotH / 2 + slotH * l / 6;
+          out += '<path d="M' + (slotX + .04) + ' ' + ly + 'H' + (slotX + slotW - .04) + '" stroke="#c0c9c4" stroke-width=".035"/>';
+        }
+        out += planSvgText(X + roofW / 2, slotY + slotH / 2 + .14, 'LOUVRE ' + planCM(slotW) + ' × 30 cm', .095, 'middle', '#43504d', 700, ' paint-order="stroke" stroke="#f4f2e8" stroke-width=".04"');
+      });
+      out += '<rect x="' + (X + .08) + '" y="' + (mid - .11) + '" width=".22" height=".22" fill="#d8dfda" stroke="#37423f" stroke-width=".02"/>';
+      out += '<rect x="' + (X + roofW - .30) + '" y="' + (mid - .11) + '" width=".22" height=".22" fill="#d8dfda" stroke="#37423f" stroke-width=".02"/>';
+      out += planSvgText(X + roofW / 2, Y + .20, 'BIDANG SPANDEK A', .13, 'middle', '#35413e', 700);
+      out += planSvgText(X + roofW / 2, Y + roofD - .11, 'BIDANG SPANDEK B', .13, 'middle', '#35413e', 700);
+      out += planSvgText(X + roofW / 2, mid + .24, 'BUBUNGAN + KISI UJUNG ×2', .12, 'middle', '#35413e', 700);
+      out += planSvgText(X + roofW / 2, Y + roofD + .48, '2 BUKAAN LOUVRE · 1 PADA SETIAP BIDANG', .14, 'middle', '#a34135', 700);
+    } else {
+      out += '<path d="M' + X + ' ' + mid + 'H' + (X + roofW) + '" stroke="#7b817b" stroke-width=".028" stroke-dasharray=".14 .10"/>';
+      out += '<path d="M' + (X + .2) + ' ' + (Y + .22) + 'H' + (X + roofW - .2) + ' M' + (X + .2) + ' ' + (Y + roofD - .22) + 'H' + (X + roofW - .2) + '" stroke="#aaa99f" stroke-width=".025"/>';
+      out += '<rect x="' + (X + roofW - .18) + '" y="' + (Y + .2) + '" width=".10" height="' + (roofD - .4) + '" fill="#9ba29e"/>';
+      out += planSvgText(X + roofW / 2, mid + .07, 'ATAP BETON · TANPA BUKAAN LOUVRE', .15, 'middle', '#625735', 700);
+    }
+    out += planDimH(X, X + roofW, Y - .19, Y, planCM(roofW));
+    out += planDimV(Y, Y + roofD, X + roofW + .27, X + roofW, planCM(roofD));
+    out += '</g>';
+    return out;
+  }
+  function drawSingleView(key, geom, box) {
+    var frame = { x: box.x + 18, y: box.y + 38, w: box.w - 36, h: box.h - 50 };
+    if (key === 'plan') return planPanel(box.x, box.y, box.w, box.h, geom.mesh ? 'PINTU TERBUKA · REL SEBATAS MODUL + GANJAL' : 'DENAH · PINTU LOUVRE BERENGSEL', drawPlanView(frame, geom));
+    if (key === 'front') return planPanel(box.x, box.y, box.w, box.h, geom.mesh ? 'DEPAN · DUA DAUN, GAGANG DI TENGAH' : 'DEPAN · DINDING PLESTER + PINTU LOUVRE', drawLongElevation(frame, geom, 'front'));
+    if (key === 'rear') return planPanel(box.x, box.y, box.w, box.h, geom.mesh ? 'BELAKANG · WIREMESH + RANGKA POST' : 'BELAKANG · DINDING PLESTER', drawLongElevation(frame, geom, 'rear'));
+    if (key === 'left') return planPanel(box.x, box.y, box.w, box.h, geom.mesh ? 'SISI PANEL · KABEL TERHUBUNG KE GENSET' : 'SISI KIRI · DINDING PLESTER', drawSideElevation(frame, geom, 'left'));
+    if (key === 'right') return planPanel(box.x, box.y, box.w, box.h, geom.mesh ? 'SISI KANAN · KNALPOT DI BAWAH ATAP' : 'SISI KANAN · DINDING PLESTER', drawSideElevation(frame, geom, 'right'));
+    return planPanel(box.x, box.y, box.w, box.h, geom.mesh ? 'ATAP · LOUVRE DI KEDUA BIDANG SPANDEK' : 'ATAP BETON · OVERHANG DEPAN', drawRoofView(frame, geom));
+  }
+  function planNotesFor(geom) {
+    if (geom.mesh) return [
+      'Modul luar konsep ' + fmt(geom.outerW) + ' × ' + fmt(geom.outerD) + ' m; ukuran bersih mengikuti kontrol dimensi.',
+      'Jarak servis nominal: depan ' + fmt(geom.frontClear) + ' m, belakang ' + fmt(geom.rearGap) + ' m; kedalaman mengikuti slider.',
+      'Pintu terdiri dari 2 daun sama lebar, masing-masing ' + fmt(geom.gateW) + ' m dengan overlap 32 cm; gagang berada di tepi pertemuan.',
+      'Rel/pemandu sepanjang modul luar ' + fmt(geom.outerW) + ' m; roda ditahan ganjal saat parkir. Ruang bukaan ditampilkan putus-putus.',
+      'Rangka hollow 60 × 60 mm dan wiremesh konsep 10 × 10 cm; tinggi puncak ' + fmt(geom.totalH) + ' m.',
+      'Atap spandek bubungan: louvre pada kedua bidang dan kisi ventilasi pada kedua ujung.',
+      'Panel + kWh di sisi kiri; dua jalur kabel menuju genset. Knalpot tetap di bawah atap dan tidak melubangi spandek.'
+    ];
+    return [
+      'Versi V1 dipertahankan: dinding plester dan atap beton/overhang sesuai model aktif.',
+      'Pintu depan tetap dua daun louvre berengsel; konsep ini tidak mengubah detail versi V1.',
+      'Ukuran ruang bersih mengikuti slider; dinding plester 20 cm, dengan jarak servis belakang ' + fmt(geom.rearGap) + ' m dan depan ' + fmt(geom.frontClear) + ' m.',
+      'Tampak belakang, kedua sisi, dan rencana atap tersedia dari pemilih sudut gambar.'
+    ];
+  }
+  function renderPlan() {
+    if (!planSvg) return;
+    var mesh = variant === 'mesh', t = mesh ? .25 : .20;
+    var W = dims.W, D = dims.D, H = dims.H;
+    var wallH = mesh ? Math.max(2.0, H - .6) : H;
+    var roofBase = mesh ? wallH + .1 : H;
+    var totalH = mesh ? roofBase + .5 : H;
+    var geom = {
+      mesh: mesh, W: W, D: D, H: H, t: t,
+      outerW: W + 2 * t, outerD: D + 2 * t,
+      wallH: wallH, roofBase: roofBase, totalH: totalH,
+      doorH: mesh ? wallH - .1 : H - .7,
+      roofW: mesh ? W + .7 : W + 1.0,
+      roofD: mesh ? D + t + .7 : D + t + .65,
+      rearGap: mesh ? .4 : 1.5,
+      frontClear: D - (mesh ? .4 : 1.5) - 1.1,
+      gateW: mesh ? W / 2 + .16 : W / 2
+    };
+    var caption = PLAN_VIEWS[planCurrent] || PLAN_VIEWS.sheet;
+    var versionText = mesh ? 'V2 · Pagar wiremesh' : 'V1 · Dinding plester';
+    var html = planDefs();
+    html += '<rect x="0" y="0" width="1200" height="820" fill="#f4f2e8"/><rect x="0" y="0" width="1200" height="820" fill="url(#planGrid)" opacity=".48"/>';
+    html += '<rect x="23" y="20" width="1154" height="780" fill="none" stroke="#53615d" stroke-width="1.2"/>';
+    html += planSvgText(42, 48, 'RUMAH GENSET · GAMBAR KONSEP MULTI-TAMPAK', 20, 'start', '#25322f', 800, ' letter-spacing="1.1"');
+    html += planSvgText(42, 70, versionText.toUpperCase() + '  /  RUANG BERSIH ' + fmt(W) + ' × ' + fmt(D) + ' m  /  TINGGI ' + fmt(totalH) + ' m', 10, 'start', '#5a6964', 600, ' letter-spacing=".65"');
+    html += planSvgText(1155, 48, 'DENAH 2D · R-' + (mesh ? '02' : '01'), 11, 'end', '#45534f', 700, ' letter-spacing=".7"');
+    html += '<path d="M40 81H1160" stroke="#aeb6ad" stroke-width="1"/>';
+    if (planCurrent === 'sheet') {
+      html += planPanel(36, 94, 556, 326, mesh ? 'PINTU TERBUKA · REL SEBATAS MODUL + GANJAL' : 'DENAH ATAS · PINTU LOUVRE BERENGSEL', drawPlanView({ x: 48, y: 132, w: 532, h: 274 }, geom));
+      html += planPanel(608, 94, 556, 326, mesh ? 'DEPAN · DUA DAUN, GAGANG DI TENGAH' : 'DEPAN · DINDING PLESTER + PINTU LOUVRE', drawLongElevation({ x: 620, y: 132, w: 532, h: 274 }, geom, 'front'));
+      html += planPanel(36, 434, 556, 326, mesh ? 'SISI PANEL · KABEL TERHUBUNG KE GENSET' : 'SISI KIRI · DINDING PLESTER', drawSideElevation({ x: 48, y: 472, w: 532, h: 274 }, geom, 'left'));
+      html += planPanel(608, 434, 556, 326, mesh ? 'ATAP · LOUVRE DI KEDUA BIDANG SPANDEK' : 'ATAP BETON · OVERHANG DEPAN', drawRoofView({ x: 620, y: 472, w: 532, h: 274 }, geom));
+      html += '<path d="M40 778H1160" stroke="#aeb6ad" stroke-width="1"/>';
+      html += planSvgText(42, 793, 'UKURAN KONSEP · ' + planCM(geom.outerW) + ' × ' + planCM(geom.outerD) + ' LUAR  /  ' + planCM(W) + ' × ' + planCM(D) + ' BERSIH', 9, 'start', '#5a6964', 600);
+      html += planSvgText(1155, 793, 'DIMENSI DITURUNKAN DARI KONTROL MODEL · BUKAN GAMBAR KERJA', 9, 'end', '#5a6964', 600);
+    } else {
+      html += drawSingleView(planCurrent, geom, { x: 36, y: 94, w: 1128, h: 666 });
+      html += '<path d="M40 778H1160" stroke="#aeb6ad" stroke-width="1"/>';
+      html += planSvgText(42, 793, 'TAMPAK: ' + (caption.name || '').toUpperCase() + '  ·  ' + versionText.toUpperCase(), 9, 'start', '#5a6964', 600);
+      html += planSvgText(1155, 793, 'UKURAN KONSEP · CM PADA GARIS DIMENSI', 9, 'end', '#5a6964', 600);
+    }
+    planSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    planSvg.setAttribute('width', '1200');
+    planSvg.setAttribute('height', '820');
+    planSvg.setAttribute('aria-label', caption.name + ' · ' + versionText + ' · ' + fmt(W) + ' × ' + fmt(D) + ' meter bersih');
+    planSvg.innerHTML = html;
+    var titleEl = $('#planCurrentView'), badge = $('#planVersionBadge'), desc = $('#planViewDescription');
+    if (titleEl) titleEl.textContent = caption.name;
+    if (badge) badge.textContent = versionText;
+    if (desc) desc.textContent = caption.desc;
+    var metrics = $('#planMetrics');
+    if (metrics) metrics.innerHTML =
+      '<div class="plan-metric"><small>Ukuran luar konsep</small><b>' + fmt(geom.outerW) + ' × ' + fmt(geom.outerD) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Ruang bersih</small><b>' + fmt(W) + ' × ' + fmt(D) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Luas bersih</small><b>' + fmt(W * D) + ' m²</b></div>' +
+      '<div class="plan-metric"><small>Jarak servis depan</small><b>' + fmt(geom.frontClear) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Jarak servis belakang</small><b>' + fmt(geom.rearGap) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Tinggi puncak konsep</small><b>' + fmt(totalH) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Lebar pintu / daun</small><b>' + fmt(geom.gateW) + ' m / daun</b></div>' +
+      '<div class="plan-metric"><small>Lebar / kedalaman genset</small><b>3,00 × 1,10 m</b></div>';
+    var notes = $('#planNotes');
+    if (notes) notes.innerHTML = planNotesFor(geom).map(function (n) { return '<li>' + planEsc(n) + '</li>'; }).join('');
+    document.querySelectorAll('.plan-tab').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.planView === planCurrent ? 'true' : 'false'); });
+    document.querySelectorAll('.plan-variant').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.planVariant === variant ? 'true' : 'false'); });
+  }
+  function openPlan() {
+    if (!planModal || planIsOpen) return;
+    planFocusReturn = document.activeElement;
+    planBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    planModal.hidden = false;
+    planIsOpen = true;
+    $('#planOpen').setAttribute('aria-expanded', 'true');
+    renderPlan();
+    var close = $('#planClose');
+    if (close) close.focus();
+  }
+  function closePlan() {
+    if (!planModal || !planIsOpen) return;
+    planModal.hidden = true;
+    planIsOpen = false;
+    $('#planOpen').setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = planBodyOverflow;
+    if (planFocusReturn && planFocusReturn.focus) planFocusReturn.focus();
+  }
+  $('#planOpen').addEventListener('click', openPlan);
+  $('#planClose').addEventListener('click', closePlan);
+  planModal.querySelectorAll('[data-plan-close]').forEach(function (el) { el.addEventListener('click', closePlan); });
+  document.querySelectorAll('.plan-tab').forEach(function (b) {
+    b.addEventListener('click', function () { planCurrent = b.dataset.planView; renderPlan(); });
+  });
+  document.querySelectorAll('.plan-variant').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var next = b.dataset.planVariant;
+      if (next === variant) return;
+      applyVariant(next);
+      buildShelterNow();
+    });
+  });
+  $('#planDownload').addEventListener('click', function () {
+    renderPlan();
+    var xml = new XMLSerializer().serializeToString(planSvg);
+    var blob = new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + xml], { type: 'image/svg+xml;charset=utf-8' });
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = 'genset-denah-konsep-' + (variant === 'mesh' ? 'v2-wiremesh' : 'v1-plester') + '-' + planCurrent + '.svg';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
+  });
+  $('#planPrint').addEventListener('click', function () { renderPlan(); window.print(); });
+  document.addEventListener('keydown', function (e) {
+    if (!planIsOpen) return;
+    if (e.key === 'Escape') { e.preventDefault(); closePlan(); return; }
+    if (e.key === 'Tab') {
+      var focusable = Array.prototype.slice.call(planModal.querySelectorAll('button:not([disabled])'));
+      if (!focusable.length) return;
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
   document.querySelectorAll('.vbtn').forEach(function (b) {
     b.addEventListener('click', function () {
       goTo(viewFor(BASE_VIEWS[b.dataset.view]), 0.9);
@@ -2759,7 +3377,7 @@ function buildShelter(T, opts) {
     var cam = (p.cam || '').split(',').map(parseFloat);
     if (cam.length === 6 && cam.every(isFinite)) o.cam = cam;
     var d = (p.dims || '').split(',').map(parseFloat);
-    if (d.length === 3 && d.every(isFinite)) o.dims = { W: clampN(d[0], 3.0, 6.5, 5), D: clampN(d[1], 2.4, 5.2, 4.1), H: clampN(d[2], 2.4, 3.8, 3.1) };
+    if (d.length === 3 && d.every(isFinite)) o.dims = { W: clampN(d[0], 3.0, 6.5, 5), D: clampN(d[1], p.hv === 'mesh' ? 2.0 : 2.4, 5.2, 4.1), H: clampN(d[2], 2.4, 3.8, 3.1) };
     if (p.op != null) o.opacity = clampN(parseFloat(p.op), 0, 1, 1);
     if (p.roof != null) o.roof = clampN(parseFloat(p.roof), 0, 1, 1);
     if (p.wall != null) o.wall = clampN(parseFloat(p.wall), 0, 1, 1);

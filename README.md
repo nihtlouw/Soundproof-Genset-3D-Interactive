@@ -7,6 +7,7 @@ Interaktif 3D cutaway untuk genset bersilencer (soundproof enclosure) — pintu,
 ## Fitur
 
 - Cutaway 3D: pintu, dinding, atap, dan kanopi bisa dibuka atau dibuat transparan.
+- **Denah konsep 2D multi-tampak** (tombol *Denah 2D*): lembar berukuran, denah atas, depan, belakang, kiri, kanan, dan atap; ukuran mengikuti versi dan slider dimensi yang aktif. Termasuk zona genset, panel/kWh dan jalur kabel, pintu geser/rel/ganjal, louvre atap, catatan lapangan, serta unduh SVG/cetak. Gambar adalah konsep koordinasi, bukan gambar kerja konstruksi.
 - **Dua versi rumah genset** (tab *Rumah → Versi rumah*):
   - **V1 · Dinding plester** — rumah kuning dengan pintu louvre ganda, atap beton, dan kusen ventilasi.
     Ukuran bawaan V1: 5,0 × 4,1 × 3,1 m. Ukuran bawaan V2: 4,0 × 2,0 × 3,0 m **diukur dari dalam pagar**, jadi modul luarnya 4,50 × 2,50 m.
