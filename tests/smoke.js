@@ -81,6 +81,47 @@
           shelter.setExhaust(true); assert(shelter.isExhaustVisible(), 'Cerobong tidak kembali tampil.');
         } finally { shelter.dispose(); }
       });
+      await test('Panel ATS dan kWh terpisah, menghadap genset, dan terhubung ke tray', function () {
+        var T = app.win.THREE;
+        [[3, 2, 2.4], [6.5, 5.2, 3.8]].forEach(function (dims) {
+          var shelter = app.win.buildShelter(T, { W: dims[0], D: dims[1], H: dims[2] });
+          try {
+            shelter.group.updateMatrixWorld(true);
+            var ats = shelter.group.getObjectByName('panel-ats-face');
+            var kwh = shelter.group.getObjectByName('panel-kwh-face');
+            assert(ats && kwh && ats.parent !== kwh.parent, 'Kedua kabinet belum terpisah.');
+            [ats, kwh].forEach(function (face) {
+              var position = face.getWorldPosition(new T.Vector3());
+              var normal = new T.Vector3(0, 0, 1).applyQuaternion(face.getWorldQuaternion(new T.Quaternion()));
+              assert(position.x > shelter.panelWallX + .15 && normal.x > .99, 'Muka panel tidak menghadap genset di luar dinding.');
+            });
+            var atsBox = new T.Box3().setFromObject(ats.parent), kwhBox = new T.Box3().setFromObject(kwh.parent);
+            assert(kwhBox.max.z < atsBox.min.z, 'Kabinet saling tumpang.');
+            assert(kwhBox.min.z > shelter.panelWallZ - shelter.panelWallLen / 2 + .18 && atsBox.max.z < shelter.panelWallZ + shelter.panelWallLen / 2 - .18, 'Kabinet melewati tepi dinding atau menabrak kolom.');
+            ['ats', 'kwh'].forEach(function (name) {
+              var wire = shelter.group.getObjectByName('panel-' + name + '-cable');
+              var start = wire && wire.geometry.parameters.path.points[0];
+              assert(start && start.x > shelter.panelWallX && closeTo(start.z, name === 'ats' ? shelter.atsZ : shelter.kwhZ), 'Kabel tidak berasal dari panel ' + name + '.');
+            });
+            shelter.setWalls(0); assert(!ats.visible && !kwh.visible, 'Panel tidak mengikuti transparansi pagar.');
+            shelter.setWalls(1); assert(ats.visible && kwh.visible, 'Panel tidak kembali tampil.');
+          } finally { shelter.dispose(); }
+        });
+      });
+      await test('Talang bulat dan pipa turun dihapus tanpa menghapus empat tiang utama', function () {
+        var shelter = app.win.buildShelter(app.win.THREE, { W: 4, D: 2, H: 3 });
+        try {
+          var roof, posts;
+          shelter.group.traverse(function (node) {
+            if (node.userData.part === 'shRoof') roof = node;
+            if (node.userData.part === 'shPosts') posts = node;
+          });
+          assert(roof && posts && posts.children.length === 4, 'Rangka atap atau empat tiang sudut tidak lengkap.');
+          var round = [];
+          roof.traverse(function (node) { if (node.geometry && node.geometry.type === 'CylinderGeometry') round.push(node); });
+          assert(round.length === 0, 'Elemen talang atau pipa turun masih ada pada atap.');
+        } finally { shelter.dispose(); }
+      });
       await test('Kedua pintu rumah bergeser simetris tanpa berputar', function () {
         var shelter = app.win.buildShelter(app.win.THREE, { W: 4, D: 2, H: 3 });
         try {
@@ -103,6 +144,16 @@
         click(app, '#shOn');
         assert(!doc.querySelector('#shBody').hidden && rear.textContent === limited, 'Batas pintu rumah tidak dipulihkan.');
       });
+      await test('Kedua panel dapat dipilih dan ditampilkan saat pagar tersembunyi', function () {
+        var doc = app.doc;
+        setRange(app, 'opWall', '0');
+        click(app, '#t-parts');
+        click(app, '[data-id="shATS"]');
+        assert(doc.querySelector('#infoName').textContent === 'Panel ATS', 'Panel ATS tidak terpilih.');
+        assert(doc.querySelector('#opWall').value === '100', 'Panel tersembunyi tidak dipulihkan saat dipilih.');
+        click(app, '[data-id="shKwh"]');
+        assert(doc.querySelector('#infoName').textContent === 'Panel kWh genset', 'Panel kWh tidak terpilih.');
+      });
       await test('Pintu dan dimensi bertahan saat model dibangun ulang', async function () {
         var doc = app.doc;
         click(app, '#door_gateL');
@@ -111,6 +162,8 @@
         assert(doc.querySelector('#door_gateL').checked, 'Status pintu berubah ketika dimensi diperbarui.');
         assert(doc.querySelector('#dimWVal').textContent === '4,8 m' && doc.querySelector('#dimDVal').textContent === '2,5 m', 'Output dimensi tidak diperbarui.');
         assert(doc.querySelector('#sub').textContent.indexOf('5,3 × 3,0') !== -1, 'Ukuran luar tidak diperbarui.');
+        assert(doc.querySelector('#infoName').textContent === 'Panel kWh genset' && doc.querySelector('[data-id="shKwh"]').getAttribute('aria-pressed') === 'true', 'Pilihan panel hilang saat model dibangun ulang.');
+        click(app, '#infoClose');
       });
       await test('Semua tampak denah mengikuti ukuran wiremesh', function () {
         var doc = app.doc;
@@ -122,8 +175,30 @@
           var svg = doc.querySelector('#planSvg');
           assert(svg.children.length > 0 && !/NaN|Infinity|PLESTER/.test(svg.innerHTML), 'Tampak tidak valid: ' + view);
           assert(doc.querySelector('[data-plan-view="' + view + '"]').getAttribute('aria-pressed') === 'true', 'Tampak tidak aktif: ' + view);
+          if (view === 'sheet' || view === 'plan') {
+            var ats = svg.querySelector('[data-panel="ats"]'), kwh = svg.querySelector('[data-panel="kwh"]');
+            assert(ats && kwh && ats !== kwh, 'Dua panel tidak tergambar terpisah pada denah.');
+            assert(Number(ats.getAttribute('y')) > Number(kwh.getAttribute('y')), 'Urutan panel pada denah tidak sesuai model.');
+          }
+          if (view === 'left') assert(svg.querySelector('[data-panel-profile="ats-kwh"]'), 'Profil dua panel tidak ada pada potongan.');
         });
         click(app, '#planClose');
+      });
+      await test('Posisi panel pada denah tetap mengikuti genset saat kedalaman berubah', async function () {
+        var doc = app.doc;
+        function panelY(name) {
+          var box = doc.querySelector('#planSvg [data-panel="' + name + '"]');
+          assert(box, 'Panel tidak ditemukan pada denah: ' + name);
+          return Number(box.getAttribute('y')) + Number(box.getAttribute('height')) / 2;
+        }
+        click(app, '#planOpen'); click(app, '[data-plan-view="plan"]');
+        var atsY = panelY('ats'), kwhY = panelY('kwh');
+        click(app, '#planClose');
+        setRange(app, 'dimD', '5.2'); await wait(700);
+        click(app, '#planOpen'); click(app, '[data-plan-view="plan"]');
+        assert(closeTo(atsY, panelY('ats')) && closeTo(kwhY, panelY('kwh')), 'Panel bergeser dari dinding saat kedalaman berubah.');
+        click(app, '#planClose');
+        setRange(app, 'dimD', '2.5'); await wait(700);
       });
       await test('Tautan baru tidak menyimpan versi lama atau dekorasi', function () {
         var doc = app.doc;
