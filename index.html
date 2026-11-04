@@ -222,7 +222,7 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
 .plan-layout{display:grid;grid-template-columns:minmax(0,1fr) 322px;min-height:0}
 .plan-canvas-area{min-width:0;min-height:0;display:flex;align-items:stretch;justify-content:center;overflow:auto;padding:20px;
   background:radial-gradient(ellipse 80% 60% at 50% 30%,#16211f,#0a1012 70%)}
-.plan-paper{display:block;width:min(100%,1450px);height:auto;min-height:0;flex:0 0 auto;align-self:center;
+.plan-paper{display:block;width:min(100%,1600px);height:auto;min-height:0;flex:0 0 auto;align-self:center;
   background:var(--paper);border-radius:10px;box-shadow:0 24px 70px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08)}
 .plan-side{min-width:0;overflow:auto;padding:14px;background:var(--void);border-left:1px solid var(--line)}
 .plan-card{padding:13px;margin:0 0 10px;border:1px solid var(--line);background:var(--panel-2);border-radius:14px}
@@ -2698,375 +2698,619 @@ function buildShelter(T, opts) {
     model.redraw(); kick();
   });
 
-  /* ---------- denah konsep 2D multi-tampak ---------- */
+  /* ---------- denah konsep 2D multi-tampak (gaya lembar gambar studio) ---------- */
   var PLAN_VIEWS = {
-    sheet: { name: 'Lembar 4 sisi', desc: 'Denah tata letak, tampak depan, sisi panel luar, dan rencana atap. Semua ukuran mengikuti slider dimensi rumah.' },
-    plan: { name: 'Denah atas', desc: 'Tata letak ruang bersih, genset, panel distribusi dan panel kWh genset, jalur kabel, bukaan pintu, dan rel.' },
-    front: { name: 'Tampak depan', desc: 'Elevasi akses utama dengan dua daun pintu, gagang di tepi pertemuan, rel/pemandu, serta tinggi rangka.' },
-    rear: { name: 'Tampak belakang', desc: 'Elevasi pagar belakang dan catatan jarak servis.' },
-    left: { name: 'Sisi kiri · panel', desc: 'Potongan konsep: dua panel berjajar menghadap genset pada dinding 2,00 m dari pagar, dengan cable tray menuju genset.' },
-    right: { name: 'Sisi kanan', desc: 'Elevasi sisi seberang dengan posisi knalpot di bawah bidang atap dan detail ventilasi bubungan.' },
-    roof: { name: 'Rencana atap', desc: 'Tata bidang atap, garis bubungan, bukaan louvre, dan ventilasi ujung. Knalpot tidak menembus atap.' }
+    sheet: { name: 'Lembar 6 tampak', desc: 'Denah, rencana atap, tampak depan, belakang, sisi kiri, dan sisi kanan dalam satu lembar. Semua ukuran mengikuti versi rumah dan slider dimensi yang aktif.' },
+    plan: { name: 'Denah atas', desc: 'Tata letak ruang bersih, footprint genset, pondasi, kabinet panel + kWh pada dinding tersendiri, jalur kabel, rel, dan posisi parkir daun pintu.' },
+    front: { name: 'Tampak depan', desc: 'Elevasi akses utama: dua daun geser pada satu rel, tinggi bukaan, ring, serta puncak atap dengan rantai dimensi.' },
+    rear: { name: 'Tampak belakang', desc: 'Elevasi sisi belakang dengan jalur udara masuk wiremesh, ring, dan catatan jarak servis.' },
+    left: { name: 'Sisi kiri · panel', desc: 'Dinding panel 2,00 m di luar pagar: kabinet kontrol, meter kWh, cable tray, dan kabel menuju genset, lengkap dengan dimensi jarak.' },
+    right: { name: 'Sisi kanan', desc: 'Sisi seberang: ujung gable terbuka, bukaan louvre pada bidang atap, cerobong di bawah spandek, dan APAR.' },
+    roof: { name: 'Rencana atap', desc: 'Dua bidang spandek, bubungan, dua bukaan louvre, ujung gable terbuka, dan overhang tiap sisi.' }
+  };
+  var SHEET_W = 1600, SHEET_H = 1200;
+  var PL = {
+    ink: '#202a27', ink2: '#33403b', mut: '#5d6a61', soft: '#8b9385', line: '#b9beb5',
+    paper: '#ecece2', paperLt: '#f5f4eb', paperDim: '#e4e3d4', paperWarm: '#e7e6c6',
+    steel: '#2f6f80', steelDeep: '#24525f', amber: '#8a4b1f', rust: '#a34135',
+    gold: '#8a6a1f', olive: '#5c7a12', slate: '#778074',
+    sg: "'Space Grotesk',system-ui,sans-serif",
+    mono: "'JetBrains Mono',ui-monospace,Menlo,monospace"
   };
   function planEsc(v) { return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]; }); }
   function planCM(v) { return Math.round(v * 100) + ' cm'; }
-  function planSvgText(x, y, text, size, anchor, fill, weight, extra) {
-    return '<text x="' + x + '" y="' + y + '" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="' + size + '" text-anchor="' + (anchor || 'start') + '" fill="' + (fill || '#263431') + '" font-weight="' + (weight || 500) + '"' + (extra || '') + '>' + planEsc(text) + '</text>';
+  function plNum(v) { return String(Math.round(v * 100)); }
+  /* teks di ruang kertas (px) */
+  function plPx(x, y, text, size, anchor, fill, weight, kind, ls) {
+    return '<text x="' + x + '" y="' + y + '" font-family="' + (kind === 'mono' ? PL.mono : PL.sg) + '" font-size="' + size +
+      '" text-anchor="' + (anchor || 'start') + '" fill="' + (fill || PL.ink) + '" font-weight="' + (weight || 500) + '"' +
+      (ls ? ' letter-spacing="' + ls + '"' : '') + '>' + planEsc(text) + '</text>';
   }
-  function planFit(frame, worldW, worldH) {
-    var scale = Math.min(frame.w / worldW, frame.h / worldH);
-    var x = frame.x + (frame.w - worldW * scale) / 2;
-    var y = frame.y + (frame.h - worldH * scale) / 2;
-    return '<g transform="translate(' + x + ' ' + y + ') scale(' + scale + ')">';
+  /* teks di ruang gambar (meter) — dengan halo kertas agar tetap terbaca di atas hatch */
+  function plT(x, y, text, size, anchor, fill, weight, rot, halo) {
+    var extra = '';
+    if (rot) extra += ' transform="rotate(' + rot + ' ' + x + ' ' + y + ')"';
+    if (halo !== false) extra += ' paint-order="stroke" stroke="' + PL.paper + '" stroke-width="' + (size * 0.55) + '" stroke-linejoin="round"';
+    return '<text x="' + x + '" y="' + y + '" font-family="' + PL.mono + '" font-size="' + size + '" text-anchor="' + (anchor || 'start') +
+      '" fill="' + (fill || PL.ink) + '" font-weight="' + (weight || 600) + '" dominant-baseline="middle"' + extra + '>' + planEsc(text) + '</text>';
   }
-  function planDimH(x1, x2, y, refY, label) {
-    return '<g fill="none" stroke="#52615e" stroke-width=".012">' +
-      '<path d="M' + x1 + ' ' + refY + 'V' + y + ' M' + x2 + ' ' + refY + 'V' + y + '" stroke-dasharray=".025 .025"/>' +
-      '<path d="M' + x1 + ' ' + y + 'H' + x2 + '" marker-start="url(#dimArrow)" marker-end="url(#dimArrow)"/>' +
-      '</g>' + planSvgText((x1 + x2) / 2, y - .055, label, .17, 'middle', '#263431', 700, ' paint-order="stroke" stroke="#f5f3e9" stroke-width=".055" stroke-linejoin="round"');
+  function plFit(rect, w, h, ox, oy) {
+    var s = Math.min(rect.w / w, rect.h / h);
+    var tx = rect.x + (rect.w - w * s) / 2 - ox * s;
+    var ty = rect.y + (rect.h - h * s) / 2 - oy * s;
+    return { s: s, open: '<g transform="translate(' + tx.toFixed(2) + ' ' + ty.toFixed(2) + ') scale(' + s.toFixed(4) + ')">' };
   }
-  function planDimV(y1, y2, x, refX, label) {
-    var mid = (y1 + y2) / 2;
-    return '<g fill="none" stroke="#52615e" stroke-width=".012">' +
-      '<path d="M' + refX + ' ' + y1 + 'H' + x + ' M' + refX + ' ' + y2 + 'H' + x + '" stroke-dasharray=".025 .025"/>' +
-      '<path d="M' + x + ' ' + y1 + 'V' + y2 + '" marker-start="url(#dimArrow)" marker-end="url(#dimArrow)"/>' +
-      '</g><text x="' + (x - .06) + '" y="' + mid + '" transform="rotate(-90 ' + (x - .06) + ' ' + mid + ')" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size=".17" text-anchor="middle" fill="#263431" font-weight="700" paint-order="stroke" stroke="#f5f3e9" stroke-width=".055" stroke-linejoin="round">' + planEsc(label) + '</text>';
+  /* garis dimensi arsitektural: garis bantu, garis ukur, takik 45°, label berhalo */
+  function plDim(o) {
+    var x1 = o.x1, y1 = o.y1, x2 = o.x2, y2 = o.y2;
+    var dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+    var ux = dx / len, uy = dy / len, nx = -uy, ny = ux;
+    var off = o.off || 0, sgn = off >= 0 ? 1 : -1;
+    var ax1 = x1 + nx * off, ay1 = y1 + ny * off, ax2 = x2 + nx * off, ay2 = y2 + ny * off;
+    var col = o.color || PL.ink, w = o.w || 0.016;
+    var tick = o.tick || 0.085, ext = o.ext === undefined ? 0.10 : o.ext;
+    var out = '<g stroke="' + col + '" fill="none">';
+    if (o.extLines !== false) {
+      out += '<path d="M' + x1 + ' ' + y1 + 'L' + (ax1 + nx * ext * sgn) + ' ' + (ay1 + ny * ext * sgn) +
+        'M' + x2 + ' ' + y2 + 'L' + (ax2 + nx * ext * sgn) + ' ' + (ay2 + ny * ext * sgn) + '" stroke-width="' + (w * 0.7) + '" opacity=".7"/>';
+    }
+    out += '<path d="M' + ax1 + ' ' + ay1 + 'L' + ax2 + ' ' + ay2 + '" stroke-width="' + w + '"' +
+      (o.dash ? ' stroke-dasharray="' + (tick * 1.9) + ' ' + (tick * 1.3) + '"' : '') + '/>';
+    var tx = (ux + nx) * tick * 0.55, ty = (uy + ny) * tick * 0.55;
+    out += '<path d="M' + (ax1 - tx) + ' ' + (ay1 - ty) + 'L' + (ax1 + tx) + ' ' + (ay1 + ty) +
+      'M' + (ax2 - tx) + ' ' + (ay2 - ty) + 'L' + (ax2 + tx) + ' ' + (ay2 + ty) + '" stroke-width="' + (w * 1.8) + '"/>';
+    out += '</g>';
+    if (o.label) {
+      var ang = Math.atan2(dy, dx) * 180 / Math.PI;
+      if (ang >= 90 || ang < -90) ang += 180;
+      var size = o.size || 0.15;
+      var mx = (ax1 + ax2) / 2, my = (ay1 + ay2) / 2;
+      var dir = (off >= 0 ? 1 : -1) * (o.flip ? -1 : 1);
+      mx += nx * dir * size * 1.55; my += ny * dir * size * 1.55;
+      out += '<text x="' + mx + '" y="' + my + '" fill="' + col + '" font-size="' + size + '" font-family="' + PL.mono +
+        '" font-weight="700" text-anchor="middle" dominant-baseline="middle" transform="rotate(' + ang + ' ' + mx + ' ' + my +
+        ')" paint-order="stroke" stroke="' + PL.paper + '" stroke-width="' + (size * 0.55) + '" stroke-linejoin="round">' + planEsc(o.label) + '</text>';
+    }
+    return out;
   }
-  function planDefs() {
+  function plArrow(x1, y1, x2, y2, color, w, head) {
+    var h = head || 0.13;
+    var ang = Math.atan2(y2 - y1, x2 - x1);
+    var bx = x2 - Math.cos(ang) * h, by = y2 - Math.sin(ang) * h;
+    var p1x = bx + Math.cos(ang - 1.2) * h * 0.62, p1y = by + Math.sin(ang - 1.2) * h * 0.62;
+    var p2x = bx + Math.cos(ang + 1.2) * h * 0.62, p2y = by + Math.sin(ang + 1.2) * h * 0.62;
+    return '<path d="M' + x1 + ' ' + y1 + 'L' + bx + ' ' + by + '" fill="none" stroke="' + color + '" stroke-width="' + (w || 0.02) + '"/>' +
+      '<path d="M' + x2 + ' ' + y2 + 'L' + p1x + ' ' + p1y + 'L' + p2x + ' ' + p2y + 'Z" fill="' + color + '"/>';
+  }
+  function plGround(x0, x1, y, opts) {
+    opts = opts || {};
+    var out = '<path d="M' + x0 + ' ' + y + 'H' + x1 + '" stroke="' + PL.ink + '" stroke-width="' + (opts.w || 0.03) + '"/>';
+    out += '<rect x="' + x0 + '" y="' + y + '" width="' + (x1 - x0) + '" height="' + (opts.h || 0.26) + '" fill="url(#plSoil)" stroke="none"/>';
+    if (opts.h !== 0) out += '<path d="M' + x0 + ' ' + (y + (opts.h || 0.26)) + 'H' + x1 + '" stroke="' + PL.soft + '" stroke-width="0.012" opacity=".8"/>';
+    return out;
+  }
+  /* penanda elevasi: segitiga + label */
+  function plLevel(x, y, label, side, size) {
+    var d = side === 'left' ? -1 : 1;
+    var h = (size || 0.085);
+    return '<g><path d="M' + x + ' ' + y + 'l' + (h * 0.85 * d) + ' ' + (-h) + 'h' + (-h * 1.7 * d) + 'Z" fill="none" stroke="' + PL.steel + '" stroke-width="' + (h * 0.16) + '"/>' +
+      '<path d="M' + (x - h * 1.15) + ' ' + y + 'H' + (x + h * 1.15) + '" stroke="' + PL.steel + '" stroke-width="' + (h * 0.12) + '" opacity=".9"/>' +
+      plT(x + h * 1.5 + 0.03, y, label, h * 1.5, 'start', PL.steel, 700, 0, true) + '</g>';
+  }
+  function plDefs() {
     return '<defs>' +
-      '<pattern id="planGrid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#d9ddd3" stroke-width=".7"/></pattern>' +
-      '<pattern id="planMesh" width=".16" height=".16" patternUnits="userSpaceOnUse"><path d="M0 0H.16M0 0V.16M0 0L.16 .16M.16 0L0 .16" fill="none" stroke="#778985" stroke-width=".012"/></pattern>' +
-      '<pattern id="planRoof" width=".16" height=".16" patternUnits="userSpaceOnUse"><path d="M.03 0V.16M.10 0V.16" fill="none" stroke="#71818a" stroke-width=".026"/><path d="M.14 0V.16" fill="none" stroke="#e8ece8" stroke-width=".012"/></pattern>' +
-      '<pattern id="planConcrete" width=".24" height=".24" patternUnits="userSpaceOnUse"><rect width=".24" height=".24" fill="#e3e2d8"/><path d="M.02 .04l.025 .02M.13 .16l.03-.015M.20 .06l.018 .01" stroke="#a7aaa4" stroke-width=".018"/></pattern>' +
-      '<marker id="dimArrow" markerWidth=".10" markerHeight=".10" refX=".05" refY=".05" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M.10 .01L0 .05L.10 .09" fill="none" stroke="#52615e" stroke-width=".012"/></marker>' +
-      '<marker id="moveArrow" markerWidth=".18" markerHeight=".18" refX=".14" refY=".09" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 .01L.16 .09L0 .17Z" fill="#c55240"/></marker>' +
+      '<pattern id="plSheetGrid" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M44 0H0V44" fill="none" stroke="rgba(198,247,92,.075)" stroke-width="1"/></pattern>' +
+      '<pattern id="plMesh" width=".10" height=".10" patternUnits="userSpaceOnUse"><path d="M0 0H.10M0 0V.10" fill="none" stroke="' + PL.ink2 + '" stroke-width=".009"/></pattern>' +
+      '<pattern id="plMeshSoft" width=".10" height=".10" patternUnits="userSpaceOnUse"><path d="M0 0H.10M0 0V.10" fill="none" stroke="' + PL.soft + '" stroke-width=".008"/></pattern>' +
+      '<pattern id="plMeshWall" width=".22" height=".22" patternUnits="userSpaceOnUse"><path d="M0 0H.22M0 0V.22" fill="none" stroke="#9aa49d" stroke-width=".006"/></pattern>' +
+      '<pattern id="plPanelWall" width=".22" height=".22" patternUnits="userSpaceOnUse"><rect width=".22" height=".22" fill="#ded0a2"/><path d="M0 .07H.22M0 .18H.22" stroke="#c2ae73" stroke-width=".014"/><circle cx=".05" cy=".04" r=".012" fill="#a98f55"/><circle cx=".16" cy=".14" r=".013" fill="#f0e5c1"/></pattern>' +
+      '<pattern id="plConc" width=".20" height=".20" patternUnits="userSpaceOnUse"><rect width=".20" height=".20" fill="#e6e5da"/><path d="M.03 .05l.02 .015M.12 .15l.025-.012M.17 .06l.015 .01M.07 .17l.012 .01" stroke="#a7aaa4" stroke-width=".016"/></pattern>' +
+      '<pattern id="plSoil" width=".13" height=".13" patternUnits="userSpaceOnUse"><path d="M0 .13L.13 0" stroke="#a9ada4" stroke-width=".011"/></pattern>' +
+      '<pattern id="plRoof" width=".15" height=".15" patternUnits="userSpaceOnUse"><rect width=".15" height=".15" fill="#dfe2dd"/><path d="M.035 0V.15M.105 0V.15" stroke="#7d8a86" stroke-width=".016"/><path d="M.135 0V.15" stroke="#f2f4ef" stroke-width=".008"/></pattern>' +
+      '<pattern id="plTile" width=".40" height=".40" patternUnits="userSpaceOnUse"><path d="M.40 0H0V.40" fill="none" stroke="#c9cbbf" stroke-width=".008"/></pattern>' +
+      '<pattern id="plSteel" width=".11" height=".11" patternUnits="userSpaceOnUse"><path d="M0 0L.11 .11M.11 0L0 .11" stroke="#7d8a86" stroke-width=".008"/></pattern>' +
+      '<pattern id="plInsul" width=".14" height=".14" patternUnits="userSpaceOnUse"><rect width=".14" height=".14" fill="#e8e6c4"/><path d="M0 .07q.035 -.05 .07 0t.07 0" fill="none" stroke="#b6a76a" stroke-width=".012"/></pattern>' +
+      '<marker id="plEnd" markerWidth=".16" markerHeight=".16" refX=".13" refY=".08" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0 .02L.15 .08L0 .14Z" fill="' + PL.rust + '"/></marker>' +
       '</defs>';
   }
-  function planPanel(x, y, w, h, title, body) {
-    var titleText = planSvgText(x + 13, y + 20, title, 12, 'start', '#283633', 700, ' letter-spacing=".7"');
-    return '<g><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="#f8f7ef" stroke="#8e9992" stroke-width="1"/>' + titleText +
-      '<path d="M' + (x + 12) + ' ' + (y + 28) + 'H' + (x + w - 12) + '" stroke="#c6cbc2" stroke-width="1"/>' + body + '</g>';
+  /* kartu gambar: header gelap + bidang kertas */
+  function plCard(o) {
+    var hh = 30, s = '';
+    s += '<clipPath id="plClip' + o.idx + '"><rect x="' + (o.x + 1) + '" y="' + (o.y + hh) + '" width="' + (o.w - 2) + '" height="' + (o.h - hh - 1) + '" rx="2"/></clipPath>';
+    s += '<g clip-path="url(#plClip' + o.idx + ')"><rect x="' + (o.x + 1) + '" y="' + (o.y + hh) + '" width="' + (o.w - 2) + '" height="' + (o.h - hh - 1) + '" fill="' + PL.paper + '"/>' + o.body + '</g>';
+    s += '<rect x="' + o.x + '" y="' + o.y + '" width="' + o.w + '" height="' + o.h + '" rx="10" fill="none" stroke="rgba(255,255,255,.10)"/>';
+    s += '<path d="M' + (o.x + 12) + ' ' + (o.y + hh) + 'H' + (o.x + o.w - 12) + '" stroke="rgba(255,255,255,.09)"/>';
+    s += plPx(o.x + 13, o.y + 19, o.idx, 9, 'start', '#c6f75c', 700, 'mono', '.12em');
+    s += plPx(o.x + 37, o.y + 19, o.title, 9.5, 'start', '#e8eee4', 700, 'mono', '.11em');
+    if (o.sub) s += plPx(o.x + o.w - 12, o.y + 19, o.sub, 8.5, 'end', '#8fa0a0', 600, 'mono', '.09em');
+    return s;
   }
-  function planWireBand(x, y, w, h, fill, opacity) {
-    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + fill + '"' + (opacity ? ' opacity="' + opacity + '"' : '') + ' stroke="#56635f" stroke-width=".025"/>';
-  }
-  function drawPlanView(frame, geom) {
-    var W = geom.W, D = geom.D, t = geom.t, outerW = geom.outerW, outerD = geom.outerD;
-    var doorW = geom.gateW;
-    var sidePad = 4.0, topPad = 1.10, bottomPad = 1.55;
-    var worldW = outerW + sidePad * 2, worldH = outerD + topPad + bottomPad;
-    var X = sidePad, Y = topPad, front = Y + outerD, gateY = front - t + SHELTER_GATE_LINE_OFFSET;
-    var roofW = geom.roofW, roofD = geom.roofD;
-    var roofX = X + (outerW - roofW) / 2, roofY = Y + (outerD - roofD) / 2;
-    var s = planFit(frame, worldW, worldH), out = s;
-    out += '<rect x="' + (X - .45) + '" y="' + (Y - .16) + '" width="' + (outerW + .9) + '" height="' + (outerD + .32) + '" fill="url(#planConcrete)" stroke="#9a9d96" stroke-width=".018"/>';
-    out += '<rect x="' + roofX + '" y="' + roofY + '" width="' + roofW + '" height="' + roofD + '" fill="url(#planRoof)" fill-opacity=".28" stroke="#44524f" stroke-width=".035" stroke-dasharray=".16 .10"/>';
-    var ridgeY = roofY + roofD / 2;
-    out += '<path d="M' + roofX + ' ' + ridgeY + 'H' + (roofX + roofW) + '" stroke="#33423f" stroke-width=".035" stroke-dasharray=".12 .07"/>';
-    out += planSvgText(roofX + roofW / 2, roofY + .20, 'GARIS ATAP / BUBUNGAN', .13, 'middle', '#52605c', 700);
-    out += '<rect x="' + X + '" y="' + Y + '" width="' + outerW + '" height="' + outerD + '" fill="#fbfaf4" stroke="#263431" stroke-width=".045"/>';
-    out += '<rect x="' + (X + t) + '" y="' + (Y + t) + '" width="' + W + '" height="' + D + '" fill="#f7f6ed" stroke="#76827d" stroke-width=".018"/>';
-    var wallFill = 'url(#planMesh)';
-    out += planWireBand(X, Y, outerW, t, wallFill);
-    out += planWireBand(X, Y + t, t, D, wallFill);
-    out += planWireBand(X + t + W, Y + t, t, D, wallFill);
-    // Hanya empat titik tiang hollow utama di sudut; jaring tidak diberi tiang pembagi besar.
-    out += planWireBand(X + t, Y, W, t, 'url(#planMesh)', '.55');
-    var postSize = SHELTER_POST_SIZE, postInset = t - SHELTER_POST_OFFSET;
-    [
-      [X + postInset, Y], [X + outerW - postInset, Y],
-      [X + postInset, front - t], [X + outerW - postInset, front - t]
-    ].forEach(function (p, i) {
-      out += '<rect data-post-plan="' + i + '" x="' + (p[0] - postSize / 2) + '" y="' + (p[1] - postSize / 2) + '" width="' + postSize + '" height="' + postSize + '" fill="#35423f"/>';
+  function plBody(o) { return { x: o.x + 8, y: o.y + 34, w: o.w - 16, h: o.h - 42 }; }
+
+  /* ================================ DENAH ================================ */
+  function drawPlan(rect, g, detail) {
+    var W = g.W, D = g.D, t = g.t, oW = g.outerW, oD = g.outerD;
+    var gap = g.panelWallGap || 0;
+    var pwThk = 0.15, pwLen = g.panelWallLen || 2.80;
+    var xMin = -(gap + pwThk) - (detail ? 1.05 : 0.80), xMax = oW + (detail ? 1.00 : 0.80);
+    var yMin = -(detail ? 0.80 : 0.66), yMax = oD + (detail ? 0.98 : 0.92);
+    var F = plFit(rect, xMax - xMin, yMax - yMin, xMin, yMin), s = F.s, out = F.open;
+    var fs = 12 / s, fsD = 10 / s, fsS = 8.6 / s, fsT = 7.6 / s, sw = 1.15 / s, swT = 0.8 / s, swF = 2.1 / s;
+    var H = { size: fsD, w: swT, tick: 7 / s };
+
+    /* --- halaman kerja + jalur servis --- */
+    out += '<rect x="' + (xMin + 0.02) + '" y="' + (yMin + 0.02) + '" width="' + (xMax - xMin - 0.04) + '" height="' + (yMax - yMin - 0.04) + '" fill="none" stroke="' + PL.line + '" stroke-width="' + swT + '" stroke-dasharray="' + (10 / s) + ' ' + (7 / s) + '"/>';
+    out += '<rect x="' + (-gap - pwThk) + '" y="-0.10" width="' + (gap + pwThk) + '" height="' + (oD + 0.20) + '" fill="' + PL.paperDim + '"/>';
+    out += '<path d="M' + (-gap + 0.02) + ' 0.02V' + (oD - 0.02) + '" stroke="' + PL.soft + '" stroke-width="' + swT + '" stroke-dasharray="' + (7 / s) + ' ' + (5 / s) + '"/>';
+    out += plT(-gap / 2 - pwThk / 2, oD / 2, 'JALUR SERVIS · ' + fmt(gap).replace('.', ',') + ' m', fsT, 'middle', PL.mut, 700, -90, false);
+    /* apron / akses depan */
+    out += '<rect x="0" y="' + oD + '" width="' + oW + '" height="0.30" fill="' + PL.paperDim + '" opacity=".85"/>';
+    out += '<path d="M0 ' + (oD + 0.30) + 'H' + oW + '" stroke="' + PL.soft + '" stroke-width="' + swT + '" stroke-dasharray="' + (7 / s) + ' ' + (5 / s) + '"/>';
+
+    /* --- garis atap (overhang) --- */
+    var rX = (oW - g.roofW) / 2, rY = (oD - g.roofD) / 2;
+    out += '<rect x="' + rX + '" y="' + rY + '" width="' + g.roofW + '" height="' + g.roofD + '" fill="none" stroke="' + PL.soft +
+      '" stroke-width="' + swT + '" stroke-dasharray="' + (9 / s) + ' ' + (6 / s) + '"/>';
+    if (detail) out += plT(rX + g.roofW - 0.05, rY + 0.30, 'GARIS ATAP', fsT, 'middle', PL.soft, 700, 90, true);
+
+    /* --- lantai + dinding --- */
+    out += '<rect x="0" y="0" width="' + oW + '" height="' + oD + '" fill="#f7f6ee"/>';
+    out += '<rect x="' + t + '" y="' + t + '" width="' + W + '" height="' + D + '" fill="' + PL.paperLt + '"/>';
+    out += '<rect x="' + t + '" y="' + t + '" width="' + W + '" height="' + D + '" fill="url(#plTile)" opacity=".55"/>';
+    var wallFill = 'url(#plMesh)';
+    out += '<rect x="0" y="0" width="' + oW + '" height="' + t + '" fill="' + wallFill + '" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    out += '<rect x="0" y="0" width="' + t + '" height="' + oD + '" fill="' + wallFill + '" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    out += '<rect x="' + (oW - t) + '" y="0" width="' + t + '" height="' + oD + '" fill="' + wallFill + '" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    out += '<rect x="0" y="' + (oD - t) + '" width="' + t + '" height="' + t + '" fill="' + wallFill + '" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    out += '<rect x="' + (oW - t) + '" y="' + (oD - t) + '" width="' + t + '" height="' + t + '" fill="' + wallFill + '" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+
+    /* tiang sudut hollow 60×60, digeser ke dalam seperti model 3D */
+    var ps = 0.06, postIn = t - SHELTER_POST_OFFSET;
+    [[postIn, t / 2], [oW - postIn, t / 2], [postIn, oD - t / 2], [oW - postIn, oD - t / 2]].forEach(function (p, i) {
+      out += '<rect data-post-plan="' + i + '" x="' + (p[0] - ps / 2) + '" y="' + (p[1] - ps / 2) + '" width="' + ps + '" height="' + ps + '" fill="' + PL.ink2 + '" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+      if (detail && i < 2) out += plT(p[0] + (i === 0 ? 0.13 : -0.13), p[1] + 0.22, '60×60', fsT, i === 0 ? 'start' : 'end', PL.ink2, 700, 0, true);
     });
-    // Genset footprint, separated into radiator, engine, alternator and base zones.
-    var genW = Math.min(3.0, W), genD = Math.min(1.10, D - .25);
-    var genX = X + t + (W - genW) / 2;
-    var genY = Y + t + geom.rearGap;
-    if (genY + genD > Y + t + D) genY = Y + t + D - genD;
-    /* Pondasi 15 cm hanya di bawah genset: denahnya digambar sebagai bidang
-       tersendiri yang lebih besar dari dudukan genset (bukan sloof keliling). */
-    var padX = genX - .20, padY = genY - .20, padW = genW + .40, padH = genD + .40;
-    out += '<rect x="' + padX + '" y="' + padY + '" width="' + padW + '" height="' + padH + '" fill="url(#planConcrete)" stroke="#4b5a56" stroke-width=".045"/>';
-    out += '<path d="M' + padX + ' ' + padY + 'h' + padW + 'v' + padH + 'h' + (-padW) + 'Z" fill="none" stroke="#8a938c" stroke-width=".018" stroke-dasharray=".09 .07" transform="translate(-.06 -.06)"/>';
-    out += '<path d="M' + genX + ' ' + genY + 'L' + (genX + 0.55) + ' ' + (genY - .55) + 'H' + (genX - 0.55) + 'Z" fill="none" stroke="#33413e" stroke-width=".02"/>';
-    out += planSvgText(padX, padY - .07, 'PONDASI 15 cm · HANYA GENSET · ' + planCM(geom.genPadW) + ' × ' + planCM(geom.genPadLen), .10, 'start', '#33413e', 700);
-    var clearW = Math.min(W, genW + .56), clearD = Math.min(D, genD + .5);
-    out += '<rect x="' + (X + t + (W - clearW) / 2) + '" y="' + (genY - (clearD - genD) / 2) + '" width="' + clearW + '" height="' + clearD + '" fill="none" stroke="#a4aaa1" stroke-width=".022" stroke-dasharray=".08 .06"/>';
-    out += '<rect x="' + genX + '" y="' + genY + '" width="' + genW + '" height="' + genD + '" rx=".035" fill="#b9c1c1" stroke="#303b3a" stroke-width=".045"/>';
-    out += '<rect x="' + (genX + genW * .04) + '" y="' + (genY + genD * .10) + '" width="' + (genW * .22) + '" height="' + (genD * .80) + '" fill="#8c999c" stroke="#56605f" stroke-width=".018"/>';
-    out += '<rect x="' + (genX + genW * .29) + '" y="' + (genY + genD * .12) + '" width="' + (genW * .43) + '" height="' + (genD * .76) + '" fill="#c8cfcd" stroke="#606b68" stroke-width=".018"/>';
-    out += '<rect x="' + (genX + genW * .76) + '" y="' + (genY + genD * .08) + '" width="' + (genW * .20) + '" height="' + (genD * .84) + '" fill="#687578" stroke="#35413f" stroke-width=".018"/>';
-    out += planSvgText(genX + genW * .14, genY + genD * .58, 'ALT', .12, 'middle', '#fff', 700);
-    out += planSvgText(genX + genW * .50, genY + genD * .58, 'MESIN DIESEL', .14, 'middle', '#35413f', 700);
-    out += planSvgText(genX + genW * .86, genY + genD * .58, 'RAD', .11, 'middle', '#fff', 700);
-    out += planSvgText(genX + genW / 2, genY + genD + .11, 'GENSET 3,00 × 1,10 m', .14, 'middle', '#35413f', 700);
-    // Dua kabinet terpisah di muka dinding yang menghadap jalur servis / genset.
-    var pwFace = X - geom.panelWallGap;
-    // Dinding panel tetap terhadap genset dan mundur dari lintasan pintu.
-    var panelY = Y + t + .55 + geom.rearGap + SHELTER_PANEL_WALL_Z_OFFSET;
-    var panelRowY = panelY + .28;
-    var pwY0 = panelY - geom.panelWallLen / 2, pwY1 = panelY + geom.panelWallLen / 2;
-    out += '<rect data-panel-wall-plan="true" x="' + (pwFace - .15) + '" y="' + pwY0 + '" width=".15" height="' + geom.panelWallLen + '" fill="#dedaa8" stroke="#4b5450" stroke-width=".045"/>';
-    [pwY0, pwY1 - .18].forEach(function (cy) {
-      out += '<rect x="' + (pwFace - .17) + '" y="' + cy + '" width=".19" height=".18" fill="#b9bdb5" stroke="#4b5450" stroke-width=".035"/>';
+
+    /* --- bukaan pintu + rel + daun --- */
+    var openY = oD - t / 2 + SHELTER_GATE_LINE_OFFSET;   // garis rel = tengah tiang depan + 0,12 m (model)
+    var leaf = g.gateW, openW = W;
+    var lidX = t, midX = t + W / 2, ridX = t + W;
+    out += '<path d="M' + lidX + ' ' + (oD + 0.02) + 'V' + oD + 'M' + ridX + ' ' + (oD + 0.02) + 'V' + oD + '" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    /* satu rel sepanjang modul; posisi tertutup putus-putus, posisi terbuka
+       padat — tiap daun bergeser selebar daunnya sendiri */
+    var leafL = midX - leaf, leafR = midX;
+    out += '<rect x="' + t + '" y="' + (openY - 0.045) + '" width="' + W + '" height="0.09" fill="none" stroke="' + PL.steelDeep + '" stroke-width="' + swT + '"/>';
+    out += '<rect data-gate-plan="closed-left" x="' + leafL + '" y="' + (openY - 0.025) + '" width="' + leaf + '" height="0.05" fill="none" stroke="' + PL.soft + '" stroke-width="' + swT + '" stroke-dasharray="' + (8 / s) + ' ' + (6 / s) + '"/>';
+    out += '<rect data-gate-plan="closed-right" x="' + leafR + '" y="' + (openY - 0.025) + '" width="' + leaf + '" height="0.05" fill="none" stroke="' + PL.soft + '" stroke-width="' + swT + '" stroke-dasharray="' + (8 / s) + ' ' + (6 / s) + '"/>';
+    out += '<rect data-gate-plan="open-left" x="' + (leafL - leaf) + '" y="' + (openY - 0.035) + '" width="' + leaf + '" height="0.07" fill="url(#plMesh)" stroke="' + PL.ink2 + '" stroke-width="' + sw + '"/>';
+    out += '<rect data-gate-plan="open-right" x="' + (leafR + leaf) + '" y="' + (openY - 0.035) + '" width="' + leaf + '" height="0.07" fill="url(#plMesh)" stroke="' + PL.ink2 + '" stroke-width="' + sw + '"/>';
+    /* garis pertemuan tepat di as pintu */
+    out += '<path d="M' + midX + ' ' + (openY - 0.14) + 'V' + (openY + 0.14) + '" stroke="' + PL.rust + '" stroke-width="' + (sw * 1.3) + '"/>';
+    /* arah geser tiap daun */
+    out += plArrow(lidX + 0.42, openY, lidX - 0.02, openY, PL.rust, swT, 0.10);
+    out += plArrow(ridX - 0.42, openY, ridX + 0.02, openY, PL.rust, swT, 0.10);
+    out += plT(oW / 2, oD + 0.34, 'DAUN GESER · ' + fmt2(g.gateW) + ' M / DAUN', fsS, 'middle', PL.ink2, 700, 0, true);
+    out += plT(oW / 2, oD + 0.52, 'PERTEMUAN TEPAT DI AS · 1 REL', fsT, 'middle', PL.rust, 700, 0, true);
+    /* --- genset + pondasi --- */
+    var genW = 3.0, genD = 1.10;
+    var gx = t + (W - genW) / 2, gy = t + (D - genD) / 2;
+    if (gy + genD > t + D) gy = t + D - genD;
+    var padX = gx - 0.20, padY = gy - 0.20, padW = g.genPadW, padD = g.genPadLen;
+    out += '<rect x="' + padX + '" y="' + padY + '" width="' + padW + '" height="' + padD + '" fill="url(#plConc)" stroke="' + PL.ink2 + '" stroke-width="' + sw + '"/>';
+    out += '<rect x="' + padX + '" y="' + padY + '" width="' + padW + '" height="' + padD + '" fill="none" stroke="' + PL.rust +
+      '" stroke-width="' + swT + '" stroke-dasharray="' + (6 / s) + ' ' + (4 / s) + '"/>';
+    out += plT(padX - 0.12, padY + padD / 2, 'PONDASI 15 CM', fsT, 'middle', PL.rust, 700, -90, true);
+    out += '<rect x="' + gx + '" y="' + gy + '" width="' + genW + '" height="' + genD + '" fill="#cfd5d3" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    out += '<rect x="' + (gx + 0.10) + '" y="' + (gy + 0.11) + '" width="0.70" height="' + (genD - 0.22) + '" fill="#9aa6a8" stroke="' + PL.ink2 + '" stroke-width="' + swT + '"/>';
+    out += '<rect x="' + (gx + 0.86) + '" y="' + (gy + 0.13) + '" width="1.34" height="' + (genD - 0.26) + '" fill="#dfe3df" stroke="' + PL.ink2 + '" stroke-width="' + swT + '"/>';
+    out += '<rect x="' + (gx + 2.26) + '" y="' + (gy + 0.09) + '" width="0.62" height="' + (genD - 0.18) + '" fill="#6f7d80" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += plT(gx + 0.45, gy + genD / 2, 'ALT', fsS, 'middle', '#ffffff', 700, 0, false);
+    out += plT(gx + 1.53, gy + genD / 2, 'MESIN DIESEL', fsS, 'middle', PL.ink, 700, 0, false);
+    out += plT(gx + 2.57, gy + genD / 2, 'RAD', fsT, 'middle', '#ffffff', 700, 0, false);
+    out += plT(gx + 1.53, gy + genD / 2 + 0.20, '300 × 110', fsT, 'middle', PL.ink2, 700, 0, false);
+    /* knalpot (titik) */
+    out += '<circle cx="' + (gx + genW / 2 + 0.88) + '" cy="' + (gy + 0.06) + '" r="0.055" fill="' + PL.rust + '" stroke="' + PL.paper + '" stroke-width="' + swT + '"/>';
+    if (detail) out += plT(gx + genW / 2 + 0.94, gy - 0.10, 'KNALPOT', fsT, 'start', PL.rust, 700, 0, true);
+
+    /* APAR */
+    var ax = oW - t - 0.40, ay = t + 0.22;
+    out += '<circle cx="' + ax + '" cy="' + ay + '" r="0.09" fill="#c94c3f" stroke="#6f2824" stroke-width="' + swT + '"/>';
+    out += plT(ax + 0.15, ay, 'APAR', fsT, 'start', PL.rust, 700, 0, true);
+
+    /* --- dinding panel + kabinet + kWh + kabel --- */
+    var face = -gap, wx = face - pwThk;
+    /* pusat dinding panel sama dengan model: pusat genset dimundurkan 0,45 m */
+    var wallZ = t + D / 2 + SHELTER_PANEL_WALL_Z_OFFSET;
+    var wy0 = wallZ - pwLen / 2, wy1 = wy0 + pwLen;
+    var boardY = wallZ;
+    out += '<rect data-panel-wall-plan="true" x="' + wx + '" y="' + wy0 + '" width="' + pwThk + '" height="' + pwLen + '" fill="url(#plPanelWall)" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    [wy0, wy1 - 0.18].forEach(function (cy) {
+      out += '<rect x="' + (wx - 0.02) + '" y="' + cy + '" width="' + (pwThk + 0.04) + '" height="0.18" fill="#b9bdb5" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
     });
-    out += '<rect x="' + (pwFace + .01) + '" y="' + (panelRowY - geom.panelBoardW / 2) + '" width=".03" height="' + geom.panelBoardW + '" fill="#d9ddde" stroke="#35413f" stroke-width=".02"/>';
-    [
-      { id: 'kwh', y: panelRowY - .50, width: .72, label: 'PANEL kWh GENSET' },
-      { id: 'distribution', y: panelRowY + .50, width: .82, label: 'PANEL DISTRIBUSI GENSET' }
-    ].forEach(function (panel) {
-      out += '<rect data-panel="' + panel.id + '" x="' + (pwFace + .04) + '" y="' + (panel.y - panel.width / 2) + '" width=".13" height="' + panel.width + '" rx=".02" fill="#c8cecf" stroke="#35413f" stroke-width=".025"/>';
-      out += '<path d="M' + (pwFace + .19) + ' ' + panel.y + 'h.25" fill="none" stroke="#a34135" stroke-width=".025" marker-end="url(#moveArrow)"/>';
-      out += planSvgText(pwFace + .49, panel.y + .04, panel.label, .10, 'start', '#33413e', 700, ' paint-order="stroke" stroke="#f8f7ef" stroke-width=".04"');
+    /* kabinet + kWh pada muka dinding */
+    out += '<rect x="' + face + '" y="' + (boardY - g.panelBoardW / 2) + '" width="0.03" height="' + g.panelBoardW + '" fill="#dde1e0" stroke="' + PL.ink2 + '" stroke-width="' + swT + '"/>';
+    out += '<rect data-panel="kwh" x="' + (face + 0.03) + '" y="' + (boardY - 0.40) + '" width="0.13" height="0.80" fill="#cdd3d3" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += '<rect data-panel="distribution" x="' + (face + 0.03) + '" y="' + (boardY + 0.46) + '" width="0.13" height="0.34" fill="#c6cccb" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += plT(face + 0.20, boardY + 0.63, 'kWh', fsT, 'start', PL.ink2, 700, 0, false);
+    if (detail) {
+      out += plT(face + 0.20, boardY - 0.02, 'KABINET KONTROL', fsT, 'start', PL.ink2, 700, 0, false);
+      out += plT(wx - 0.10, wy0 + pwLen / 2, 'DINDING PANEL 15 CM · TINGGI ' + plNum(g.panelWallH), fsT, 'middle', PL.ink2, 700, -90, true);
+    }
+    /* cable tray sepanjang jalur servis + dua jalur kabel menuju gland di pagar */
+    out += '<rect x="' + face + '" y="' + (boardY + 0.86) + '" width="' + (0 - face) + '" height="0.14" fill="none" stroke="' + PL.steelDeep + '" stroke-width="' + swT + '"/>';
+    [0, 0.05].forEach(function (dy, i) {
+      out += '<path d="M' + (face + 0.06 + i * 0.04) + ' ' + (boardY + 0.52) + 'V' + (boardY + 0.93) + 'H' + (t / 2) + 'V' + (gy + genD * (0.62 + i * 0.06)) + 'H' + (gx + 0.26) +
+        '" fill="none" stroke="' + (i === 0 ? PL.rust : PL.ink) + '" stroke-width="' + (sw * (i === 0 ? 1.1 : 0.8)) + '"/>';
     });
-    out += planSvgText(pwFace - .05, pwY0 - .30, 'DINDING PANEL 15 cm', .10, 'middle', '#33413e', 700);
-    out += planDimH(pwFace, X, Y - .05, Y, 'JARAK ' + fmt(geom.panelWallGap) + ' m');
-    // Dua cabang kabel bergabung ke tray dan melintasi pagar menuju unit.
-    var trayX0 = pwFace + .16, trayX1 = X + .02;
-    out += '<rect x="' + trayX0 + '" y="' + (panelY - .13) + '" width="' + (trayX1 - trayX0) + '" height=".26" fill="none" stroke="#7d8a85" stroke-width=".022"/>';
-    [
-      { y: panelRowY - .50, offset: -.035, color: '#c84c40' },
-      { y: panelRowY + .50, offset: .035, color: '#252a2b' }
-    ].forEach(function (cable) {
-      var route = 'M' + (pwFace + .14) + ' ' + cable.y + 'H' + (pwFace + .28) + 'V' + (panelY + cable.offset) + 'H' + (trayX1 - .02) + 'L' + (genX + genW * .30) + ' ' + (genY + genD * .55 + cable.offset) + 'H' + (genX + genW * .16);
-      out += '<path d="' + route + '" fill="none" stroke="' + cable.color + '" stroke-width=".022"/>';
-    });
-    out += '<circle cx="' + (X + .08) + '" cy="' + panelY + '" r=".045" fill="#f7f5eb" stroke="#35413f" stroke-width=".018"/>';
-    out += planSvgText((trayX0 + trayX1) / 2, panelY + .25, 'CABLE TRAY', .09, 'middle', '#5b6763', 700);
-    var exhaustPlanX = genX + genW / 2 + .88;
-    out += '<path d="M' + (exhaustPlanX - .08) + ' ' + (genY + .06) + 'l.08 -.08l.08 .08l-.08 .08Z" fill="#d84b3d" stroke="#532a24" stroke-width=".012"/>';
-    out += planSvgText(exhaustPlanX + .14, genY + .16, 'KNALPOT', .11, 'start', '#a44639', 700);
-    // APAR tetap terlihat sebagai zona keselamatan.
-    var aparX = X + t + W - .40, aparY = Y + t + .22;
-    out += '<circle cx="' + aparX + '" cy="' + aparY + '" r=".10" fill="#c94c3f" stroke="#6f2824" stroke-width=".025"/><path d="M' + aparX + ' ' + (aparY - .13) + 'v.06m-.04-.06h.08" stroke="#293330" stroke-width=".022"/>';
-    out += planSvgText(aparX, aparY + .21, 'APAR', .105, 'middle', '#9c3f35', 700);
-    // Rel sebatas modul; posisi tertutup (putus-putus) mencapai kedua tiang.
-    var gateLineY = gateY, midGate = X + outerW / 2;
-    var leaf = doorW, closedL = midGate - leaf, closedR = midGate;
-    var openL = closedL - leaf, openR = closedR + leaf;
-    out += '<path d="M' + X + ' ' + gateLineY + 'H' + (X + outerW) + '" stroke="#303b39" stroke-width=".045"/>';
-    out += '<rect data-gate-plan="closed-left" x="' + closedL + '" y="' + (gateLineY - .025) + '" width="' + leaf + '" height=".05" fill="none" stroke="#9aa5a0" stroke-width=".02" stroke-dasharray=".08 .06"/>';
-    out += '<rect data-gate-plan="closed-right" x="' + closedR + '" y="' + (gateLineY - .025) + '" width="' + leaf + '" height=".05" fill="none" stroke="#9aa5a0" stroke-width=".02" stroke-dasharray=".08 .06"/>';
-    out += '<path d="M' + midGate + ' ' + (gateLineY + .03) + 'v.28" stroke="#26332f" stroke-width=".022"/>';
-    out += planSvgText(midGate, gateLineY + .44, 'PERTEMUAN TEPAT DI AS', .10, 'middle', '#33413e', 700);
-    // Daun terbuka di kiri dan kanan, bergeser sejauh satu lebar daun.
-    out += '<rect data-gate-plan="open-left" x="' + openL + '" y="' + (gateLineY - .025) + '" width="' + leaf + '" height=".05" fill="url(#planMesh)" stroke="#34413e" stroke-width=".035"/>';
-    out += '<rect data-gate-plan="open-right" x="' + openR + '" y="' + (gateLineY - .025) + '" width="' + leaf + '" height=".05" fill="url(#planMesh)" stroke="#34413e" stroke-width=".035"/>';
-    out += '<path d="M' + (X + t + W * .34) + ' ' + (gateLineY + .30) + 'H' + (openL + leaf * .50) + '" fill="none" stroke="#c55240" stroke-width=".025" marker-end="url(#moveArrow)"/>';
-    out += '<path d="M' + (X + t + W * .66) + ' ' + (gateLineY + .30) + 'H' + (openR + leaf * .50) + '" fill="none" stroke="#c55240" stroke-width=".025" marker-end="url(#moveArrow)"/>';
-    out += planSvgText(midGate, gateLineY + .90, '2 DAUN GESER SEJAJAR · 1 REL', .13, 'middle', '#a34135', 700);
-    // Garis dimensi luar/ruang bersih dan arah akses.
-    out += planDimH(X, X + outerW, Y - .35, Y, planCM(outerW));
-    out += planDimH(X + t, X + t + W, genY - .20, genY, 'RUANG BERSIH ' + planCM(W));
-    out += planDimV(Y, Y + outerD, X + outerW + .42, X + outerW, planCM(outerD));
-    out += '<path d="M' + (X + outerW / 2) + ' ' + (front + 1.10) + 'v-.28" stroke="#33413e" stroke-width=".035" marker-end="url(#moveArrow)"/>';
-    out += planSvgText(X + outerW / 2, front + 1.38, 'DEPAN / AKSES SERVIS', .13, 'middle', '#33413e', 700);
+    out += '<circle cx="' + (t / 2) + '" cy="' + (boardY + 0.93) + '" r="0.05" fill="#f5f4eb" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    if (detail) {
+      out += plT((face + 0) / 2, boardY + 1.14, 'CABLE TRAY + KABEL', fsT, 'middle', PL.steelDeep, 700, 0, true);
+      out += plT(t / 2, boardY + 1.34, 'GLAND', fsT, 'middle', PL.ink2, 700, 0, true);
+    }
+    /* dimensi jarak 2,00 m */
+    out += plDim({ x1: face, y1: -0.30, x2: 0, y2: -0.30, off: 0, label: fmt(gap).replace('.', ',') + ' m', size: fsD, w: swT, color: PL.rust, ext: 0.08 / s, tick: 6 / s });
+
+    /* --- rantai dimensi --- */
+    /* atas: t | W | t lalu total */
+    out += plDim({ x1: 0, y1: 0, x2: t, y2: 0, off: -0.34, label: plNum(t), size: fsT, w: swT, color: PL.mut, tick: 5 / s, ext: 0.06 / s });
+    out += plDim({ x1: t, y1: 0, x2: t + W, y2: 0, off: -0.34, label: plNum(W), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    out += plDim({ x1: t + W, y1: 0, x2: oW, y2: 0, off: -0.34, label: plNum(t), size: fsT, w: swT, color: PL.mut, tick: 5 / s, ext: 0.06 / s });
+    out += plDim({ x1: 0, y1: 0, x2: oW, y2: 0, off: -0.66, label: plNum(oW), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    /* kanan: t | D | t lalu total */
+    out += plDim({ x1: oW, y1: 0, x2: oW, y2: t, off: -0.32, label: plNum(t), size: fsT, w: swT, color: PL.mut, tick: 5 / s, ext: 0.06 / s });
+    out += plDim({ x1: oW, y1: t, x2: oW, y2: t + D, off: -0.32, label: plNum(D), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    out += plDim({ x1: oW, y1: t + D, x2: oW, y2: oD, off: -0.32, label: plNum(t), size: fsT, w: swT, color: PL.mut, tick: 5 / s, ext: 0.06 / s });
+    out += plDim({ x1: oW, y1: 0, x2: oW, y2: oD, off: -0.66, label: plNum(oD), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    /* depan: lebar bukaan + jarak bebas servis */
+    out += plDim({ x1: lidX, y1: oD, x2: ridX, y2: oD, off: 0.72, label: 'BUKAAN ' + plNum(openW), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    out += plDim({ x1: gx + genW + 0.34, y1: gy + genD, x2: gx + genW + 0.34, y2: oD - t, off: 0, label: 'DEPAN ' + plNum(oD - t - gy - genD), size: fsT, w: swT, color: PL.slate, tick: 5 / s, ext: 0.05 / s, dash: true });
+    out += plDim({ x1: gx - 0.30, y1: t, x2: gx - 0.30, y2: gy, off: 0, label: 'BLK ' + plNum(gy - t), size: fsT, w: swT, color: PL.slate, tick: 5 / s, ext: 0.05 / s, dash: true });
+    /* teks orientasi */
+    if (detail) {
+      out += plT(oW / 2, yMin + 0.20, 'SISI BELAKANG', fsT, 'middle', PL.mut, 700, 0, false);
+      out += plT(oW / 2, oD + 0.98, 'SISI DEPAN · AKSES SERVIS', fsT, 'middle', PL.mut, 700, 0, false);
+      out += plT(xMin + 0.22, oD / 2, 'SISI KIRI', fsT, 'middle', PL.mut, 700, -90, false);
+      out += plT(xMax - 0.20, oD / 2, 'SISI KANAN', fsT, 'middle', PL.mut, 700, 90, false);
+    }
     out += '</g>';
     return out;
   }
-  function drawLongElevation(frame, geom, which) {
-    var W = geom.W, t = geom.t, outerW = geom.outerW;
-    var wallH = geom.wallH, roofBase = geom.roofBase, totalH = geom.totalH, doorH = geom.doorH;
-    var gateW = geom.gateW;
-    var extra = Math.max(1.8, gateW * 2 - outerW / 2 + .15);
-    var worldW = outerW + extra * 2, worldH = totalH + .94;
-    var X = extra, ground = worldH - .34, s = planFit(frame, worldW, worldH), out = s;
-    var title = which === 'front' ? 'AKSES DEPAN · 2 DAUN GESER' : 'BELAKANG · WIREMESH + TIANG SUDUT';
+
+  /* ============================ TAMPAK DEPAN / BELAKANG ============================ */
+  function drawFacade(rect, g, which, detail) {
+    var mesh = true, oW = g.outerW, t = g.t, W = g.W;
+    var wallH = g.wallH, roofBase = g.roofBase, totalH = g.totalH, doorH = g.doorH;
     var isFront = which === 'front';
-    out += '<path d="M' + (X - extra + .18) + ' ' + ground + 'H' + (X + outerW + extra - .18) + '" stroke="#58615e" stroke-width=".035"/>';
-    out += '<rect x="' + X + '" y="' + (ground - wallH) + '" width="' + outerW + '" height="' + wallH + '" fill="' + 'url(#planMesh)' + '" stroke="#293632" stroke-width=".045"/>';
-    // Pusat tiang sesuai model 3D, bukan pada garis terluar modul.
-    var postInset = t - SHELTER_POST_OFFSET;
-    [X + postInset, X + outerW - postInset].forEach(function (px, i) {
-      out += '<rect data-post-elevation="' + (i ? 'right' : 'left') + '" x="' + (px - SHELTER_POST_SIZE / 2) + '" y="' + (ground - wallH) + '" width="' + SHELTER_POST_SIZE + '" height="' + wallH + '" fill="#667471" opacity=".9"/>';
+    var flank = detail ? 1.05 : 0.85;
+    var xMin = -flank, xMax = oW + flank;
+    var yMin = -(totalH + (detail ? 0.52 : 0.44)), yMax = detail ? 1.00 : 0.94;
+    var F = plFit(rect, xMax - xMin, yMax - yMin, xMin, yMin), s = F.s, out = F.open;
+    var fs = 12 / s, fsD = 10 / s, fsS = 8.6 / s, fsT = 7.6 / s, sw = 1.15 / s, swT = 0.8 / s, swF = 2.0 / s;
+    var ground = 0;
+
+    out += plGround(xMin + 0.06, xMax - 0.06, ground, { h: 0.22, w: swF });
+    out += '<rect x="-0.06" y="-0.10" width="' + (oW + 0.12) + '" height="0.10" fill="#b9bdb5" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+
+    /* dinding: wiremesh halus / plester */
+    var wallFill = 'url(#plMeshWall)';
+    out += '<rect x="0" y="' + (-wallH) + '" width="' + oW + '" height="' + wallH + '" fill="' + wallFill + '" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    /* tiang sudut hollow 60×60 digeser ke dalam seperti model */
+    var postIn2 = t - SHELTER_POST_OFFSET;
+    [[postIn2, 'left'], [oW - postIn2, 'right']].forEach(function (pp) {
+      out += '<rect data-post-elevation="' + pp[1] + '" x="' + (pp[0] - 0.03) + '" y="' + (-wallH) + '" width="0.06" height="' + wallH + '" fill="#5e6c69" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
     });
-    out += '<rect x="' + X + '" y="' + (ground - wallH) + '" width="' + outerW + '" height=".10" fill="#65716d" stroke="#303b38" stroke-width=".025"/>';
+    out += '<rect x="0" y="' + (-wallH) + '" width="' + oW + '" height="0.10" fill="#64716d" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+
+    /* bukaan pintu */
+    var top = -doorH;
     if (isFront) {
-      /* Daun ditutup dari muka dalam tiang hingga as pintu, tanpa tumpang. */
-      var leftX = X + outerW / 2 - gateW, rightX = X + outerW / 2, topGate = ground - doorH;
-      var gateDrawHeight = doorH - .04;
-      out += '<rect data-gate-elevation="left" x="' + leftX + '" y="' + topGate + '" width="' + gateW + '" height="' + gateDrawHeight + '" fill="url(#planMesh)" stroke="#34413e" stroke-width=".045"/>';
-      out += '<rect data-gate-elevation="right" x="' + rightX + '" y="' + topGate + '" width="' + gateW + '" height="' + gateDrawHeight + '" fill="url(#planMesh)" stroke="#34413e" stroke-width=".045"/>';
-      out += '<path d="M' + leftX + ' ' + topGate + 'H' + (leftX + gateW) + ' M' + rightX + ' ' + topGate + 'H' + (rightX + gateW) + '" stroke="#293330" stroke-width=".055"/>';
-      // garis pertemuan di as pintu + dua gagang simetris menghadap ke dalam
-      var handleY = ground - doorH * .52, mid = X + t + W / 2;
-      out += '<path d="M' + mid + ' ' + topGate + 'V' + (ground - .04) + '" stroke="#26312f" stroke-width=".03"/>';
-      [-.06, .06].forEach(function (hx) {
-        out += '<rect x="' + (mid + hx - .022) + '" y="' + (handleY - .16) + '" width=".044" height=".32" rx=".016" fill="#d4d9d6" stroke="#26312f" stroke-width=".022"/>';
-      });
-      // Rel bawah/atas hanya ditampilkan sepanjang modul.
-      out += '<path d="M' + X + ' ' + (ground - .035) + 'H' + (X + outerW) + ' M' + X + ' ' + (topGate - .06) + 'H' + (X + outerW) + '" stroke="#303936" stroke-width=".045"/>';
-      out += planDimH(leftX, leftX + gateW, topGate + .12, topGate, planCM(gateW));
-      out += planSvgText(X + outerW / 2, ground - doorH + .42, '2 DAUN SAMA · PERTEMUAN DI AS', .14, 'middle', '#35413f', 700, ' paint-order="stroke" stroke="#f8f7ef" stroke-width=".06" stroke-linejoin="round"');
-    } else {
-      out += '<path d="M' + (X + .12) + ' ' + (ground - .18) + 'H' + (X + outerW - .12) + '" stroke="#4b5955" stroke-width=".045"/>';
-      out += planSvgText(X + outerW / 2, ground - wallH * .52, 'PANEL WIREMESH · MODUL BELAKANG', .17, 'middle', '#34413e', 700);
-    }
-    // Roof edge/ring line across the long elevation; ridge height is dimensioned on the gable view.
-    var roofX = X + (outerW - geom.roofW) / 2;
-    var fasciaY = ground - roofBase;
-    out += '<rect x="' + roofX + '" y="' + (fasciaY - .09) + '" width="' + geom.roofW + '" height=".13" fill="url(#planRoof)" stroke="#3a4543" stroke-width=".035"/>';
-    out += '<path d="M' + roofX + ' ' + (ground - totalH) + 'H' + (roofX + geom.roofW) + '" stroke="#53605c" stroke-width=".025" stroke-dasharray=".10 .08"/>';
-    out += '<rect x="' + (X - .05) + '" y="' + (ground - .10) + '" width="' + (outerW + .10) + '" height=".10" fill="#8c918e" stroke="#47514e" stroke-width=".025"/>';
-    out += planDimH(X, X + outerW, ground + .34, ground, planCM(outerW));
-    out += planDimV(ground - wallH, ground, X + outerW + .36, X + outerW, planCM(wallH));
-    out += planDimV(ground - totalH, ground, X + outerW + .72, X + outerW, 'PUNCAK ' + planCM(totalH));
-    out += planSvgText(X + outerW / 2, ground + .62, title, .15, 'middle', '#a34135', 700);
-    out += '</g>';
-    return out;
-  }
-  function drawSideElevation(frame, geom, side) {
-    var t = geom.t, D = geom.D, outerD = geom.outerD, W = geom.W;
-    var roofD = geom.roofD, roofBase = geom.roofBase, totalH = geom.totalH, wallH = geom.wallH;
-    var backOH = t / 2 + .35;
-    var frontOH = Math.max(.12, .35 - t / 2);
-    var pwExtra = geom.panelWallGap + .55;    // ruang untuk dinding panel 2 m
-    var worldW = roofD + 1.75 + pwExtra, worldH = totalH + .90, X0 = .88 + backOH + pwExtra;
-    var ground = worldH - .33, bx = X0, bw = outerD, s = planFit(frame, worldW, worldH), out = s;
-    var roofStart = bx - backOH, roofEnd = bx + bw + frontOH;
-    var eaveY = ground - roofBase, peakY = ground - totalH, wallTop = ground - wallH;
-    out += '<path d="M.12 ' + ground + 'H' + (worldW - .12) + '" stroke="#58615e" stroke-width=".035"/>';
-    out += '<rect x="' + bx + '" y="' + wallTop + '" width="' + bw + '" height="' + wallH + '" fill="' + 'url(#planMesh)' + '" stroke="#303b38" stroke-width=".045"/>';
-    // Pusat tiang belakang dan depan mengikuti posisi z model 3D.
-    [bx, bx + bw - t].forEach(function (xx) {
-      out += '<rect x="' + (xx - SHELTER_POST_SIZE / 2) + '" y="' + wallTop + '" width="' + SHELTER_POST_SIZE + '" height="' + wallH + '" fill="#64726e" opacity=".9"/>';
-    });
-    out += '<rect x="' + bx + '" y="' + (wallTop - .10) + '" width="' + bw + '" height=".10" fill="#5d6965" stroke="#2f3936" stroke-width=".025"/>';
-    // Ujung gable dibiarkan kosong: hanya bidang spandek, rangka segitiga, dan batang ikat.
-    var gableMid = (roofStart + roofEnd) / 2;
-    out += '<path d="M' + roofStart + ' ' + eaveY + 'L' + gableMid + ' ' + peakY + 'L' + roofEnd + ' ' + eaveY + '" fill="none" stroke="url(#planRoof)" stroke-width=".10"/>';
-    out += '<path d="M' + roofStart + ' ' + eaveY + 'H' + roofEnd + ' M' + gableMid + ' ' + eaveY + 'V' + peakY + '" fill="none" stroke="#647278" stroke-width=".045"/>';
-    /* Potongan konsep: dua kabinet berjajar pada muka dinding yang menghadap
-       genset. Keduanya berimpit dalam potongan ini; denah atas menunjukkan
-       masing-masing kabinet dan arah mukanya. */
-    if (side === 'left') {
-      var wallFace = bx - geom.panelWallGap;
-      var boardX = wallFace + .03, boardTop = ground - 2.42;
-      var cabinetTop = ground - 2.26;
-      // dinding panel: beton ringan + kolom ujung + pondasi setempat
-      var pwTop = ground - geom.panelWallH;
-      out += '<rect x="' + (wallFace - .15) + '" y="' + pwTop + '" width=".15" height="' + geom.panelWallH + '" fill="#ece7cd" stroke="#4b5450" stroke-width=".04"/>';
-      out += '<rect x="' + (wallFace - .17) + '" y="' + (ground - .30) + '" width=".19" height=".32" fill="#b9bdb5" stroke="#4b5450" stroke-width=".03"/>';
-      out += planSvgText(wallFace - .30, pwTop - .04, 'DINDING PANEL', .10, 'middle', '#33413e', 700);
-      out += planDimH(wallFace, bx, ground + .30, ground, 'JARAK ' + fmt(geom.panelWallGap) + ' m');
-      // Profil kedua kabinet bertumpuk pada potongan; posisinya terpisah pada denah atas.
-      out += '<rect x="' + boardX + '" y="' + boardTop + '" width=".03" height="1.82" fill="#d9ddde" stroke="#596568" stroke-width=".025"/>';
-      out += '<rect data-panel-profile="distribution-kwh" x="' + (boardX + .03) + '" y="' + cabinetTop + '" width=".13" height="1.08" rx=".02" fill="#c8cecf" stroke="#26322f" stroke-width=".03"/>';
-      out += '<rect x="' + (boardX + .16) + '" y="' + (cabinetTop + .06) + '" width=".02" height=".96" fill="#e0e2df" stroke="#657174" stroke-width=".02"/>';
-      out += planSvgText(boardX + .24, cabinetTop + .16, 'PANEL DISTRIBUSI', .10, 'start', '#293632', 700);
-      out += planSvgText(boardX + .24, cabinetTop + .30, 'GENSET + PANEL kWh', .10, 'start', '#293632', 700);
-      out += planSvgText(boardX + .24, cabinetTop + .46, 'SEJAJAR · MENGHADAP GENSET', .08, 'start', '#33413e', 700);
-      out += '<path d="M' + (boardX + .20) + ' ' + (cabinetTop + .64) + 'h.42" fill="none" stroke="#a34135" stroke-width=".025" marker-end="url(#moveArrow)"/>';
-      // cable tray di lantai jalur servis menuju gland pada pagar
-      out += '<rect x="' + (wallFace + .16) + '" y="' + (ground - .14) + '" width="' + (bx - wallFace - .16) + '" height=".12" fill="none" stroke="#7d8a85" stroke-width=".022"/>';
-      var cablePath = 'M' + (boardX + .10) + ' ' + (ground - 1.18) + 'V' + (ground - .20) + 'H' + (bx + .70);
-      out += '<path d="' + cablePath + '" fill="none" stroke="#c34c40" stroke-width=".025"/>';
-      out += '<path d="' + cablePath + '" fill="none" stroke="#252a2b" stroke-width=".022" transform="translate(0 .055)"/>';
-      out += planSvgText(bx + .55, ground - .24, 'CABLE TRAY + KABEL', .085, 'start', '#5b6763', 700);
-    } else if (side === 'right') {
-      var aparAlong = .40;
-      out += '<rect x="' + (bx + aparAlong) + '" y="' + (ground - 1.43) + '" width=".10" height=".47" rx=".045" fill="#c94b3e" stroke="#742c26" stroke-width=".025"/>';
-      out += '<path d="M' + (bx + aparAlong + .05) + ' ' + (ground - 1.50) + 'v-.08h.08" fill="none" stroke="#303936" stroke-width=".025"/>';
-      out += planSvgText(bx + aparAlong + .05, ground - 1.56, 'APAR', .10, 'middle', '#a34135', 700);
-    }
-    // Curved heat-wrapped lead, flexible joint, and vertical exhaust stack below the roof.
-    var exAlong = geom.rearGap + t / 2;
-    var roofMidZ = -(.55 + geom.rearGap) - t / 2 + D / 2;
-    var roofAtStack = roofBase + .5 * Math.max(0, 1 - Math.abs(-.55 - roofMidZ) / (geom.roofD / 2));
-    var exY = Math.min(2.88, roofAtStack - .16, totalH - .16);
-    var capY = ground - exY, pipeTopY = ground - (exY - .105);
-    var stackX = bx + exAlong;
-    var elbowStartX = stackX + .42;
-    out += '<path d="M' + elbowStartX + ' ' + (ground - 1.27) + ' C' + (stackX + .29) + ' ' + (ground - 1.43) + ' ' + (stackX + .07) + ' ' + (ground - 1.56) + ' ' + stackX + ' ' + (ground - 1.80) + ' V' + (ground - 1.96) + ' V' + pipeTopY + '" fill="none" stroke="#655744" stroke-width=".065" stroke-linecap="round" stroke-linejoin="round"/>';
-    [1.82, 1.85, 1.88, 1.91, 1.94].forEach(function (yy) {
-      out += '<path d="M' + (stackX - .055) + ' ' + (ground - yy) + 'H' + (stackX + .055) + '" stroke="#aeb5b7" stroke-width=".018"/>';
-    });
-    out += '<path d="M' + (stackX - .12) + ' ' + (capY + .035) + 'H' + (stackX + .12) + ' M' + (stackX - .10) + ' ' + capY + 'H' + (stackX + .10) + '" stroke="#42494b" stroke-width=".045"/>';
-    out += '<path d="M' + (stackX - .06) + ' ' + (capY + .035) + 'V' + (pipeTopY - .01) + ' M' + (stackX + .06) + ' ' + (capY + .035) + 'V' + (pipeTopY - .01) + '" stroke="#737b7d" stroke-width=".018"/>';
-    // Mirror the nearest non-louvre purlin and hanger pair shown in the 3D model.
-    var halfRoofRun = geom.roofD / 2, roofRise = totalH - roofBase;
-    var slopeLength = Math.sqrt(halfRoofRun * halfRoofRun + roofRise * roofRise);
-    var slotCenter = slopeLength * .52, slotS0 = slotCenter - .15, slotS1 = slotCenter + .15;
-    var rearOuterZ = -(.55 + geom.rearGap) - t / 2;
-    var purlins = [.25, .6, .9].filter(function (f) {
-      var ss = halfRoofRun * f;
-      return !(ss > slotS0 - .04 && ss < slotS1 + .04);
-    }).map(function (f) {
-      var ss = halfRoofRun * f;
-      var z = roofMidZ - ss;
-      return { f: f, x: bx + z - rearOuterZ, y: roofBase + roofRise * (1 - f) - .06, z: z };
-    });
-    purlins.sort(function (a, b) { return Math.abs(a.z + .55) - Math.abs(b.z + .55); });
-    if (purlins.length) {
-      var support = purlins[0];
-      var braceY = Math.min(exY - .225, 2.38);
-      var braceEndY = support.y - .045;
-      out += '<path d="M' + (stackX - .035) + ' ' + (ground - braceY) + 'L' + support.x + ' ' + (ground - braceEndY) + ' M' + (stackX + .035) + ' ' + (ground - braceY) + 'L' + support.x + ' ' + (ground - braceEndY) + '" fill="none" stroke="#889397" stroke-width=".025"/>';
-      out += '<path d="M' + (support.x - .035) + ' ' + (ground - support.y + .025) + 'H' + (support.x + .035) + '" stroke="#535c5e" stroke-width=".035"/>';
-    }
-    out += planSvgText(stackX + .18, capY + .18, 'KNALPOT DI BAWAH ATAP', .10, 'start', '#a34135', 700, ' paint-order="stroke" stroke="#f8f7ef" stroke-width=".045"');
-    // pondasi 15 cm hanya di bawah genset, di dalam rumah wiremesh
-    var padZ0 = bx + geom.rearGap + .20 - .10, padW2 = geom.genPadLen;
-    var padTopY = ground - geom.genLift;
-    out += '<rect x="' + padZ0 + '" y="' + padTopY + '" width="' + padW2 + '" height="' + geom.genLift + '" fill="url(#planConcrete)" stroke="#4b5450" stroke-width=".035"/>';
-    out += planSvgText(padZ0 + padW2 / 2, padTopY - .06, 'PONDASI GENSET 15 cm', .085, 'middle', '#33413e', 700);
-    out += '<rect x="' + (bx - .06) + '" y="' + (ground - .12) + '" width="' + (bw + .12) + '" height=".12" fill="#929895" stroke="#4b5451" stroke-width=".025"/>';
-    out += planDimH(bx, bx + bw, ground + .36, ground, planCM(outerD));
-    out += planDimV(ground - totalH, ground, bx + bw + .48, bx + bw, 'PUNCAK ' + planCM(totalH));
-    var sideCaption = side === 'left' ? 'KIRI · PANEL + JALUR KABEL' : 'KANAN · SISI SEBERANG / AKSES SERVIS';
-    out += planSvgText(bx + bw / 2, ground + .64, sideCaption, .14, 'middle', '#34413e', 700);
-    out += '</g>';
-    return out;
-  }
-  function drawRoofView(frame, geom) {
-    var roofW = geom.roofW, roofD = geom.roofD;
-    var side = .65, top = .48, worldW = roofW + side * 2, worldH = roofD + top + .72;
-    var X = side, Y = top, mid = Y + roofD / 2, out = planFit(frame, worldW, worldH);
-    out += '<rect x="' + X + '" y="' + Y + '" width="' + roofW + '" height="' + roofD + '" fill="' + 'url(#planRoof)' + '" stroke="#34413f" stroke-width=".045"/>';
-    out += '<rect x="' + X + '" y="' + Y + '" width="' + roofW + '" height="' + (roofD / 2) + '" fill="url(#planRoof)" stroke="#67736f" stroke-width=".025"/>';
-    out += '<rect x="' + X + '" y="' + mid + '" width="' + roofW + '" height="' + (roofD / 2) + '" fill="url(#planRoof)" stroke="#67736f" stroke-width=".025"/>';
-    out += '<path d="M' + X + ' ' + mid + 'H' + (X + roofW) + '" stroke="#303b38" stroke-width=".06"/>';
-    var halfRun = roofD / 2, slotCenter = halfRun * .52, slotH = .30;
-    var slotW = Math.min(2.9, roofW - .9), slotX = X + Math.max(.35, (roofW - slotW) / 2);
-    [mid - slotCenter, mid + slotCenter].forEach(function (slotY) {
-      out += '<rect x="' + slotX + '" y="' + (slotY - slotH / 2) + '" width="' + slotW + '" height="' + slotH + '" fill="#333e3c" stroke="#202a28" stroke-width=".035"/>';
-      for (var l = 1; l < 6; l++) {
-        var ly = slotY - slotH / 2 + slotH * l / 6;
-        out += '<path d="M' + (slotX + .04) + ' ' + ly + 'H' + (slotX + slotW - .04) + '" stroke="#c0c9c4" stroke-width=".035"/>';
+      if (mesh) {
+        var leaf = g.gateW, mid = oW / 2;
+        var lx0 = mid - leaf, lx1 = mid + leaf;   // kedua daun bertemu di as
+        out += '<rect x="' + lx0 + '" y="' + top + '" width="' + (leaf * 2) + '" height="' + doorH + '" fill="' + PL.paperLt + '" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+        /* dua daun: rangka + jaring, bertemu di as dan mencapai muka dalam tiang */
+        out += '<rect data-gate-elevation="left" x="' + lx0 + '" y="' + top + '" width="' + leaf + '" height="' + doorH + '" fill="url(#plMeshSoft)" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+        out += '<rect data-gate-elevation="right" x="' + (lx1 - leaf) + '" y="' + top + '" width="' + leaf + '" height="' + doorH + '" fill="url(#plMeshSoft)" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+        [lx0, lx0 + leaf - 0.05, lx1 - leaf, lx1 - 0.05].forEach(function (px) {
+          out += '<rect x="' + px + '" y="' + top + '" width="0.05" height="' + doorH + '" fill="#6f7d78" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+        });
+        [top + 0.05, top + doorH * 0.5, -0.10].forEach(function (py) {
+          out += '<rect x="' + lx0 + '" y="' + py + '" width="' + W + '" height="0.05" fill="#6f7d78" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+        });
+        /* gagang simetris di stile pertemuan */
+        out += '<rect x="' + (mid - 0.055) + '" y="' + (-doorH * 0.56) + '" width="0.035" height="0.34" rx="0.015" fill="#eef0ec" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+        out += '<rect x="' + (mid + 0.02) + '" y="' + (-doorH * 0.56) + '" width="0.035" height="0.34" rx="0.015" fill="#eef0ec" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+        /* rel atas + bawah */
+        out += '<path d="M0 ' + (top - 0.03) + 'H' + oW + 'M0 ' + (-0.04) + 'H' + oW + '" stroke="' + PL.steelDeep + '" stroke-width="' + (sw * 1.5) + '"/>';
+        if (detail) out += plT(oW / 2, top + 0.34, '2 DAUN SAMA · ' + fmt2(leaf) + ' M / DAUN · PERTEMUAN DI AS', fsS, 'middle', PL.ink, 700, 0, true);
       }
-      out += planSvgText(X + roofW / 2, slotY + slotH / 2 + .14, 'LOUVRE ' + planCM(slotW) + ' × 30 cm', .095, 'middle', '#43504d', 700, ' paint-order="stroke" stroke="#f4f2e8" stroke-width=".04"');
-    });
-    out += '<rect x="' + (X + .08) + '" y="' + (mid - .11) + '" width=".22" height=".22" fill="#d8dfda" stroke="#37423f" stroke-width=".02"/>';
-    out += '<rect x="' + (X + roofW - .30) + '" y="' + (mid - .11) + '" width=".22" height=".22" fill="#d8dfda" stroke="#37423f" stroke-width=".02"/>';
-    out += planSvgText(X + roofW / 2, Y + .20, 'BIDANG SPANDEK A', .13, 'middle', '#35413e', 700);
-    out += planSvgText(X + roofW / 2, Y + roofD - .11, 'BIDANG SPANDEK B', .13, 'middle', '#35413e', 700);
-    out += planSvgText(X + roofW / 2, mid + .24, 'BUBUNGAN + GABLE TERBUKA ×2', .12, 'middle', '#35413e', 700);
-    out += planSvgText(X + roofW / 2, Y + roofD + .48, '2 BUKAAN LOUVRE · 1 PADA SETIAP BIDANG', .14, 'middle', '#a34135', 700);
-    out += planDimH(X, X + roofW, Y - .19, Y, planCM(roofW));
-    out += planDimV(Y, Y + roofD, X + roofW + .27, X + roofW, planCM(roofD));
+    } else {
+      /* belakang: bidang rata + dua garis panel + kisi louvre kecil di puncak */
+      [0.26, 0.52, 0.78].forEach(function (f) {
+        out += '<path d="M' + t + ' ' + (-wallH * f) + 'H' + (oW - t) + '" stroke="' + PL.ink2 + '" stroke-width="' + swT + '" opacity=".35"/>';
+      });
+      [-0.85, 0.85].forEach(function (dx) {
+        out += '<rect x="' + (oW / 2 + dx - 0.32) + '" y="' + (-wallH + 0.18) + '" width="0.64" height="0.22" fill="url(#plSteel)" stroke="' + PL.ink2 + '" stroke-width="' + swT + '"/>';
+      });
+      if (detail) out += plT(oW / 2, -wallH * 0.42, 'BIDANG WIREMESH · MODUL BELAKANG', fsS, 'middle', PL.ink2, 700, 0, true);
+    }
+
+    /* balok ring 10 cm: menutup jarak puncak dinding ke bidang atap */
+    out += '<rect x="0" y="' + (-roofBase) + '" width="' + oW + '" height="' + (roofBase - wallH) + '" fill="' + '#7c8884' + '" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    if (detail) out += plT(oW - 0.05, -(wallH + (roofBase - wallH) / 2), 'RING 10', fsT, 'end', '#f4f4ea', 700, 0, false);
+    /* atap */
+    if (mesh) {
+      var rfX = (oW - g.roofW) / 2, eaveY = -roofBase;
+      /* dua bidang spandek: pita tebal dari lis ke bubungan */
+      out += '<path d="M' + rfX + ' ' + eaveY + 'L' + (oW / 2) + ' ' + (-totalH) + 'L' + (rfX + g.roofW) + ' ' + eaveY +
+        '" fill="none" stroke="' + PL.ink + '" stroke-width="' + (sw * 4.2) + '" stroke-linejoin="miter"/>';
+      out += '<path d="M' + rfX + ' ' + eaveY + 'L' + (oW / 2) + ' ' + (-totalH) + 'L' + (rfX + g.roofW) + ' ' + eaveY +
+        '" fill="none" stroke="#cfd5d0" stroke-width="' + (sw * 2.6) + '" stroke-linejoin="miter"/>';
+      /* rangka gable terbuka: batang ikat, batang tengah, dua diagonal */
+      out += '<path d="M' + rfX + ' ' + eaveY + 'H' + (rfX + g.roofW) + 'M' + (oW / 2) + ' ' + eaveY + 'V' + (-totalH + 0.06) +
+        'M' + rfX + ' ' + eaveY + 'L' + (oW / 2) + ' ' + (-totalH + 0.13) + 'M' + (rfX + g.roofW) + ' ' + eaveY + 'L' + (oW / 2) + ' ' + (-totalH + 0.13) +
+        '" stroke="' + PL.steel + '" stroke-width="' + (sw * 1.1) + '"/>';
+      /* nok */
+      out += '<rect x="' + (oW / 2 - 0.14) + '" y="' + (-totalH - 0.07) + '" width="0.28" height="0.09" fill="#8d9a96" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+      if (detail) {
+        out += plT(oW / 2, -totalH - 0.26, 'ATAP SPANDEK 2 BIDANG · ±19° · LOUVRE DI TIAP BIDANG', fsT, 'middle', PL.mut, 700, 0, false);
+        out += plT(rfX + 0.04, -roofBase - 0.34, 'UJUNG GABLE TERBUKA', fsT, 'start', PL.steel, 700, 0, false);
+      }
+    }
+
+    /* rantai dimensi: modul → bersih → modul, lalu total */
+    var d1 = 0.42, d2 = 0.66;
+    out += plDim({ x1: 0, y1: 0, x2: t, y2: 0, off: d1, label: plNum(t), size: fsT, w: swT, color: PL.mut, tick: 5 / s, ext: 0.05 / s, flip: true });
+    out += plDim({ x1: t, y1: 0, x2: t + W, y2: 0, off: d1, label: plNum(W), size: fsD, w: swT, color: PL.ink, tick: 6 / s, flip: true });
+    out += plDim({ x1: t + W, y1: 0, x2: oW, y2: 0, off: d1, label: plNum(t), size: fsT, w: swT, color: PL.mut, tick: 5 / s, ext: 0.05 / s, flip: true });
+    out += plDim({ x1: 0, y1: 0, x2: oW, y2: 0, off: d2, label: plNum(oW), size: fsD, w: swT, color: PL.ink, tick: 6 / s, flip: true });
+    if (!detail) out += plPx(0, 0, '', 1, PL.ink);
+    /* vertikal: bukaan pintu → ring/dinding → puncak */
+    var v1 = oW + 0.30, v2 = oW + 0.62;
+    out += plDim({ x1: v1, y1: 0, x2: v1, y2: top, off: 0, label: plNum(doorH), size: fsT, w: swT, color: PL.ink2, tick: 5 / s, ext: 0.05 / s });
+    out += plDim({ x1: v1, y1: 0, x2: v1, y2: -wallH, off: 0, label: plNum(wallH), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    out += plDim({ x1: v2, y1: 0, x2: v2, y2: -totalH, off: 0, label: 'PUNCAK ' + plNum(totalH), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    /* penanda elevasi di kiri gambar */
+    var lvX = xMin + (detail ? 0.52 : 0.40);
+    out += plLevel(lvX, 0, '±0,00', 'left', detail ? 0.08 : 0.065);
+    if (detail) out += plLevel(lvX, -wallH, '+' + fmt(wallH).replace('.', ','), 'left', 0.08);
+    out += plLevel(lvX, -totalH, '+' + fmt(totalH).replace('.', ','), 'left', detail ? 0.08 : 0.065);
+    if (detail) {
+      out += plT(xMin + 0.12, 0.62, 'KIRI', fsT, 'start', PL.slate, 700, 0, false);
+      out += plT(xMax - 0.12, 0.62, 'KANAN', fsT, 'end', PL.slate, 700, 0, false);
+      out += plT(oW / 2, yMax - 0.10, which === 'front' ? 'SISI DEPAN · AKSES PINTU' : 'SISI BELAKANG', fsS, 'middle', PL.mut, 700, 0, false);
+    }
     out += '</g>';
     return out;
   }
-  function drawSingleView(key, geom, box) {
-    var frame = { x: box.x + 18, y: box.y + 38, w: box.w - 36, h: box.h - 50 };
-    if (key === 'plan') return planPanel(box.x, box.y, box.w, box.h, 'PINTU TERBUKA · REL SEBATAS MODUL', drawPlanView(frame, geom));
-    if (key === 'front') return planPanel(box.x, box.y, box.w, box.h, 'DEPAN · DUA DAUN, GAGANG DI TENGAH', drawLongElevation(frame, geom, 'front'));
-    if (key === 'rear') return planPanel(box.x, box.y, box.w, box.h, 'BELAKANG · WIREMESH + TIANG SUDUT', drawLongElevation(frame, geom, 'rear'));
-    if (key === 'left') return planPanel(box.x, box.y, box.w, box.h, 'SISI PANEL · KABEL TERHUBUNG KE GENSET', drawSideElevation(frame, geom, 'left'));
-    if (key === 'right') return planPanel(box.x, box.y, box.w, box.h, 'SISI KANAN · KNALPOT DI BAWAH ATAP', drawSideElevation(frame, geom, 'right'));
-    return planPanel(box.x, box.y, box.w, box.h, 'ATAP · LOUVRE DI KEDUA BIDANG SPANDEK', drawRoofView(frame, geom));
+
+  /* ============================ SISI KIRI / KANAN ============================ */
+  function drawSideElev(rect, g, side, detail) {
+    var mesh = true, t = g.t, D = g.D, oD = g.outerD;
+    var wallH = g.wallH, roofBase = g.roofBase, totalH = g.totalH;
+    var isPanel = side === 'left';
+    var backOH = 0.35, frontOH = 0.35;
+    var gap = g.panelWallGap || 0, pw = 0.15;
+    /* depan di KANAN: x = 0 di belakang modul, bertambah ke depan */
+    var xMin = -(isPanel ? (gap + pw + 0.60) : 0.55) - 0.10, xMax = oD + frontOH + 0.62;
+    var yMin = -(totalH + 0.54), yMax = detail ? 1.02 : 0.96;
+    var F = plFit(rect, xMax - xMin, yMax - yMin, xMin, yMin), s = F.s, out = F.open;
+    var fs = 12 / s, fsD = 10 / s, fsS = 8.6 / s, fsT = 7.6 / s, sw = 1.15 / s, swT = 0.8 / s, swF = 2.0 / s;
+    var bx = 0, roofStart = -backOH, roofEnd = oD + frontOH;
+    var eaveY = -roofBase, peakY = -totalH, ground = 0;
+
+    out += plGround(xMin + 0.06, xMax - 0.06, ground, { h: 0.22, w: swF });
+    out += '<rect x="' + (bx - 0.05) + '" y="-0.10" width="' + (oD + 0.10) + '" height="0.10" fill="#b9bdb5" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    /* dinding samping */
+    out += '<rect x="' + bx + '" y="' + (-wallH) + '" width="' + oD + '" height="' + wallH + '" fill="url(#plMeshWall)" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    [bx, bx + oD - 0.06].forEach(function (px) {
+      out += '<rect x="' + px + '" y="' + (-wallH) + '" width="0.06" height="' + wallH + '" fill="#5e6c69" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    });
+    out += '<rect x="' + bx + '" y="' + (-wallH) + '" width="' + oD + '" height="0.10" fill="#64716d" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+
+    /* rangka gable + bukaan louvre digambar dulu; bidang atap menyusul setelah
+       cerobong supaya ujung pipa tepat berhenti di bawah spandek */
+    var roofStr = '';
+    if (mesh) {
+      roofStr += '<path d="M' + (bx + 0.03) + ' ' + (eaveY - 0.08) + 'H' + (bx + oD - 0.03) + 'M' + (bx + oD / 2) + ' ' + eaveY + 'V' + (peakY + 0.04) +
+        'M' + (bx + 0.03) + ' ' + (eaveY - 0.08) + 'L' + (bx + oD / 2) + ' ' + (peakY + 0.10) + 'M' + (bx + oD - 0.03) + ' ' + (eaveY - 0.08) + 'L' + (bx + oD / 2) + ' ' + (peakY + 0.10) +
+        '" stroke="' + PL.steel + '" stroke-width="' + (sw * 0.9) + '" opacity=".9"/>';
+      if (detail) roofStr += plT(bx + oD / 2, eaveY - 0.26, 'RANGKA GABLE TERBUKA', fsT, 'middle', PL.steelDeep, 700, 0, true);
+      roofStr += '<path d="M' + (bx + oD * 0.28) + ' ' + (eaveY - 0.34) + 'l0.30 -0.11M' + (bx + oD * 0.32) + ' ' + (eaveY - 0.26) + 'l0.30 -0.11" stroke="' + PL.rust + '" stroke-width="' + (sw * 1.2) + '"/>';
+      if (detail) roofStr += plT(bx + oD * 0.26, eaveY - 0.56, 'BUKAAN LOUVRE', fsT, 'start', PL.rust, 700, 0, true);
+      roofStr += '<path d="M' + roofStart + ' ' + eaveY + 'L' + (bx + oD / 2) + ' ' + peakY + 'L' + roofEnd + ' ' + eaveY + '" fill="none" stroke="' + PL.ink + '" stroke-width="' + (sw * 4.2) + '" stroke-linejoin="miter"/>';
+      roofStr += '<path d="M' + roofStart + ' ' + eaveY + 'L' + (bx + oD / 2) + ' ' + peakY + 'L' + roofEnd + ' ' + eaveY + '" fill="none" stroke="#cfd5d0" stroke-width="' + (sw * 2.6) + '" stroke-linejoin="miter"/>';
+      roofStr += '<rect x="' + (bx + oD / 2 - 0.14) + '" y="' + (peakY - 0.07) + '" width="0.28" height="0.09" fill="#8d9a96" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    }
+
+    /* --- sisi kiri: dinding panel + kabinet + kWh + kabel --- */
+    if (isPanel) {
+      var face = -gap, wx = face - pw;
+      out += '<rect x="' + wx + '" y="' + (-g.panelWallH) + '" width="' + pw + '" height="' + g.panelWallH + '" fill="url(#plPanelWall)" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+      out += '<rect x="' + (wx - 0.03) + '" y="-0.26" width="' + (pw + 0.06) + '" height="0.26" fill="#b9bdb5" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+      /* pelat dudukan + kabinet kontrol + meter kWh */
+      out += '<rect x="' + face + '" y="-2.42" width="0.03" height="1.84" fill="#dde1e0" stroke="' + PL.ink2 + '" stroke-width="' + swT + '"/>';
+      out += '<rect data-panel-profile="distribution-kwh" x="' + (face + 0.03) + '" y="-2.28" width="0.16" height="1.10" rx="0.02" fill="#cdd3d3" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+      /* layar + dua baris lampu indikator */
+      out += '<rect x="' + (face + 0.15) + '" y="-1.60" width="0.02" height="0.34" fill="#e9ece8" stroke="' + PL.ink2 + '" stroke-width="' + swT + '"/>';
+      [0, 1].forEach(function (row) {
+        [-0.10, 0, 0.10].forEach(function (dy, k) {
+          out += '<circle cx="' + (face + 0.20) + '" cy="' + (-1.96 + row * 0.14 + dy * 0.35) + '" r="0.017" fill="' + ['#35ad62', '#3978c2', '#ce4038'][k] + '"/>';
+        });
+      });
+      out += '<rect x="' + (face + 0.03) + '" y="-1.10" width="0.15" height="0.36" rx="0.02" fill="#c6cccb" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+      out += plT(face + 0.21, -0.92, 'kWh', fsT, 'start', PL.ink2, 700, 0, false);
+      if (detail) {
+        out += plT(face + 0.21, -2.34, 'PANEL KONTROL', fsT, 'start', PL.ink2, 700, 0, false);
+        out += plT(wx - 0.13, -g.panelWallH / 2, 'DINDING PANEL ' + plNum(pw) + ' · TINGGI ' + plNum(g.panelWallH), fsT, 'middle', PL.ink2, 700, -90, true);
+      }
+      /* cable tray + kabel menuju gland pagar */
+      out += '<rect x="' + face + '" y="-0.14" width="' + (0 - face) + '" height="0.12" fill="none" stroke="' + PL.steelDeep + '" stroke-width="' + swT + '"/>';
+      out += '<path d="M' + (face + 0.07) + ' -0.72V-0.20H' + (bx + 0.70) + '" fill="none" stroke="' + PL.rust + '" stroke-width="' + (sw * 1.1) + '"/>';
+      out += '<path d="M' + (face + 0.11) + ' -0.72V-0.26H' + (bx + 0.70) + '" fill="none" stroke="' + PL.ink + '" stroke-width="' + (sw * 0.8) + '"/>';
+      out += '<circle cx="' + (bx + 0.70) + '" cy="-0.20" r="0.05" fill="#f5f4eb" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+      if (detail) {
+        out += plT(bx + 0.30, -0.34, 'CABLE TRAY + KABEL', fsT, 'start', PL.steelDeep, 700, 0, true);
+        out += plT(bx + 0.70, -0.05, 'GLAND', fsT, 'middle', PL.ink2, 700, 0, true);
+      }
+      out += plDim({ x1: face, y1: 0, x2: bx, y2: 0, off: 0.42, label: fmt(gap).replace('.', ',') + ' m', size: fsD, w: swT, color: PL.rust, tick: 6 / s, flip: true });
+    }
+
+    /* --- sisi kanan V2: cerobong + APAR --- */
+    if (side === 'right' && mesh) {
+      var stX = bx + g.rearGap + 0.45;
+      /* tinggi bidang atap pada posisi cerobong (bubungan di tengah) */
+      var roofAtX = roofBase + (totalH - roofBase) * Math.min(1, Math.max(0, (stX + backOH) / (oD / 2 + backOH)));
+      var topY = -(roofAtX - 0.18);
+      out += '<path d="M' + (stX + 0.42) + ' -1.27C' + (stX + 0.28) + ' -1.44 ' + (stX + 0.10) + ' -1.58 ' + stX + ' -1.80V' + topY + '" fill="none" stroke="#6c5c46" stroke-width="' + (sw * 3.4) + '" stroke-linecap="round"/>';
+      out += '<path d="M' + (stX - 0.12) + ' ' + (topY - 0.04) + 'H' + (stX + 0.12) + 'M' + (stX - 0.06) + ' ' + (topY - 0.10) + 'H' + (stX + 0.06) + '" stroke="' + PL.ink2 + '" stroke-width="' + (sw * 2.2) + '"/>';
+      [1.86, 1.89, 1.92].forEach(function (yy) {
+        out += '<path d="M' + (stX - 0.06) + ' ' + (topY + yy) + 'H' + (stX + 0.06) + '" stroke="#aeb5b7" stroke-width="' + swT + '"/>';
+      });
+      if (detail) {
+        out += plT(stX + 0.18, topY + 0.24, 'CEROBONG DI BAWAH SPANDEK', fsT, 'start', PL.ink2, 700, 0, true);
+        var apar = bx + 0.55;
+        out += '<rect x="' + apar + '" y="-1.42" width="0.11" height="0.46" rx="0.04" fill="#c94b3e" stroke="#742c26" stroke-width="' + swT + '"/>';
+        out += '<path d="M' + (apar + 0.055) + ' -1.46v-.07h.07" fill="none" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+        out += plT(apar + 0.14, -1.19, 'APAR', fsT, 'start', PL.rust, 700, 0, true);
+      }
+    }
+
+    out += roofStr;
+    /* dimensi: panjang + overhang + tinggi */
+    out += plDim({ x1: bx, y1: 0.62, x2: bx + oD, y2: 0.62, off: 0, label: plNum(oD), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    out += plDim({ x1: roofStart, y1: 0.62, x2: bx, y2: 0.62, off: 0, label: plNum(bx - roofStart), size: fsT, w: swT, color: PL.mut, tick: 5 / s });
+    out += plDim({ x1: bx + oD, y1: 0.62, x2: roofEnd, y2: 0.62, off: 0, label: plNum(roofEnd - bx - oD), size: fsT, w: swT, color: PL.mut, tick: 5 / s });
+    out += plDim({ x1: bx, y1: 0, x2: bx, y2: -wallH, off: -0.28, label: plNum(wallH), size: fsD, w: swT, color: PL.ink, tick: 6 / s, flip: true });
+    out += plDim({ x1: bx + oD + 0.50, y1: 0, x2: bx + oD + 0.50, y2: -totalH, off: 0, label: 'PUNCAK ' + plNum(totalH), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    var lvX = isPanel ? (xMin + 0.46) : (roofStart + 0.30);
+    out += plLevel(lvX, 0, '±0,00', 'left', 0.075);
+    out += plLevel(lvX, -totalH, '+' + fmt(totalH).replace('.', ','), 'left', 0.075);
+    if (detail) out += plT((bx + oD / 2), 0.92, side === 'left' ? 'SISI KIRI · DEPAN DI KANAN' : 'SISI KANAN · DEPAN DI KANAN', fsS, 'middle', PL.mut, 700, 0, false);
+    out += '</g>';
+    return out;
   }
+
+  /* ============================ RENCANA ATAP ============================ */
+  function drawRoof(rect, g, detail) {
+    var rW = g.roofW, rD = g.roofD;
+    var pad = detail ? 0.95 : 0.70;
+    var F = plFit(rect, rW + pad * 2, rD + pad * 2, -pad, -pad), s = F.s, out = F.open;
+    var fs = 12 / s, fsD = 10 / s, fsS = 8.6 / s, fsT = 7.6 / s, sw = 1.15 / s, swT = 0.8 / s;
+    var midY = rD / 2;
+
+    out += '<rect x="' + (-pad + 0.04) + '" y="' + (-pad + 0.04) + '" width="' + (rW + pad * 2 - 0.08) + '" height="' + (rD + pad * 2 - 0.08) + '" fill="' + PL.paperLt + '"/>';
+    out += '<rect x="0" y="0" width="' + rW + '" height="' + rD + '" fill="url(#plRoof)" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    /* bubungan */
+    out += '<path d="M0 ' + midY + 'H' + rW + '" stroke="' + PL.ink + '" stroke-width="' + (sw * 2) + '"/>';
+    out += '<path d="M0 ' + (midY - 0.10) + 'H' + rW + 'M0 ' + (midY + 0.10) + 'H' + rW + '" stroke="' + PL.soft + '" stroke-width="' + swT + '"/>';
+    /* dua bukaan louvre */
+    var slotW = Math.min(rW * 0.66, rW - 0.6), slotH = 0.30;
+    [rD * 0.24, rD * 0.76].forEach(function (cy) {
+      out += '<rect x="' + ((rW - slotW) / 2) + '" y="' + (cy - slotH / 2) + '" width="' + slotW + '" height="' + slotH + '" fill="url(#plSteel)" stroke="' + PL.rust + '" stroke-width="' + (sw * 1.2) + '"/>';
+      var n = 9;
+      for (var i = 1; i < n; i++) {
+        var lx = (rW - slotW) / 2 + slotW * i / n;
+        out += '<path d="M' + lx + ' ' + (cy - slotH / 2) + 'V' + (cy + slotH / 2) + '" stroke="' + PL.rust + '" stroke-width="' + swT + '"/>';
+      }
+    });
+    if (detail) {
+      out += plT(rW / 2, rD * 0.24, 'BUKAAN LOUVRE', fsT, 'middle', PL.rust, 700, 0, true);
+      out += plT(rW / 2, rD * 0.76, 'BUKAAN LOUVRE', fsT, 'middle', PL.rust, 700, 0, true);
+      out += plT(rW / 2, midY - 0.26, 'BUBUNGAN', fsS, 'middle', PL.ink, 700, 0, true);
+    }
+    /* ujung gable terbuka */
+    [0, rW].forEach(function (gx) {
+      out += '<path d="M' + gx + ' 0V' + rD + '" stroke="' + PL.steel + '" stroke-width="' + (sw * 2.2) + '" stroke-dasharray="' + (8 / s) + ' ' + (5 / s) + '"/>';
+    });
+    /* jejak modul di bawah atap (overhang terlihat) */
+    var modX = (rW - g.outerW) / 2, modY = (rD - g.outerD) / 2;
+    out += '<rect x="' + modX + '" y="' + modY + '" width="' + g.outerW + '" height="' + g.outerD + '" fill="none" stroke="' + PL.ink2 +
+      '" stroke-width="' + swT + '" stroke-dasharray="' + (7 / s) + ' ' + (5 / s) + '" opacity=".75"/>';
+    out += plT(modX + 0.10, modY + 0.22, 'MODUL ' + plNum(g.outerW) + ' × ' + plNum(g.outerD), fsT, 'start', PL.ink2, 700, 0, true);
+    if (detail) out += plT(rW / 2, -0.26, 'UJUNG GABLE TERBUKA (2×)', fsT, 'middle', PL.steel, 700, 0, false);
+    /* panah kemiringan + label bidang */
+    out += plArrow(rW / 2 + 0.90, midY - 0.08, rW / 2 + 0.90, midY - rD * 0.30, PL.rust, swT * 1.5, 0.15);
+    out += plArrow(rW / 2 - 0.90, midY + 0.08, rW / 2 - 0.90, midY + rD * 0.30, PL.rust, swT * 1.5, 0.15);
+    out += plT(rW / 2, midY + 0.30, 'KEMIRINGAN ±19° · AIR KE DUA SISI', fsT, 'middle', PL.rust, 700, 0, true);
+    out += plT(-pad + 0.26, midY * 0.55, 'BIDANG A', fsT, 'middle', PL.ink, 700, -90, false);
+    out += plT(-pad + 0.26, midY + midY * 0.55, 'BIDANG B', fsT, 'middle', PL.ink, 700, -90, false);
+    out += plT(rW + pad - 0.26, midY * 0.55, 'GABLE', fsT, 'middle', PL.steel, 700, 90, false);
+    out += plT(rW + pad - 0.26, midY + midY * 0.55, 'GABLE', fsT, 'middle', PL.steel, 700, 90, false);
+    out += plDim({ x1: 0, y1: 0, x2: rW, y2: 0, off: -0.34, label: plNum(rW), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    out += plDim({ x1: rW, y1: 0, x2: rW, y2: rD, off: -0.34, label: plNum(rD), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    out += '</g>';
+    return out;
+  }
+
+  /* ============================ LEMBAR + KARTU ============================ */
+  function plWeldMark(x, y, size, color, rot) {
+    var h = (size || 9) / 2, c = color || '#202a27';
+    var g = '<path d="M' + (x - h) + ' ' + (y - h) + 'l' + (h * 2) + ' ' + (h * 2) + 'M' + (x + h) + ' ' + (y - h) + 'l' + (-h * 2) + ' ' + (h * 2) + '" stroke="' + c + '" stroke-width="1"/>';
+    return rot ? '<g transform="rotate(' + rot + ' ' + x + ' ' + y + ')">' + g + '</g>' : g;
+  }
+  /* kop gambar: judul proyek + info versi + segitiga sudut */
+  function plKop(w, g, versionText) {
+    var x0 = 40, x1 = w - 40, s = '';
+    s += plPx(x0, 52, 'RUMAH GENSET · GAMBAR KONSEP', 22, 'start', '#f2f5ee', 600, 'sg', '.01em');
+    s += plPx(x0, 73, (versionText || '').toUpperCase() + '  ·  RUANG BERSIH ' + fmt(g.W) + ' × ' + fmt(g.D) + ' m  ·  PUNCAK ' + fmt(g.totalH) + ' m', 9.5, 'start', '#8fa3a3', 600, 'mono', '.14em');
+    s += plPx(x1, 50, 'DENAH 2D', 10, 'end', '#c6f75c', 700, 'mono', '.18em');
+    s += plPx(x1, 66, 'SKALA MENYESUAIKAN LAYAR · SATUAN CM', 8.5, 'end', '#7f9090', 600, 'mono', '.10em');
+    s += '<path d="M' + x0 + ' 84H' + x1 + '" stroke="rgba(255,255,255,.09)"/>';
+    return s;
+  }
+  /* legenda material di kaki lembar */
+  function plStamp(w, g, y) {
+    var x0 = 40, x1 = w - 40, s = '';
+    s += '<path d="M' + x0 + ' ' + (y - 14) + 'H' + x1 + '" stroke="rgba(255,255,255,.09)"/>';
+    var items = [['WIREMESH', 'jaring 10×10 cm · 4 tiang hollow 60×60'], ['SPANDEK', '2 bidang · louvre di tiap bidang · gable terbuka'],
+      ['PINTU GESER', '2 daun ' + fmt2(g.gateW) + ' m · 1 rel'], ['PANEL', 'dinding tersendiri ' + fmt(g.panelWallGap) + ' m + kWh']];
+    var step = (x1 - x0) / items.length;
+    items.forEach(function (it, i) {
+      var x = x0 + step * i;
+      s += plPx(x, y + 2, it[0], 8.5, 'start', '#c6f75c', 700, 'mono', '.12em');
+      s += plPx(x, y + 16, it[1], 8.5, 'start', '#8fa3a3', 500, 'mono', '.02em');
+    });
+    s += plPx(x1, y + 2, 'BUKAN GAMBAR KERJA', 8.5, 'end', '#7f9090', 700, 'mono', '.12em');
+    s += plPx(x1, y + 16, 'DITURUNKAN DARI KONTROL MODEL', 8.5, 'end', '#7f9090', 500, 'mono', '.02em');
+    return s;
+  }
+  function renderSheet(g, caption, versionText) {
+    var W = SHEET_W, H = SHEET_H;
+    var html = '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#0d1517"/>' + plKop(W, g, versionText);
+    html += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="url(#plSheetGrid)"/>';
+    var cw = 374, gapX = 8;
+    var cards = [
+      { idx: '01', title: 'DENAH ATAS', sub: plNum(g.outerW) + ' × ' + plNum(g.outerD) + ' CM', x: 40, y: 92, w: 836, h: 556, fn: drawPlan },
+      { idx: '02', title: 'TAMPAK DEPAN', sub: 'PUNCAK ' + plNum(g.totalH) + ' CM', x: 884, y: 92, w: 676, h: 556, fn: drawFacade, arg: 'front' },
+      { idx: '03', title: 'RENCANA ATAP', sub: plNum(g.roofW) + ' × ' + plNum(g.roofD) + ' CM', x: 40, y: 656, w: cw, h: 450, fn: drawRoof },
+      { idx: '04', title: 'TAMPAK BELAKANG', sub: 'RING ' + plNum(g.wallH) + ' CM', x: 40 + (cw + gapX), y: 656, w: cw, h: 450, fn: drawFacade, arg: 'rear' },
+      { idx: '05', title: 'SISI KIRI · PANEL', sub: 'JARAK ' + fmt(g.panelWallGap) + ' M', x: 40 + (cw + gapX) * 2, y: 656, w: cw, h: 450, fn: drawSideElev, arg: 'left' },
+      { idx: '06', title: 'SISI KANAN', sub: 'CEROBONG + APAR', x: 40 + (cw + gapX) * 3, y: 656, w: cw, h: 450, fn: drawSideElev, arg: 'right' }
+    ];
+    /* baris bawah kop: legenda */
+    cards.forEach(function (c) {
+      var body;
+      if (c.fn === drawPlan) body = drawPlan(plBody(c), g, false);
+      else if (c.fn === drawRoof) body = drawRoof(plBody(c), g, false);
+      else if (c.fn === drawFacade) body = drawFacade(plBody(c), g, c.arg, false);
+      else body = drawSideElev(plBody(c), g, c.arg, false);
+      html += plCard({ x: c.x, y: c.y, w: c.w, h: c.h, idx: c.idx, title: c.title, sub: c.sub, body: body });
+    });
+    html += plStamp(W, g, H - 32);
+    return html;
+  }
+  /* ---------- render utama denah 2D ---------- */
   function planNotesFor(geom) {
     return [
-      'Modul luar konsep ' + fmt(geom.outerW) + ' × ' + fmt(geom.outerD) + ' m; ukuran bersih mengikuti kontrol dimensi.',
-      'Jarak servis nominal: depan ' + fmt(geom.frontClear) + ' m, belakang ' + fmt(geom.rearGap) + ' m; kedalaman mengikuti slider.',
-      'Pintu terdiri dari 2 daun sama lebar, masing-masing ' + fmt2(geom.gateW) + ' m; keduanya bertemu di as pintu dan mencapai muka dalam tiang, dengan gagang simetris di stile pertemuan.',
-      'Rel/pemandu digambar sepanjang modul luar ' + fmt(geom.outerW) + ' m. Dukungan dan pengaman saat daun terbuka perlu dirancang sebelum pelaksanaan; posisi tutup ditampilkan putus-putus.',
-      'Empat tiang sudut hollow 60 × 60 mm; wiremesh konsep 10 × 10 cm; tinggi puncak ' + fmt(geom.totalH) + ' m.',
-      'Atap spandek bubungan dengan louvre pada kedua bidang; kedua gable terbuka memakai rangka baja ringan.',
-      'Panel distribusi dan kWh adalah dua kabinet terpisah pada dinding 2,00 m di luar pagar. Pusat dinding mundur 0,45 m dari pusat genset agar bebas lintasan pintu; keduanya menghadap genset dan terhubung oleh kabel konsep.',
-      'Pondasi 15 cm hanya di bawah dudukan genset (' + planCM(geom.genPadW) + ' × ' + planCM(geom.genPadLen) + '); rumah wiremesh berdiri di atas pelat lantai tipis, bukan sloof keliling.'
+      'Lembar berisi enam gambar: denah atas, tampak depan, rencana atap, tampak belakang, sisi kiri (panel), dan sisi kanan (cerobong).',
+      'Modul luar konsep ' + fmt(geom.outerW) + ' × ' + fmt(geom.outerD) + ' m dengan pagar 25 cm; ruang bersih mengikuti slider dimensi.',
+      'Pintu: 2 daun geser ' + fmt2(geom.gateW) + ' m pada satu garis rel yang sejajar, bertemu tepat di as pintu, dan mencapai muka dalam kedua tiang sudut.',
+      'Pondasi 15 cm hanya di bawah dudukan genset (' + planCM(geom.genPadW) + ' × ' + planCM(geom.genPadLen) + '); lantai kerja tetap satu level.',
+      'Panel genset + meter kWh berada pada dinding panel tersendiri ' + fmt(geom.panelWallGap) + ' m di luar pagar; dua jalur kabel melintasi jalur servis lewat cable tray dan masuk gland pagar.',
+      'Atap spandek dua bidang dengan louvre di tiap bidang; kedua ujung gable terbuka dengan rangka baja ringan; cerobong berhenti di bawah spandek.',
+      'Empat tiang sudut hollow 60 × 60 mm; jaring wiremesh konsep 10 × 10 cm; tinggi puncak ' + fmt(geom.totalH) + ' m.',
+      'Gambar adalah konsep koordinasi dari model, bukan gambar kerja konstruksi.'
     ];
   }
   function renderPlan() {
@@ -3081,7 +3325,7 @@ function buildShelter(T, opts) {
       outerW: W + 2 * t, outerD: D + 2 * t,
       wallH: wallH, roofBase: roofBase, totalH: totalH,
       doorH: wallH - .1,
-      panelBoardW: 1.88,
+      panelBoardW: Math.min(1.04, Math.max(.90, 2.0)),
       genLift: .15,
       panelWallGap: 2.0,
       panelWallLen: 2.80,
@@ -3096,30 +3340,26 @@ function buildShelter(T, opts) {
     };
     var caption = PLAN_VIEWS[planCurrent] || PLAN_VIEWS.sheet;
     var versionText = 'V2 · Pagar wiremesh';
-    var html = planDefs();
-    html += '<rect x="0" y="0" width="1200" height="820" fill="#f4f2e8"/><rect x="0" y="0" width="1200" height="820" fill="url(#planGrid)" opacity=".48"/>';
-    html += '<rect x="23" y="20" width="1154" height="780" fill="none" stroke="#53615d" stroke-width="1.2"/>';
-    html += planSvgText(42, 48, 'RUMAH GENSET · GAMBAR KONSEP MULTI-TAMPAK', 20, 'start', '#25322f', 800, ' letter-spacing="1.1"');
-    html += planSvgText(42, 70, versionText.toUpperCase() + '  /  RUANG BERSIH ' + fmt(W) + ' × ' + fmt(D) + ' m  /  TINGGI ' + fmt(totalH) + ' m', 10, 'start', '#5a6964', 600, ' letter-spacing=".65"');
-    html += planSvgText(1155, 48, 'DENAH 2D · R-02', 11, 'end', '#45534f', 700, ' letter-spacing=".7"');
-    html += '<path d="M40 81H1160" stroke="#aeb6ad" stroke-width="1"/>';
+    var html = plDefs();
     if (planCurrent === 'sheet') {
-      html += planPanel(36, 94, 556, 326, 'PINTU TERBUKA · REL SEBATAS MODUL', drawPlanView({ x: 48, y: 132, w: 532, h: 274 }, geom));
-      html += planPanel(608, 94, 556, 326, 'DEPAN · DUA DAUN, GAGANG DI TENGAH', drawLongElevation({ x: 620, y: 132, w: 532, h: 274 }, geom, 'front'));
-      html += planPanel(36, 434, 556, 326, 'SISI PANEL · KABEL TERHUBUNG KE GENSET', drawSideElevation({ x: 48, y: 472, w: 532, h: 274 }, geom, 'left'));
-      html += planPanel(608, 434, 556, 326, 'ATAP · LOUVRE DI KEDUA BIDANG SPANDEK', drawRoofView({ x: 620, y: 472, w: 532, h: 274 }, geom));
-      html += '<path d="M40 778H1160" stroke="#aeb6ad" stroke-width="1"/>';
-      html += planSvgText(42, 793, 'UKURAN KONSEP · ' + planCM(geom.outerW) + ' × ' + planCM(geom.outerD) + ' LUAR  /  ' + planCM(W) + ' × ' + planCM(D) + ' BERSIH', 9, 'start', '#5a6964', 600);
-      html += planSvgText(1155, 793, 'DIMENSI DITURUNKAN DARI KONTROL MODEL · BUKAN GAMBAR KERJA', 9, 'end', '#5a6964', 600);
+      html += renderSheet(geom, caption, versionText);
     } else {
-      html += drawSingleView(planCurrent, geom, { x: 36, y: 94, w: 1128, h: 666 });
-      html += '<path d="M40 778H1160" stroke="#aeb6ad" stroke-width="1"/>';
-      html += planSvgText(42, 793, 'TAMPAK: ' + (caption.name || '').toUpperCase() + '  ·  ' + versionText.toUpperCase(), 9, 'start', '#5a6964', 600);
-      html += planSvgText(1155, 793, 'UKURAN KONSEP · CM PADA GARIS DIMENSI', 9, 'end', '#5a6964', 600);
+      html += '<rect x="0" y="0" width="' + SHEET_W + '" height="' + SHEET_H + '" fill="#0d1517"/>' + plKop(SHEET_W, geom, versionText);
+      html += '<rect x="0" y="0" width="' + SHEET_W + '" height="' + SHEET_H + '" fill="url(#plSheetGrid)"/>';
+      var one = { idx: '01', title: caption.name.toUpperCase(), sub: versionText.toUpperCase(), x: 40, y: 92, w: SHEET_W - 80, h: SHEET_H - 168 };
+      var body;
+      if (planCurrent === 'plan') body = drawPlan(plBody(one), geom, true);
+      else if (planCurrent === 'roof') body = drawRoof(plBody(one), geom, true);
+      else if (planCurrent === 'front' || planCurrent === 'rear') body = drawFacade(plBody(one), geom, planCurrent, true);
+      else body = drawSideElev(plBody(one), geom, planCurrent, true);
+      html += plCard({ x: one.x, y: one.y, w: one.w, h: one.h, idx: one.idx, title: one.title, sub: one.sub, body: body });
+      html += plPx(40, SHEET_H - 24, 'UKURAN KONSEP · ' + plNum(geom.outerW) + ' × ' + plNum(geom.outerD) + ' CM LUAR  /  ' + plNum(W) + ' × ' + plNum(D) + ' CM BERSIH', 9, 'start', '#7f9090', 600, 'mono', '.08em');
+      html += plPx(SHEET_W - 40, SHEET_H - 24, 'DITURUNKAN DARI KONTROL MODEL · BUKAN GAMBAR KERJA', 9, 'end', '#7f9090', 600, 'mono', '.08em');
     }
     planSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    planSvg.setAttribute('width', '1200');
-    planSvg.setAttribute('height', '820');
+    planSvg.setAttribute('width', String(SHEET_W));
+    planSvg.setAttribute('height', String(SHEET_H));
+    planSvg.setAttribute('viewBox', '0 0 ' + SHEET_W + ' ' + SHEET_H);
     planSvg.setAttribute('aria-label', caption.name + ' · ' + versionText + ' · ' + fmt(W) + ' × ' + fmt(D) + ' meter bersih');
     planSvg.innerHTML = html;
     var titleEl = $('#planCurrentView'), badge = $('#planVersionBadge'), desc = $('#planViewDescription');
@@ -3128,14 +3368,16 @@ function buildShelter(T, opts) {
     if (desc) desc.textContent = caption.desc;
     var metrics = $('#planMetrics');
     if (metrics) metrics.innerHTML =
-      '<div class="plan-metric"><small>Ukuran luar konsep</small><b>' + fmt(geom.outerW) + ' × ' + fmt(geom.outerD) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Modul luar</small><b>' + fmt(geom.outerW) + ' × ' + fmt(geom.outerD) + ' m</b></div>' +
       '<div class="plan-metric"><small>Ruang bersih</small><b>' + fmt(W) + ' × ' + fmt(D) + ' m</b></div>' +
       '<div class="plan-metric"><small>Luas bersih</small><b>' + fmt(W * D) + ' m²</b></div>' +
-      '<div class="plan-metric"><small>Jarak servis depan</small><b>' + fmt(geom.frontClear) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Tinggi puncak</small><b>' + fmt(totalH) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Bukaan pintu</small><b>' + fmt(W) + ' m</b></div>' +
+      '<div class="plan-metric"><small>Daun pintu</small><b>' + fmt2(geom.gateW) + ' m / daun</b></div>' +
       '<div class="plan-metric"><small>Jarak servis belakang</small><b>' + fmt(geom.rearGap) + ' m</b></div>' +
-      '<div class="plan-metric"><small>Tinggi puncak konsep</small><b>' + fmt(totalH) + ' m</b></div>' +
-      '<div class="plan-metric"><small>Lebar pintu / daun</small><b>' + fmt2(geom.gateW) + ' m / daun</b></div>' +
-      '<div class="plan-metric"><small>Lebar / kedalaman genset</small><b>3,00 × 1,10 m</b></div>';
+      '<div class="plan-metric"><small>Genset · P × L</small><b>3,00 × 1,10 m</b></div>' +
+      '<div class="plan-metric"><small>Dinding panel</small><b>' + fmt(geom.panelWallGap) + ' m dari pagar</b></div>' +
+      '<div class="plan-metric"><small>Pondasi genset</small><b>15 cm</b></div>';
     var notes = $('#planNotes');
     if (notes) notes.innerHTML = planNotesFor(geom).map(function (n) { return '<li>' + planEsc(n) + '</li>'; }).join('');
     document.querySelectorAll('.plan-tab').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.planView === planCurrent ? 'true' : 'false'); });
@@ -3171,7 +3413,7 @@ function buildShelter(T, opts) {
     var xml = new XMLSerializer().serializeToString(planSvg);
     var blob = new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + xml], { type: 'image/svg+xml;charset=utf-8' });
     var url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = 'genset-denah-konsep-v2-wiremesh-' + planCurrent + '.svg';
+    a.href = url; a.download = 'genset-denah-konsep-wiremesh-' + planCurrent + '.svg';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
   });
