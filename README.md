@@ -54,3 +54,9 @@ Repo ini statis. Pada **Settings → Pages**, pilih **Deploy from a branch**, la
 | `docs/rencana-v2.md` | Ringkasan keputusan dan batasan rumah wiremesh |
 | `docs/img/v2-pagar-rencana.svg` | Referensi visual awal V2; bukan sumber dimensi kerja |
 | `docs/img/v2-pagar-pratinjau.png` | Snapshot historis sebelum koreksi visual terbaru |
+
+## Video presentasi
+
+[`docs/genset-16x9-1080p.mp4`](docs/genset-16x9-1080p.mp4) — video 16:9 1920×1080, 30 fps, 2 menit 45 detik, tanpa teks maupun narasi. Urutannya: model 3D berputar dari depan, kiri (sisi dinding panel), belakang, kanan (sisi cerobong), atas, lalu masuk ke dalam rumah; setelah itu lembar denah 2D muncul dan bergerak pelan menyusuri lembar, denah, tampak depan, kiri, kanan, belakang, rencana atap, satu pengambilan detail dimensi, lalu kembali ke lembar penuh.
+
+Video ini dirender dari model yang sama dengan aplikasi (geometri, tekstur, dan lembar SVG diambil langsung dari `index.html`), bukan dari gambar terpisah. Skrip pembuatnya ada di [`tools/video`](../tools/video) dan dijelaskan di README folder tersebut.
