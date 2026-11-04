@@ -4,6 +4,14 @@ Interaktif 3D cutaway untuk genset bersilencer (soundproof enclosure) — pintu,
 
 **Demo online:** https://nihtlouw.github.io/Soundproof-Genset-3D-Interactive/
 
+> **Tampilan "design studio".** Seluruh antarmuka memakai bahasa desain yang sama dengan
+> [Rumah-Genset-before-after-Design-3D](https://nihtlouw.github.io/Rumah-Genset-before-after-Design-3D/):
+> tema gelap ink `#070c0d`, aksen lime `#c6f75c`, sekunder steel `#7ec8d8` dan amber `#f2a65a`,
+> tipografi Space Grotesk (display) / Inter (teks) / JetBrains Mono (label & angka), label mono
+> kapital 10 px, garis hairline `rgba(255,255,255,.07)`, kontrol berbentuk pil, penomoran bagian
+> `00/01/…`, panel `tech-grid`, serta kertas gambar terang untuk denah 2D. Geometri, fitur, dan
+> seluruh teks Indonesia tidak berubah — hanya format desainnya.
+
 ## Fitur
 
 - Cutaway 3D: pintu, dinding, atap, dan kanopi bisa dibuka atau dibuat transparan.
@@ -53,9 +61,10 @@ Semuanya ada di satu file, tanpa build step:
 Dimuat dari CDN saat runtime:
 
 - three.js r128 — https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
-- Google Fonts — Barlow Condensed, IBM Plex Sans, IBM Plex Mono
+- Google Fonts — Space Grotesk, Inter, JetBrains Mono
 
-Butuh koneksi internet untuk memuat keduanya.
+Butuh koneksi internet untuk memuat keduanya. Jika font tidak tersedia (mis. pratinjau luring),
+stack cadangan `system-ui` / `ui-monospace` dipakai otomatis sehingga tata letak tetap utuh.
 
 ## Deploy (GitHub Pages)
 
