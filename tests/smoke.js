@@ -49,6 +49,30 @@
     assert(el, 'Kontrol tidak ditemukan: ' + selector);
     el.click();
   }
+  function rect(svg, selector) {
+    var node = svg.querySelector(selector);
+    assert(node, 'Elemen denah tidak ditemukan: ' + selector);
+    return { x: Number(node.getAttribute('x')), y: Number(node.getAttribute('y')), w: Number(node.getAttribute('width')), h: Number(node.getAttribute('height')) };
+  }
+  function checkPlanGates(svg, width) {
+    var left = rect(svg, '[data-gate-plan="closed-left"]'), right = rect(svg, '[data-gate-plan="closed-right"]');
+    var openL = rect(svg, '[data-gate-plan="open-left"]'), openR = rect(svg, '[data-gate-plan="open-right"]');
+    var lp = rect(svg, '[data-post-plan="2"]'), rp = rect(svg, '[data-post-plan="3"]');
+    assert(closeTo(left.w, width) && closeTo(right.w, width), 'Lebar daun di denah tidak sesuai model.');
+    assert(closeTo(left.x, lp.x + lp.w) && closeTo(right.x + right.w, rp.x), 'Ujung daun di denah tidak mencapai tiang.');
+    assert(closeTo(left.x + left.w, right.x), 'Daun di denah tidak bertemu di tengah.');
+    assert(closeTo(openL.x, left.x - width) && closeTo(openR.x, right.x + width), 'Posisi geser di denah tidak sesuai model.');
+    assert(closeTo(left.y + left.h / 2, lp.y + lp.h / 2 + .12), 'Garis pintu dan tiang tidak sesuai bidang model.');
+    var wall = rect(svg, '[data-panel-wall-plan="true"]');
+    assert(wall.y + wall.h < openL.y, 'Lintasan daun kiri melewati dinding panel pada denah.');
+  }
+  function checkFrontGates(svg, width) {
+    var left = rect(svg, '[data-gate-elevation="left"]'), right = rect(svg, '[data-gate-elevation="right"]');
+    var lp = rect(svg, '[data-post-elevation="left"]'), rp = rect(svg, '[data-post-elevation="right"]');
+    assert(closeTo(left.w, width) && closeTo(right.w, width), 'Lebar pintu tampak depan tidak sesuai.');
+    assert(closeTo(left.x, lp.x + lp.w) && closeTo(right.x + right.w, rp.x), 'Celah masih terlihat di tiang tampak depan.');
+    assert(closeTo(left.x + left.w, right.x), 'Pintu tampak depan tidak bertemu di tengah.');
+  }
 
   async function run() {
     runButton.disabled = true; results.innerHTML = ''; failures = 0; passed = 0;
@@ -69,10 +93,10 @@
         try {
           var parts = [];
           shelter.group.traverse(function (node) { if (node.userData.part) parts.push(node.userData.part); });
-          ['shWalls', 'shRoof', 'shPanelWall', 'shGateStop', 'shExhaust'].forEach(function (part) {
+          ['shWalls', 'shRoof', 'shPanelWall', 'shDistribution', 'shKwh', 'shExhaust'].forEach(function (part) {
             assert(parts.indexOf(part) !== -1, 'Komponen hilang: ' + part);
           });
-          ['shGarden', 'shLights', 'shScreen', 'shVentIn', 'shVentOut'].forEach(function (part) {
+          ['shGarden', 'shLights', 'shScreen', 'shVentIn', 'shVentOut', 'shGateStop', 'shATS'].forEach(function (part) {
             assert(parts.indexOf(part) === -1, 'Komponen lama masih ada: ' + part);
           });
           assert(shelter.variant === 'mesh' && closeTo(shelter.genLift, .15), 'Geometri atau pondasi salah.');
@@ -81,32 +105,50 @@
           shelter.setExhaust(true); assert(shelter.isExhaustVisible(), 'Cerobong tidak kembali tampil.');
         } finally { shelter.dispose(); }
       });
-      await test('Panel ATS dan kWh terpisah, menghadap genset, dan terhubung ke tray', function () {
+      await test('Panel distribusi dan kWh terpisah, menghadap genset, dan terhubung ke tray', function () {
         var T = app.win.THREE;
-        [[3, 2, 2.4], [6.5, 5.2, 3.8]].forEach(function (dims) {
+        [[3, 2, 2.4], [4, 2, 3], [6.5, 5.2, 3.8]].forEach(function (dims) {
           var shelter = app.win.buildShelter(T, { W: dims[0], D: dims[1], H: dims[2] });
           try {
             shelter.group.updateMatrixWorld(true);
-            var ats = shelter.group.getObjectByName('panel-ats-face');
+            var dist = shelter.group.getObjectByName('panel-distribution-face');
             var kwh = shelter.group.getObjectByName('panel-kwh-face');
-            assert(ats && kwh && ats.parent !== kwh.parent, 'Kedua kabinet belum terpisah.');
-            [ats, kwh].forEach(function (face) {
+            assert(dist && kwh && dist.parent !== kwh.parent, 'Kedua kabinet belum terpisah.');
+            assert(!shelter.group.getObjectByName('panel-ats-face'), 'Muka panel lama masih ada.');
+            [dist, kwh].forEach(function (face) {
               var position = face.getWorldPosition(new T.Vector3());
               var normal = new T.Vector3(0, 0, 1).applyQuaternion(face.getWorldQuaternion(new T.Quaternion()));
               assert(position.x > shelter.panelWallX + .15 && normal.x > .99, 'Muka panel tidak menghadap genset di luar dinding.');
             });
-            var atsBox = new T.Box3().setFromObject(ats.parent), kwhBox = new T.Box3().setFromObject(kwh.parent);
-            assert(kwhBox.max.z < atsBox.min.z, 'Kabinet saling tumpang.');
-            assert(kwhBox.min.z > shelter.panelWallZ - shelter.panelWallLen / 2 + .18 && atsBox.max.z < shelter.panelWallZ + shelter.panelWallLen / 2 - .18, 'Kabinet melewati tepi dinding atau menabrak kolom.');
-            ['ats', 'kwh'].forEach(function (name) {
+            var distBox = new T.Box3().setFromObject(dist.parent), kwhBox = new T.Box3().setFromObject(kwh.parent);
+            assert(kwhBox.max.z < distBox.min.z, 'Kabinet saling tumpang.');
+            assert(kwhBox.min.z > shelter.panelWallZ - shelter.panelWallLen / 2 + .18 && distBox.max.z < shelter.panelWallZ + shelter.panelWallLen / 2 - .18, 'Kabinet melewati tepi dinding atau menabrak kolom.');
+            ['distribution', 'kwh'].forEach(function (name) {
               var wire = shelter.group.getObjectByName('panel-' + name + '-cable');
               var start = wire && wire.geometry.parameters.path.points[0];
-              assert(start && start.x > shelter.panelWallX && closeTo(start.z, name === 'ats' ? shelter.atsZ : shelter.kwhZ), 'Kabel tidak berasal dari panel ' + name + '.');
+              assert(start && start.x > shelter.panelWallX && closeTo(start.z, name === 'distribution' ? shelter.distZ : shelter.kwhZ), 'Kabel tidak berasal dari panel ' + name + '.');
             });
-            shelter.setWalls(0); assert(!ats.visible && !kwh.visible, 'Panel tidak mengikuti transparansi pagar.');
-            shelter.setWalls(1); assert(ats.visible && kwh.visible, 'Panel tidak kembali tampil.');
+            shelter.setWalls(0); assert(!dist.visible && !kwh.visible, 'Panel tidak mengikuti transparansi pagar.');
+            shelter.setWalls(1); assert(dist.visible && kwh.visible, 'Panel tidak kembali tampil.');
           } finally { shelter.dispose(); }
         });
+      });
+      await test('Detail panel distribusi berisi meter, indikator fasa, dan pemutus tanpa kontrol transfer', function () {
+        var proto = app.win.CanvasRenderingContext2D.prototype, original = proto.fillText, labels = [], shelter;
+        proto.fillText = function (text) { labels.push(String(text)); return original.apply(this, arguments); };
+        try {
+          shelter = app.win.buildShelter(app.win.THREE, { W: 4, D: 2, H: 3 });
+          ['PANEL DISTRIBUSI', 'PENGUKURAN OUTPUT', 'PEMUTUS UTAMA', 'CABANG BEBAN', '---', 'KONSEP · RATING BELUM DITENTUKAN'].forEach(function (label) {
+            assert(labels.indexOf(label) !== -1, 'Label panel distribusi hilang: ' + label);
+          });
+          assert(!labels.some(function (label) { return /\bATS\b|TRANSFER CONTROL|PLN ON|DELAY START|MAN \/ AUTO/i.test(label); }), 'Label kontrol transfer lama masih ada.');
+          ['distribution-phase-R', 'distribution-phase-S', 'distribution-phase-T', 'distribution-main-breaker', 'distribution-branch-1', 'distribution-branch-2', 'distribution-branch-3'].forEach(function (name) {
+            assert(shelter.group.getObjectByName(name), 'Komponen panel distribusi hilang: ' + name);
+          });
+        } finally {
+          proto.fillText = original;
+          if (shelter) shelter.dispose();
+        }
       });
       await test('Talang bulat dan pipa turun dihapus tanpa menghapus empat tiang utama', function () {
         var shelter = app.win.buildShelter(app.win.THREE, { W: 4, D: 2, H: 3 });
@@ -122,16 +164,50 @@
           assert(round.length === 0, 'Elemen talang atau pipa turun masih ada pada atap.');
         } finally { shelter.dispose(); }
       });
-      await test('Kedua pintu rumah bergeser simetris tanpa berputar', function () {
-        var shelter = app.win.buildShelter(app.win.THREE, { W: 4, D: 2, H: 3 });
-        try {
-          var left = shelter.doors.gateL, right = shelter.doors.gateR;
-          var lx = left.g.position.x, rx = right.g.position.x, z = left.g.position.z;
-          assert(closeTo(z, right.g.position.z), 'Daun pintu tidak sejajar.');
-          shelter.toggleDoor('gateL', true, true); shelter.toggleDoor('gateR', true, true);
-          assert(closeTo(left.g.position.x, lx - 2) && closeTo(right.g.position.x, rx + 2), 'Jarak geser tidak sesuai lebar daun.');
-          assert(closeTo(left.g.rotation.y, 0) && closeTo(right.g.rotation.y, 0), 'Pintu berputar, bukan bergeser.');
-        } finally { shelter.dispose(); }
+      await test('Pintu menutup sampai kedua tiang dan as, lalu bergeser tanpa benturan', function () {
+        var T = app.win.THREE;
+        [[3, 2, 2.4], [4, 2, 3], [4.8, 2, 3], [6.5, 2, 3.8], [6.5, 5.2, 3.8]].forEach(function (dims) {
+          var shelter = app.win.buildShelter(T, { W: dims[0], D: dims[1], H: dims[2] });
+          try {
+            var left = shelter.doors.gateL, right = shelter.doors.gateR, posts, panel, panelWall;
+            shelter.group.traverse(function (node) {
+              if (node.userData.part === 'shPosts') posts = node;
+              if (node.userData.part === 'shPanel') panel = node;
+              if (node.userData.part === 'shPanelWall') panelWall = node;
+            });
+            shelter.group.updateMatrixWorld(true);
+            var frontPosts = posts.children.filter(function (p) { return closeTo(p.position.z, shelter.zf); }).sort(function (a, b) { return a.position.x - b.position.x; });
+            assert(frontPosts.length === 2, 'Tiang depan tidak ditemukan.');
+            var lp = new T.Box3().setFromObject(frontPosts[0]), rp = new T.Box3().setFromObject(frontPosts[1]);
+            assert(panel && panelWall && closeTo(shelter.panelWallGap, 2), 'Dinding panel atau jarak servis berubah.');
+            var panelBox = new T.Box3().setFromObject(panel), wallBox = new T.Box3().setFromObject(panelWall);
+            var lb = new T.Box3().setFromObject(left.g), rb = new T.Box3().setFromObject(right.g);
+            var width = dims[0] / 2 + .12;
+            assert(closeTo(left.slip, width) && closeTo(right.slip, width), 'Lebar daun tidak dihitung sampai muka tiang.');
+            assert(closeTo(lb.min.x, lp.max.x) && closeTo(rb.max.x, rp.min.x), 'Masih ada celah pada ujung luar pintu.');
+            assert(closeTo(lb.max.x, 0) && closeTo(rb.min.x, 0), 'Daun tidak bertemu tepat di as atau saling tumpang.');
+            assert(closeTo(left.g.position.z, right.g.position.z), 'Daun pintu tidak sejajar.');
+            ['gateL', 'gateR'].forEach(function (id) {
+              var edge = shelter.group.getObjectByName(id + '-edge-return');
+              var back = edge && new T.Box3().setFromObject(edge).min.z;
+              assert(edge && closeTo(back, shelter.zf + .052), 'Siku tepi tidak mendekati tiang atau menabrak pagar.');
+            });
+            // Uji beberapa posisi animasi, termasuk saat gagang melewati tiang.
+            shelter.toggleDoor('gateL', true); shelter.toggleDoor('gateR', true);
+            [0, .25, .5, .75, 1].forEach(function (progress) {
+              left.cur = right.cur = progress; shelter.update(0);
+              var eased = progress * progress * (3 - 2 * progress);
+              assert(closeTo(left.g.position.x, left.home.x - width * eased) && closeTo(right.g.position.x, right.home.x + width * eased), 'Jarak geser tidak sesuai lebar daun.');
+              assert(closeTo(left.g.rotation.y, 0) && closeTo(right.g.rotation.y, 0), 'Pintu berputar, bukan bergeser.');
+              lb = new T.Box3().setFromObject(left.g); rb = new T.Box3().setFromObject(right.g);
+              assert(lb.max.x <= rb.min.x + .001, 'Kedua daun saling bertabrakan.');
+              assert(lb.min.z > shelter.zf + .05 && rb.min.z > shelter.zf + .05, 'Daun atau gagang menyentuh ujung pagar samping saat bergeser.');
+              assert(!lb.intersectsBox(lp) && !rb.intersectsBox(rp), 'Daun menembus tiang saat bergeser.');
+              assert(!lb.intersectsBox(panelBox) && !lb.intersectsBox(wallBox), 'Daun kiri menembus panel atau dinding panel.');
+            });
+            assert(closeTo(lb.max.x, lp.max.x) && closeTo(rb.min.x, rp.min.x), 'Bukaan tidak terbuka penuh.');
+          } finally { shelter.dispose(); }
+        });
       });
       await test('Menyembunyikan rumah memulihkan kontrol kanopi', function () {
         var doc = app.doc, rear = doc.querySelector('#door_backL').closest('li').querySelector('.row-sub');
@@ -148,11 +224,14 @@
         var doc = app.doc;
         setRange(app, 'opWall', '0');
         click(app, '#t-parts');
-        click(app, '[data-id="shATS"]');
-        assert(doc.querySelector('#infoName').textContent === 'Panel ATS', 'Panel ATS tidak terpilih.');
+        click(app, '[data-id="shDistribution"]');
+        assert(doc.querySelector('#infoName').textContent === 'Panel distribusi genset', 'Panel distribusi tidak terpilih.');
+        assert(/pemutus utama/i.test(doc.querySelector('#infoText').textContent), 'Keterangan panel distribusi tidak sesuai.');
         assert(doc.querySelector('#opWall').value === '100', 'Panel tersembunyi tidak dipulihkan saat dipilih.');
         click(app, '[data-id="shKwh"]');
         assert(doc.querySelector('#infoName').textContent === 'Panel kWh genset', 'Panel kWh tidak terpilih.');
+        assert(!doc.querySelector('[data-id="shATS"], [data-id="shGateStop"]'), 'Komponen lama masih muncul di menu.');
+        assert(!/\bATS\b|ganjal/i.test(doc.body.textContent), 'Keterangan panel lama atau pengganjal masih muncul.');
       });
       await test('Pintu dan dimensi bertahan saat model dibangun ulang', async function () {
         var doc = app.doc;
@@ -165,24 +244,41 @@
         assert(doc.querySelector('#infoName').textContent === 'Panel kWh genset' && doc.querySelector('[data-id="shKwh"]').getAttribute('aria-pressed') === 'true', 'Pilihan panel hilang saat model dibangun ulang.');
         click(app, '#infoClose');
       });
-      await test('Semua tampak denah mengikuti ukuran wiremesh', function () {
+      await test('Semua tampak denah mengikuti panel dan ukuran wiremesh', function () {
         var doc = app.doc;
         click(app, '#planOpen');
         assert(!doc.querySelector('#planModal').hidden, 'Denah tidak terbuka.');
-        assert(doc.querySelector('#planMetrics').textContent.indexOf('2,4 m / daun') !== -1, 'Lebar daun tidak sesuai model.');
+        assert(doc.querySelector('#planMetrics').textContent.indexOf('2,52 m / daun') !== -1, 'Lebar daun tidak sesuai model.');
         ['sheet', 'plan', 'front', 'rear', 'left', 'right', 'roof'].forEach(function (view) {
           click(app, '[data-plan-view="' + view + '"]');
           var svg = doc.querySelector('#planSvg');
-          assert(svg.children.length > 0 && !/NaN|Infinity|PLESTER/.test(svg.innerHTML), 'Tampak tidak valid: ' + view);
+          assert(svg.children.length > 0 && !/NaN|Infinity/.test(svg.innerHTML) && !/PLESTER|\bATS\b|GANJAL/i.test(svg.innerHTML), 'Tampak tidak valid atau memuat elemen lama: ' + view);
+          assert(!svg.querySelector('[fill="#d9ad32"], [fill="#d8ad32"], [data-gate-stop]'), 'Simbol pengganjal masih ada di denah.');
           assert(doc.querySelector('[data-plan-view="' + view + '"]').getAttribute('aria-pressed') === 'true', 'Tampak tidak aktif: ' + view);
           if (view === 'sheet' || view === 'plan') {
-            var ats = svg.querySelector('[data-panel="ats"]'), kwh = svg.querySelector('[data-panel="kwh"]');
-            assert(ats && kwh && ats !== kwh, 'Dua panel tidak tergambar terpisah pada denah.');
-            assert(Number(ats.getAttribute('y')) > Number(kwh.getAttribute('y')), 'Urutan panel pada denah tidak sesuai model.');
+            var dist = svg.querySelector('[data-panel="distribution"]'), kwh = svg.querySelector('[data-panel="kwh"]');
+            assert(dist && kwh && dist !== kwh, 'Dua panel tidak tergambar terpisah pada denah.');
+            assert(Number(dist.getAttribute('y')) > Number(kwh.getAttribute('y')), 'Urutan panel pada denah tidak sesuai model.');
+            checkPlanGates(svg, 2.52);
           }
-          if (view === 'left') assert(svg.querySelector('[data-panel-profile="ats-kwh"]'), 'Profil dua panel tidak ada pada potongan.');
+          if (view === 'sheet' || view === 'front') checkFrontGates(svg, 2.52);
+          if (view === 'left') assert(svg.querySelector('[data-panel-profile="distribution-kwh"]'), 'Profil dua panel tidak ada pada potongan.');
         });
         click(app, '#planClose');
+      });
+      await test('Denah dan elevasi menutup kedua sisi pada lebar minimum, bawaan, dan maksimum', async function () {
+        var doc = app.doc;
+        var sizes = [[3, 1.62, '1,62'], [4, 2.12, '2,12'], [6.5, 3.37, '3,37']];
+        for (var i = 0; i < sizes.length; i++) {
+          var size = sizes[i];
+          setRange(app, 'dimW', String(size[0])); await wait(700);
+          click(app, '#planOpen'); click(app, '[data-plan-view="plan"]');
+          assert(doc.querySelector('#planMetrics').textContent.indexOf(size[2] + ' m / daun') !== -1, 'Ukuran daun salah pada lebar ' + size[0]);
+          checkPlanGates(doc.querySelector('#planSvg'), size[1]);
+          click(app, '[data-plan-view="front"]'); checkFrontGates(doc.querySelector('#planSvg'), size[1]);
+          click(app, '#planClose');
+        }
+        setRange(app, 'dimW', '4.8'); await wait(700);
       });
       await test('Posisi panel pada denah tetap mengikuti genset saat kedalaman berubah', async function () {
         var doc = app.doc;
@@ -192,11 +288,11 @@
           return Number(box.getAttribute('y')) + Number(box.getAttribute('height')) / 2;
         }
         click(app, '#planOpen'); click(app, '[data-plan-view="plan"]');
-        var atsY = panelY('ats'), kwhY = panelY('kwh');
+        var distY = panelY('distribution'), kwhY = panelY('kwh');
         click(app, '#planClose');
         setRange(app, 'dimD', '5.2'); await wait(700);
         click(app, '#planOpen'); click(app, '[data-plan-view="plan"]');
-        assert(closeTo(atsY, panelY('ats')) && closeTo(kwhY, panelY('kwh')), 'Panel bergeser dari dinding saat kedalaman berubah.');
+        assert(closeTo(distY, panelY('distribution')) && closeTo(kwhY, panelY('kwh')), 'Panel bergeser dari dinding saat kedalaman berubah.');
         click(app, '#planClose');
         setRange(app, 'dimD', '2.5'); await wait(700);
       });

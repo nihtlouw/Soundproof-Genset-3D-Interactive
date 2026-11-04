@@ -7,8 +7,8 @@ Interaktif 3D cutaway untuk genset bersilencer (*soundproof enclosure*), dengan 
 ## Fitur
 
 - **Rumah genset V2 · pagar wiremesh** menjadi model utama. Ukuran bersih bawaan 4,00 × 2,00 × 3,00 m, dengan isi pagar 25 cm dan ukuran luar 4,50 × 2,50 m. Dimensi dapat diubah melalui tab *Rumah*.
-- Pagar memiliki jaring 10 × 10 cm, empat tiang hollow 60 × 60 mm di sudut, gable terbuka dengan rangka baja ringan, dan louvre pada kedua bidang atap spandek. Elemen talang bulat dan pipa turun tidak ditampilkan. Dua pintu geser sama lebar berada pada satu garis rel, bertemu di tengah, dan dilengkapi ganjal roda.
-- **Dua kabinet terpisah**—panel ATS dan panel kWh genset—berjajar pada dinding tersendiri 2,00 m di luar pagar, dengan muka panel menghadap genset. Jalur kabel konsep melewati *cable tray* menuju genset. Pondasi 15 cm hanya berada di bawah dudukan genset; lantai servis dan rel pintu tetap rata.
+- Pagar memiliki jaring 10 × 10 cm, empat tiang hollow 60 × 60 mm di sudut, gable terbuka dengan rangka baja ringan, dan louvre pada kedua bidang atap spandek. Dua daun geser sejajar bertemu di tengah dan mencapai muka dalam kedua tiang; lebarnya masing-masing 2,12 m pada ukuran bawaan. Elemen talang bulat, pipa turun, dan pengganjal pintu tidak ditampilkan.
+- **Dua kabinet terpisah**—panel distribusi genset dan panel kWh genset—berjajar pada dinding tersendiri 2,00 m di luar pagar, dengan muka panel menghadap genset. Pusat dinding dimundurkan 0,45 m dari pusat genset agar tidak menghalangi lintasan pintu. Panel distribusi menampilkan indikator fasa, meter serta pemutus utama dan cabang secara konseptual, tanpa menentukan rating. Jalur kabel konsep melewati *cable tray* menuju genset. Pondasi 15 cm hanya berada di bawah dudukan genset; lantai servis dan rel pintu tetap rata.
 - Cutaway 3D: pintu kanopi, pagar, dan atap dapat dibuka atau dibuat transparan. Cerobong yang dimodelkan tersambung dari turbo dan berhenti di bawah atap tanpa menembus spandek.
 - **Denah konsep 2D multi-tampak** (tombol *Denah 2D*): lembar berukuran, denah atas, depan, belakang, kiri, kanan, dan atap mengikuti dimensi yang aktif. Lembar dapat diunduh sebagai SVG atau dicetak.
 - Tab *Pintu / Rumah / Kanopi / Bagian / Teks* untuk mengatur elemen, teks, dan cahaya. Sudut kamera siap pakai meliputi depan, belakang, kiri, kanan, atas, dan 3D.
@@ -19,7 +19,7 @@ Rumah plester V1 dan dekorasi taman (termasuk pohon palem) sudah dihapus dari mo
 
 ## Batasan desain
 
-Gambar dan model adalah **konsep visual untuk koordinasi**, bukan gambar kerja struktur, pondasi, kelistrikan, atau izin pelaksanaan. Jarak servis, jalur knalpot dan kabel yang ditampilkan adalah penyederhanaan rancangan, bukan verifikasi keselamatan; sistem pembuangan air hujan tidak diperinci. Konsultasikan ventilasi, pembuangan gas dan air, jarak kerja, serta persyaratan setempat dengan tenaga ahli sebelum pelaksanaan.
+Gambar dan model adalah **konsep visual untuk koordinasi**, bukan gambar kerja struktur, pondasi, kelistrikan, atau izin pelaksanaan. Rel dan pemandu hanya digambar sepanjang modul luar, sementara animasi membuka daun ke luar modul; dukungan rel saat pintu terbuka dan pengaman operasional perlu dirancang tersendiri. Jarak servis, panel, jalur knalpot dan kabel adalah penyederhanaan, bukan verifikasi keselamatan atau spesifikasi listrik; sistem pembuangan air hujan tidak diperinci. Konsultasikan semua hal tersebut dan persyaratan setempat dengan tenaga ahli sebelum pelaksanaan.
 
 ## Menjalankan
 
@@ -33,7 +33,7 @@ Lalu buka http://localhost:8000. Model 3D membutuhkan browser dengan WebGL.
 
 ### Pengujian
 
-Setelah server berjalan, buka http://localhost:8000/tests/smoke.html untuk memeriksa posisi dan arah kedua panel, atap tanpa talang bulat, pintu geser, kontrol dimensi, semua tampak denah, dan kompatibilitas tautan berbagi. Pengujian memerlukan WebGL dan dapat dijalankan lagi melalui tombol di halaman tersebut.
+Setelah server berjalan, buka http://localhost:8000/tests/smoke.html untuk memeriksa panel distribusi dan kWh, atap, penutupan kedua pintu pada tiang dan as tengah, kontrol dimensi, tampak denah, dan kompatibilitas tautan berbagi. Pengujian memerlukan WebGL dan dapat dijalankan lagi melalui tombol di halaman tersebut.
 
 ## Dependensi
 

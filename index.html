@@ -344,7 +344,7 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
       </div>
 
       <div class="page" data-page="house" role="tabpanel" hidden>
-        <p class="lead" id="houseLead">Rumah pagar wiremesh dengan atap spandek, dua pintu geser simetris, serta panel ATS dan panel kWh genset pada dinding terpisah.</p>
+        <p class="lead" id="houseLead">Rumah pagar wiremesh dengan atap spandek, dua pintu geser simetris, serta panel distribusi genset dan panel kWh genset pada dinding terpisah.</p>
         <ul class="rows">
           <li><span class="row-name">Tampilkan rumah genset</span><label class="sw"><input type="checkbox" id="shOn" checked aria-label="Tampilkan rumah genset"><span class="sw-ui"></span></label></li>
         </ul>
@@ -374,7 +374,7 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
             <li><div class="row-txt"><span class="row-name">Belakang unit</span><span class="row-sub">panel lepas, sketsa 0,4 m</span></div><span class="row-sub" id="clearRear">–</span></li>
             <li><div class="row-txt"><span class="row-name">Panel ke pagar</span><span class="row-sub">dinding panel terpisah</span></div><span class="row-sub" id="clearPanel">–</span></li>
           </ul>
-          <p class="note" id="layoutNote">Panel ATS dan panel kWh genset terpisah, berjajar pada dinding 2,00 m di luar pagar dan menghadap genset. Pondasi 15 cm hanya di bawah dudukan genset — bukan di bawah seluruh rumah genset.</p>
+          <p class="note" id="layoutNote">Panel distribusi genset dan panel kWh genset terpisah, berjajar pada dinding 2,00 m di luar pagar dan menghadap genset. Dinding dimundurkan 0,45 m dari pusat genset agar bebas lintasan pintu. Pondasi 15 cm hanya di bawah dudukan genset.</p>
           <div class="btnrow" style="margin-top:10px"><button class="btn" id="dimStd" type="button">Samakan ke sketsa (2,0 m)</button></div>
           <h3>Cahaya</h3>
           <div class="sliderrow"><label for="sun">Kekuatan matahari</label><output id="sunVal" for="sun">65%</output></div>
@@ -388,7 +388,7 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
           <ul class="rows">
             <li><span class="row-name">Skala manusia 1,7 m</span><label class="sw"><input type="checkbox" id="human" aria-label="Skala manusia"><span class="sw-ui"></span></label></li>
           </ul>
-          <p class="note" id="houseNote">Ukuran dalam meter, diukur dari bagian dalam pagar. Isi pagar 25 cm; modul luar bawaan 4,50 × 2,50 m. Kedua gable terbuka, louvre berada di bidang atap, dan cerobong berhenti di bawah spandek. Panel ATS dan panel kWh genset berada pada dinding terpisah 2,00 m dari pagar, menghadap genset; pondasi 15 cm hanya di bawah genset.</p>
+          <p class="note" id="houseNote">Ukuran dalam meter, diukur dari bagian dalam pagar. Isi pagar 25 cm; modul luar bawaan 4,50 × 2,50 m. Kedua gable terbuka, louvre berada di bidang atap, dan cerobong berhenti di bawah spandek. Panel distribusi genset dan panel kWh genset berada pada dinding terpisah 2,00 m dari pagar, menghadap genset; pondasi 15 cm hanya di bawah genset.</p>
         </div>
       </div>
 
@@ -1158,6 +1158,14 @@ function buildGenset(T) {
 
 </script>
 <script>
+/* Bukaan pintu diukur sampai muka dalam tiang sudut, bukan hanya sampai
+   ukuran bersih pagar. Nilai ini dipakai bersama oleh model 3D dan denah 2D. */
+var SHELTER_POST_OFFSET = 0.15, SHELTER_POST_SIZE = 0.06;
+var SHELTER_GATE_LINE_OFFSET = 0.12;
+// Dinding panel tetap 2 m dari pagar, tetapi dimundurkan agar bebas lintasan daun kiri.
+var SHELTER_PANEL_WALL_Z_OFFSET = -0.45;
+function shelterGateLeafWidth(W) { return W / 2 + SHELTER_POST_OFFSET - SHELTER_POST_SIZE / 2; }
+
 /* Rumah wiremesh. Satuan meter; genset berada di pusat (0, 0, 0).
    Ukuran W dan D diukur dari bagian dalam pagar. Jarak belakang nominal 0,4 m;
    akses servis belakang menggunakan panel lepas. Tekstur dibuat di canvas. */
@@ -1176,10 +1184,8 @@ function buildShelter(T, opts) {
   var gensetZ = canopyZ0 + 0.55;         // pusat genset/kanopi (z = 0)
   var genPadLen = 0, genPadW = 0, genPadZ = 0, genPadTop = 0, railLen = 0;
   var zPlat0 = zb - tW;
-  /* V2 — dua koreksi dari sketsa lapangan:
-     · pondasi 15 cm hanya di bawah genset, bukan di bawah seluruh rumah genset;
-     · panel ATS dan panel kWh genset tidak menempel di pagar, melainkan pada dinding panel
-       tersendiri yang berdiri 2,00 m di luar pagar wiremesh (seberang jalur servis). */
+  /* Pondasi 15 cm hanya di bawah genset. Panel distribusi dan panel kWh
+     berada pada dinding tersendiri 2,00 m di luar pagar wiremesh. */
   var genLift = 0.15;           // tinggi pondasi genset
   var panelWallGap = 2.0;                // jarak bersih dinding panel ke pagar (V2)
   var panelWallT = 0.15, panelWallH = 2.70, panelWallLen = 2.80;
@@ -1189,11 +1195,10 @@ function buildShelter(T, opts) {
   var rise = 0.5;
   var fenceH = Math.max(2.0, H - rise - 0.1);   // + balok ring 10 cm + naik atap 50 cm = H
   var doorH = fenceH - 0.1, gateH = doorH;
-  /* Dua daun geser sama lebar, tepat separuh bukaan, jadi 2,00 m per daun pada
-     lebar bawaan. Keduanya berada pada SATU garis rel (sejajar) dan bertemu rapi
-     di as pintu; tiap daun digeser keluar di sisinya masing-masing. */
-  var leafW = W / 2;
-  var gateLineZ = zf + 0.12;             // satu bidang rel untuk kedua daun
+  /* Setiap daun mencapai muka dalam tiang sudut dan bertemu di as pintu.
+     Pada W=4,00 m lebarnya 2,12 m, bukan setengah ruang bersih saja. */
+  var leafW = shelterGateLeafWidth(W);
+  var gateLineZ = zf + SHELTER_GATE_LINE_OFFSET; // satu bidang rel untuk kedua daun
   var GROUND = -0.16;
   var col = function (h) { return new T.Color(h).convertSRGBToLinear(); };
 
@@ -1425,33 +1430,11 @@ function buildShelter(T, opts) {
   wallMeshes.push(box(W + 0.56, 0.1, 0.1, frameM, 0, fenceH + 0.05, zf, wallsG, false));
   wallMeshes.push(box(0.1, 0.1, (zf - zb) + 0.1, frameM, -(a + 0.15), fenceH + 0.05, (zb + zf) / 2, wallsG, false));
   wallMeshes.push(box(0.1, 0.1, (zf - zb) + 0.1, frameM, (a + 0.15), fenceH + 0.05, (zb + zf) / 2, wallsG, false));
-  /* Kedua daun berbagi SATU garis rel supaya sejajar: rel bawah (tempat roda)
-     dan pemandu atas tepat di atasnya, sepanjang kotak. Daun digeser keluar di
-     sisi masing-masing; ganjal roda di posisi parkir menahan supaya tidak
-     menggelinding kembali. */
+  /* Kedua daun berbagi satu garis rel bawah dan pemandu atas sepanjang modul.
+     Panjang dukungan untuk posisi terbuka perlu dirancang saat pelaksanaan. */
   railLen = W + 2 * tW;
   wallMeshes.push(box(railLen, 0.05, 0.07, steelM, 0, 0.012, gateLineZ, wallsG, false));
   wallMeshes.push(box(railLen, 0.06, 0.06, steelM, 0, doorH + 0.06, gateLineZ, wallsG, false));
-  var gateStopG = group(root, 'shGateStop');
-  var gateStopM = mat(0xe0b52b, { roughness: 0.78, metalness: 0.08 });
-  [-1, 1].forEach(function (side) {
-    var wedgeShape = new T.Shape();
-    if (side < 0) {
-      wedgeShape.moveTo(-0.11, 0); wedgeShape.lineTo(0.11, 0); wedgeShape.lineTo(0.11, 0.025); wedgeShape.lineTo(-0.11, 0.10);
-    } else {
-      wedgeShape.moveTo(-0.11, 0); wedgeShape.lineTo(0.11, 0); wedgeShape.lineTo(0.11, 0.10); wedgeShape.lineTo(-0.11, 0.025);
-    }
-    wedgeShape.closePath();
-    var wedgeGeo = new T.ExtrudeGeometry(wedgeShape, { depth: 0.12, bevelEnabled: false });
-    wedgeGeo.translate(0, 0, -0.06);
-    // ganjal tepat di luar batas parkir tiap daun, simetris di kedua sisi
-    var stopX = a + leafW - 0.20;
-    var wedge = new T.Mesh(wedgeGeo, gateStopM);
-    wedge.position.set(side * stopX, 0.018, gateLineZ);
-    gateStopG.add(wedge); wallMeshes.push(wedge);
-    // pita gelap pada ganjal kuning membuat posisi penahan mudah terbaca
-    wallMeshes.push(box(0.055, 0.012, 0.10, mat(0x303437, { roughness: 0.65 }), side * (stopX + 0.075), 0.122, gateLineZ, gateStopG, false));
-  });
 
   // papan peringatan di dinding kiri luar
   var signTex = ctex(256, 180, function (g, w, h) {
@@ -1473,15 +1456,15 @@ function buildShelter(T, opts) {
   // Dua panel terpisah berada di dinding panel, bukan di pagar.
   var panelG = group(root, 'shPanel');
   var panelBoardW = 1.88;
-  var panelZ = gensetZ;                                // pusat dinding dan tray
+  var panelZ = gensetZ + SHELTER_PANEL_WALL_Z_OFFSET;  // pusat dinding dan tray
   var panelRowZ = panelZ + 0.28;                       // geser pasangan ke sisi akses depan
-  var atsZ = panelRowZ + 0.50, kwhZ = panelRowZ - 0.50;
+  var distZ = panelRowZ + 0.50, kwhZ = panelRowZ - 0.50;
   var panelFaceX = panelWallX + 0.008;                 // muka yang menghadap genset / jalur servis
   var pnOut = group(panelG, null, panelFaceX, 0, panelRowZ);
   // Geometri muka kabinet mengarah ke -X lokal; putar seluruh dudukan agar
   // kedua pintunya berada di sisi +X dinding, menghadap rumah genset.
   pnOut.rotation.y = PI;
-  var atsG = group(pnOut, 'shATS', 0, 0, -0.50);
+  var distG = group(pnOut, 'shDistribution', 0, 0, -0.50);
   var kwhG = group(pnOut, 'shKwh', 0, 0, 0.50);
   /* Dinding panel: beton ringan 15 cm, 2,70 x 2,80 m, dengan kolom praktis di
      kedua ujung dan pondasi menerus kecil. Berdiri sendiri, 2,00 m dari pagar. */
@@ -1492,7 +1475,7 @@ function buildShelter(T, opts) {
   var pwEdgeM = mat(0x9aa2a1, { roughness: 0.8, metalness: 0.08 }, wallMats);
   var pwColM = mat(0xbfc3bd, { roughness: 0.85, metalness: 0.06 }, wallMats);
   var pwLen = Math.min(panelWallLen, 3.2);
-  var pwCenterZ = gensetZ;
+  var pwCenterZ = panelZ;
   /* Jalur servis 2,00 m antara rumah wiremesh dan dinding panel diperkeras
      (beton) supaya kabel, cable tray, dan orang bisa lewat. */
   var aisleTop = apronTop;
@@ -1519,93 +1502,77 @@ function buildShelter(T, opts) {
   var mountEdgeM = pwEdgeM;
   var conduitM = mat(0x9ca5a9, { roughness: 0.46, metalness: 0.72 }, wallMats);
 
-  /* Panel ATS tiga fasa, kabinet tersendiri dengan kontrol transfer otomatis. */
+  /* Panel distribusi genset: indikator fasa, meter tanpa angka pembacaan,
+     pemutus utama dan pemutus cabang. Semua detail adalah konsep visual. */
   var cabinetM = mat(0x81898c, { roughness: 0.48, metalness: 0.58, map: metalTex }, wallMats);
   var cabinetDoorM = mat(0xc8cccd, { roughness: 0.48, metalness: 0.42, map: metalTex }, wallMats);
   var panelBlackM = mat(0x242a2c, { roughness: 0.42, metalness: 0.42 }, wallMats);
-  wallMeshes.push(box(0.12, 1.08, 0.82, cabinetM, -0.095, 1.72, 0, atsG, false));
-  wallMeshes.push(box(0.018, 1.02, 0.76, cabinetDoorM, -0.164, 1.72, 0, atsG, false));
-  var plTex = ctex(512, 688, function (g, w, h) {
+  wallMeshes.push(box(0.12, 1.08, 0.82, cabinetM, -0.095, 1.72, 0, distG, false));
+  wallMeshes.push(box(0.018, 1.02, 0.76, cabinetDoorM, -0.164, 1.72, 0, distG, false));
+  var distTex = ctex(512, 688, function (g, w, h) {
     g.fillStyle = '#c8cbca'; g.fillRect(0, 0, w, h);
-    g.fillStyle = '#dde0df'; g.fillRect(9, 8, w - 18, h - 16);
+    g.fillStyle = '#e0e3e1'; g.fillRect(9, 8, w - 18, h - 16);
     g.strokeStyle = '#657174'; g.lineWidth = 5; g.strokeRect(10, 9, w - 20, h - 18);
-    g.fillStyle = '#20282b'; g.fillRect(24, 20, w - 48, 46);
+    g.fillStyle = '#20282b'; g.fillRect(24, 20, w - 48, 64);
     g.fillStyle = '#eef1ef'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.font = '700 26px "Space Grotesk","Inter",system-ui,sans-serif';
-    g.fillText('PANEL ATS', w / 2, 43);
-    var colors = ['#35ad62', '#3978c2', '#ce4038'];
-    var rowLabels = [['PLN ON', 'BEBAN', 'GENSET'], ['NORMAL', 'AUTO', 'ALARM']];
-    var xs = [96, 256, 416], ys = [132, 252];
-    for (var r = 0; r < 2; r++) {
-      for (var c = 0; c < 3; c++) {
-        g.fillStyle = '#343b3d'; g.font = '600 15px "JetBrains Mono",monospace';
-        g.fillText(rowLabels[r][c], xs[c], ys[r] - 28);
-        g.fillStyle = '#242a2c'; g.beginPath(); g.arc(xs[c], ys[r], 25, 0, Math.PI * 2); g.fill();
-        g.fillStyle = colors[c]; g.beginPath(); g.arc(xs[c], ys[r], 17, 0, Math.PI * 2); g.fill();
-        g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(xs[c] - 5, ys[r] - 6, 5, 0, Math.PI * 2); g.fill();
-      }
-    }
-    g.fillStyle = '#e6d99c'; g.fillRect(26, 292, w - 52, 226);
-    g.strokeStyle = '#817951'; g.lineWidth = 3; g.strokeRect(26, 292, w - 52, 226);
-    g.fillStyle = '#403b28'; g.font = '700 18px "Space Grotesk","Inter",system-ui,sans-serif';
-    g.fillText('AUTO START / TRANSFER CONTROL', w / 2, 316);
-    g.fillStyle = '#373d3e'; g.font = '600 13px "JetBrains Mono",monospace';
-    g.fillText('ACCU VOLTAGE', 100, 343);
-    g.fillStyle = '#171d1f'; g.fillRect(39, 358, 125, 48);
-    g.fillStyle = '#9af0ad'; g.font = '700 25px "JetBrains Mono",monospace';
-    g.fillText('24.8 V', 101, 382);
-    [['DELAY START', '00:30'], ['DELAY STOP', '02:00']].forEach(function (a, i) {
-      var x = 182 + i * 147;
-      g.fillStyle = '#373d3e'; g.font = '600 12px "JetBrains Mono",monospace'; g.fillText(a[0], x + 61, 347);
-      g.fillStyle = '#171d1f'; g.fillRect(x, 360, 122, 48);
-      g.fillStyle = '#9af0ad'; g.font = '700 24px "JetBrains Mono",monospace'; g.fillText(a[1], x + 61, 385);
+    g.font = '700 26px "Space Grotesk","Inter",system-ui,sans-serif'; g.fillText('PANEL DISTRIBUSI', w / 2, 43);
+    g.font = '600 15px "JetBrains Mono",monospace'; g.fillText('GENSET', w / 2, 67);
+    var xs = [96, 256, 416], phases = ['R', 'S', 'T'];
+    xs.forEach(function (x, i) {
+      g.fillStyle = '#30393b'; g.font = '700 18px "JetBrains Mono",monospace'; g.fillText(phases[i], x, 104);
+      g.fillStyle = '#242a2c'; g.beginPath(); g.arc(x, 132, 25, 0, Math.PI * 2); g.fill();
     });
-    g.fillStyle = '#474c4c'; g.fillRect(39, 426, w - 78, 70);
-    g.fillStyle = '#ecedeb'; g.font = '600 13px "JetBrains Mono",monospace';
-    g.fillText('MODE    START    RESET    STOP', w / 2, 443);
-    g.strokeStyle = '#939995'; g.lineWidth = 2; g.strokeRect(39, 426, w - 78, 70);
-    g.fillStyle = '#303638'; g.font = '700 17px "Space Grotesk","Inter",system-ui,sans-serif';
-    g.fillText('OPERASI GENSET', w / 2, 542);
-    var controls = [['START', '#35ad62'], ['MAN / AUTO', '#747b7c'], ['ON / OFF', '#e5ae31'], ['STOP', '#cf3e35']];
-    controls.forEach(function (a, i) {
-      var x = 67 + i * 126;
-      g.fillStyle = '#343a3c'; g.fillRect(x - 38, 558, 76, 91);
-      g.fillStyle = a[1]; g.beginPath(); g.arc(x, 591, 21, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#252b2d'; g.font = '600 12px "JetBrains Mono",monospace'; g.fillText(a[0], x, 629);
+    g.fillStyle = '#d0d6d3'; g.fillRect(27, 184, w - 54, 158);
+    g.strokeStyle = '#87918e'; g.lineWidth = 3; g.strokeRect(27, 184, w - 54, 158);
+    g.fillStyle = '#30393b'; g.font = '700 17px "Space Grotesk","Inter",system-ui,sans-serif'; g.fillText('PENGUKURAN OUTPUT', w / 2, 204);
+    [['VOLT', 'V'], ['ARUS', 'A'], ['FREKUENSI', 'Hz']].forEach(function (meter, i) {
+      var x = 43 + i * 145;
+      g.fillStyle = '#30393b'; g.font = '600 13px "JetBrains Mono",monospace'; g.fillText(meter[0], x + 59, 229);
+      g.fillStyle = '#192123'; g.fillRect(x, 243, 118, 54);
+      g.fillStyle = '#a5cbb4'; g.font = '700 24px "JetBrains Mono",monospace'; g.fillText('---', x + 59, 270);
+      g.fillStyle = '#52605e'; g.font = '600 13px "JetBrains Mono",monospace'; g.fillText(meter[1], x + 59, 316);
     });
-    g.fillStyle = '#697174'; g.font = '500 11px "JetBrains Mono",monospace';
-    g.textAlign = 'left'; g.fillText('380 V · 50 Hz', 25, h - 20);
-    g.textAlign = 'right'; g.fillText('3 PHASE', w - 25, h - 20);
+    g.fillStyle = '#30393b'; g.font = '700 15px "Space Grotesk","Inter",system-ui,sans-serif';
+    g.fillText('PEMUTUS UTAMA', 130, 382); g.fillText('CABANG BEBAN', 344, 382);
+    g.fillStyle = '#c4cbc8'; g.fillRect(48, 406, 165, 174); g.fillRect(225, 406, 242, 174);
+    g.strokeStyle = '#87918e'; g.strokeRect(48, 406, 165, 174); g.strokeRect(225, 406, 242, 174);
+    g.fillStyle = '#56625f'; g.font = '600 12px "JetBrains Mono",monospace';
+    g.fillText('UTAMA', 130, 605); g.fillText('SIRKUIT DISTRIBUSI', 344, 605);
+    g.fillStyle = '#697174'; g.font = '500 12px "JetBrains Mono",monospace';
+    g.fillText('KONSEP · RATING BELUM DITENTUKAN', w / 2, h - 26);
   });
-  var pl = new T.Mesh(new T.PlaneGeometry(0.73, 0.97), decalMat(plTex, wallMats));
-  pl.position.set(-0.176, 1.72, 0); pl.rotation.y = -PI / 2; pl.name = 'panel-ats-face'; pl.renderOrder = 3; atsG.add(pl); wallMeshes.push(pl);
+  var distFace = new T.Mesh(new T.PlaneGeometry(0.73, 0.97), decalMat(distTex, wallMats));
+  distFace.position.set(-0.176, 1.72, 0); distFace.rotation.y = -PI / 2; distFace.name = 'panel-distribution-face'; distFace.renderOrder = 3; distG.add(distFace); wallMeshes.push(distFace);
 
-  /* Indicator lamps and lower push-buttons stand proud of the cabinet face. */
+  // Lampu fasa dan pemutus berwujud 3D; bukan kontrol perpindahan sumber.
   var bezelM = mat(0x303638, { roughness: 0.4, metalness: 0.42 }, wallMats);
-  var lensMats = [0x35ad62, 0x3978c2, 0xce4038].map(function (h) {
+  var lensMats = [0xce4038, 0xe0ad32, 0x3978c2].map(function (h) {
     var m = new T.MeshStandardMaterial({ color: col(h), emissive: col(h), emissiveIntensity: 0.18, roughness: 0.28, metalness: 0.12 });
     wallMats.push(m); return m;
   });
-  var indicatorZ = [-0.23, 0, 0.23];
-  [2.02, 1.85].forEach(function (yy) {
-    indicatorZ.forEach(function (zz, i) {
-      wallMeshes.push(cyl(0.031, 0.022, bezelM, 'x', -0.185, yy, zz, atsG, 16));
-      wallMeshes.push(cyl(0.021, 0.024, lensMats[i], 'x', -0.207, yy, zz, atsG, 18));
-    });
+  [-0.23, 0, 0.23].forEach(function (zz, i) {
+    wallMeshes.push(cyl(0.031, 0.022, bezelM, 'x', -0.185, 2.02, zz, distG, 16));
+    var lamp = cyl(0.021, 0.024, lensMats[i], 'x', -0.207, 2.02, zz, distG, 18);
+    lamp.name = 'distribution-phase-' + ['R', 'S', 'T'][i]; wallMeshes.push(lamp);
   });
-  var controlMats = [lensMats[0], bezelM, mat(0xe0ad32, { roughness: 0.45, metalness: 0.12 }, wallMats), mat(0xc93c34, { roughness: 0.34, metalness: 0.12 }, wallMats)];
-  [-0.255, -0.085, 0.085, 0.255].forEach(function (oz, i) {
-    var zz = oz;
-    wallMeshes.push(cyl(0.048, 0.024, bezelM, 'x', -0.187, 1.38, zz, atsG, 18));
-    wallMeshes.push(cyl(0.033, 0.026, controlMats[i], 'x', -0.211, 1.38, zz, atsG, 20));
+  var breakerM = mat(0xe9ece8, { roughness: 0.55, metalness: 0.08 }, wallMats);
+  var mainBreaker = box(0.027, 0.16, 0.18, bezelM, -0.19, 1.50, -0.18, distG, false);
+  mainBreaker.name = 'distribution-main-breaker'; wallMeshes.push(mainBreaker);
+  [-0.235, -0.18, -0.125].forEach(function (zz) {
+    wallMeshes.push(box(0.022, 0.075, 0.026, breakerM, -0.215, 1.50, zz, distG, false));
   });
-  // Door hardware, hinges, lock, and a short conduit into the top of the cabinet.
-  wallMeshes.push(box(0.035, 0.14, 0.025, panelBlackM, -0.204, 1.72, 0.34, atsG, false));
-  [1.36, 2.05].forEach(function (yy) { wallMeshes.push(box(0.024, 0.10, 0.03, mountEdgeM, -0.179, yy, -0.35, atsG, false)); });
-  wallMeshes.push(cyl(0.014, 0.18, conduitM, 'y', -0.075, 2.33, 0, atsG, 10));
-  wallMeshes.push(cyl(0.024, 0.035, conduitM, 'y', -0.075, 2.28, 0, atsG, 12));
+  [0, 0.11, 0.22].forEach(function (zz, i) {
+    var branch = box(0.027, 0.16, 0.072, bezelM, -0.19, 1.50, zz, distG, false);
+    branch.name = 'distribution-branch-' + (i + 1); wallMeshes.push(branch);
+    wallMeshes.push(box(0.022, 0.075, 0.028, breakerM, -0.215, 1.50, zz, distG, false));
+  });
+  // Kunci, engsel, dan conduit kabinet distribusi.
+  wallMeshes.push(box(0.035, 0.14, 0.025, panelBlackM, -0.204, 1.72, 0.34, distG, false));
+  [1.36, 2.05].forEach(function (yy) { wallMeshes.push(box(0.024, 0.10, 0.03, mountEdgeM, -0.179, yy, -0.35, distG, false)); });
+  wallMeshes.push(cyl(0.014, 0.18, conduitM, 'y', -0.075, 2.33, 0, distG, 10));
+  wallMeshes.push(cyl(0.024, 0.035, conduitM, 'y', -0.075, 2.28, 0, distG, 12));
 
-  /* Panel kWh genset: kabinet kedua yang terpisah dan sejajar dengan ATS. */
+  /* Panel kWh genset: kabinet kedua yang terpisah dan sejajar dengan panel distribusi. */
   var kwhM = mat(0xbec4c5, { roughness: 0.5, metalness: 0.42, map: metalTex }, wallMats);
   wallMeshes.push(box(0.12, 1.08, 0.72, cabinetM, -0.095, 1.72, 0, kwhG, false));
   wallMeshes.push(box(0.018, 1.02, 0.66, kwhM, -0.164, 1.72, 0, kwhG, false));
@@ -1665,7 +1632,7 @@ function buildShelter(T, opts) {
     var wire = new T.Mesh(new T.TubeGeometry(curve, 52, 0.018, 8, false), cableM);
     wire.name = name; wire.castShadow = true; panelG.add(wire); wallMeshes.push(wire);
   }
-  cableToGenset('panel-ats-cable', atsZ, 0.035, cableBlackM);
+  cableToGenset('panel-distribution-cable', distZ, 0.035, cableBlackM);
   cableToGenset('panel-kwh-cable', kwhZ, -0.035, cableRedM);
   // gland masuk ke slot panel kontrol di muka genset
   wallMeshes.push(cyl(0.032, 0.055, conduitM, 'z', -0.62, 0.405, 0.565, panelG, 12));
@@ -1820,21 +1787,28 @@ function buildShelter(T, opts) {
   });
   var postsG = group(root, 'shPosts');
   // Empat batang hollow 60x60 mm saja, tepat di sudut utama; wiremesh memakai rel ringan.
-  [[-(a + 0.15), zb - tW], [a + 0.15, zb - tW], [-(a + 0.15), zf], [a + 0.15, zf]].forEach(function (p) {
-    box(0.06, roofBase, 0.06, postM, p[0], roofBase / 2, p[1], postsG, false);
+  var postX = a + SHELTER_POST_OFFSET;
+  [[-postX, zb - tW], [postX, zb - tW], [-postX, zf], [postX, zf]].forEach(function (p) {
+    box(SHELTER_POST_SIZE, roofBase, SHELTER_POST_SIZE, postM, p[0], roofBase / 2, p[1], postsG, false);
   });
 
   /* ---------- pintu geser ---------- */
   function leaf(side, key, label) {
     var h = doorH - 0.04, dir = -side;
-    /* V2: kedua daun memakai satu garis rel yang sama, jadi wajahnya sejajar.
-       Masing-masing menutup separuh bukaan dan bertemu tepat di as pintu. */
+    /* Poros berada pada muka dalam tiang; kedua daun bertemu pada x=0. */
     var lw = leafW;
-    var pv = group(root, key, side * a, doorH / 2 + 0.02, gateLineZ);
+    var pv = group(root, key, side * lw, doorH / 2 + 0.02, gateLineZ);
     pv.userData.door = key;
     pv.userData.slide = true;
-    box(0.06, h, 0.05, frameM, dir * 0.03, 0, 0, pv, false);
-    box(0.06, h, 0.05, frameM, dir * (lw - 0.03), 0, 0, pv, false);
+    var outerStile = box(0.06, h, 0.05, frameM, dir * 0.03, 0, 0, pv, false);
+    outerStile.name = key + '-outer-stile';
+    var meetingStile = box(0.06, h, 0.05, frameM, dir * (lw - 0.03), 0, 0, pv, false);
+    meetingStile.name = key + '-meeting-stile';
+    /* Siku tepi mengikuti daun ke belakang untuk menutup perbedaan bidang
+       dengan tiang. Sisakan 2 mm dari ujung rel pagar agar tetap bisa bergeser. */
+    var returnDepth = gateLineZ - 0.025 - (sideZc1 + 0.002);
+    var edgeReturn = box(0.06, h, returnDepth, frameM, dir * 0.03, 0, -0.025 - returnDepth / 2, pv, false);
+    edgeReturn.name = key + '-edge-return';
     box(lw, 0.06, 0.05, frameM, dir * lw / 2, h / 2 - 0.03, 0, pv, false);
     box(lw, 0.06, 0.05, frameM, dir * lw / 2, -h / 2 + 0.03, 0, pv, false);
     box(lw, 0.05, 0.05, frameM, dir * lw / 2, 0, 0, pv, false);
@@ -1855,14 +1829,13 @@ function buildShelter(T, opts) {
     /* Kedua daun sejajar pada satu rel, jadi tiap gagang diletakkan pada sisi
        dalam daunnya sendiri (menghadap ke dalam ruangan) pada tinggi yang sama.
        Gagang tidak menyilang dan tidak menonjol ke daun pasangannya. */
-    var handleX = dir * (lw - 0.03);
-    box(0.07, 0.26, 0.02, frameM, handleX, 0, -0.05, pv, false);
-    cyl(0.013, 0.30, steelM, 'y', handleX, 0, -0.075, pv, 12);
-    [0.15, -0.15].forEach(function (yy) { box(0.05, 0.02, 0.05, steelM, handleX, yy, -0.068, pv, false); });
-    // penguat stile pertemuan di as pintu (garis tengah kedua daun)
-    box(0.05, h - 0.10, 0.026, fenceM, 0, 0, 0, pv, false);
-    // pengunci pertemuan: kait kecil di stile tengah, simetris kiri/kanan
-    box(0.06, 0.12, 0.03, steelM, dir * 0.02, 0.06, -0.045, pv, false);
+    var handleX = dir * (lw - 0.045);
+    box(0.07, 0.26, 0.012, frameM, handleX, 0, -0.031, pv, false);
+    cyl(0.012, 0.30, steelM, 'y', handleX, 0, -0.038, pv, 12);
+    [0.15, -0.15].forEach(function (yy) { box(0.05, 0.02, 0.02, steelM, handleX, yy, -0.034, pv, false); });
+    // Penguat dan pengunci berada di tepi pertemuan, seluruhnya di dalam daun.
+    box(0.05, h - 0.10, 0.026, fenceM, dir * (lw - 0.025), 0, 0, pv, false);
+    box(0.04, 0.12, 0.03, steelM, dir * (lw - 0.025), 0.06, -0.045, pv, false);
 
     doors[key] = { g: pv, label: label, max: 1, sign: side, cur: 0, target: 0, part: key, slide: true, home: pv.position.clone(), slip: leafW };
   }
@@ -1990,7 +1963,7 @@ function buildShelter(T, opts) {
   function isExhaustVisible() { return exhaustOn; }
   function poseDoor(d) {
     var e = d.cur * d.cur * (3 - 2 * d.cur);
-    // Daun geser ke kiri/kanan; ganjal menahan roda saat parkir.
+    // Daun bergeser ke kiri/kanan sejauh satu lebar daun.
     d.g.position.x = d.home.x + d.sign * d.slip * e;
     d.g.rotation.y = 0;
   }
@@ -2032,7 +2005,7 @@ function buildShelter(T, opts) {
     { part: 'shSign', label: 'Papan peringatan', pos: [-(a + 0.25), 1.9, zf - 0.7], n: [-1, 0, 0] },
     { part: 'shFloor', label: 'Pondasi 15 cm · hanya genset', pos: [0.15, genLift + 0.02, genPadZ + genPadLen / 2], n: [0, 1, 0] },
     { part: 'shExhaust', label: 'Cerobong di bawah atap', pos: [0.88, risTop - 0.15, elbowZ], n: null, need: 'roofFade' },
-    { part: 'shATS', label: 'Panel ATS', pos: [panelFaceX + 0.22, 2.34, atsZ], n: [1, 0, 0] },
+    { part: 'shDistribution', label: 'Panel distribusi genset', pos: [panelFaceX + 0.22, 2.34, distZ], n: [1, 0, 0] },
     { part: 'shKwh', label: 'Panel kWh genset', pos: [panelFaceX + 0.22, 1.14, kwhZ], n: [1, 0, 0] },
     { part: 'shApar', label: 'APAR', pos: [apx, 1.55, zb + 0.3], n: null, need: 'inside' }
   ];
@@ -2041,8 +2014,7 @@ function buildShelter(T, opts) {
   callouts.push({ part: 'shPosts', label: 'Tiang hollow 60 × 60 · 4 sudut', pos: [a + 0.15, fenceH - 0.35, zf], n: [1, 0, 0] });
   callouts.push({ part: 'shGableFrame', label: 'Gable terbuka · rangka baja ringan', pos: [-(a + 0.15), roofBase + rise * 0.58, (roofRG0 + roofRG1) / 2], n: [-1, 0, 0] });
   callouts.push({ part: 'shVentSide', label: 'Lubang ventilasi bidang atap', pos: [0, ridgeY - Math.sin(slope) * ventSlotCenter + 0.06, roofZmid + Math.cos(slope) * ventSlotCenter + Math.sin(slope) * 0.06], n: [0, Math.cos(slope), Math.sin(slope)] });
-  callouts.push({ part: 'shGateStop', label: 'Pengganjal pintu terbuka', pos: [-(a + leafW - 0.18), 0.13, gateLineZ], n: [0, 1, 0] });
-  callouts.push({ part: 'shPanelWall', label: 'Dinding panel · 2 m dari pagar', pos: [panelWallX + 0.02, panelWallH * 0.72, gensetZ + panelWallLen * 0.32], n: [1, 0, 0] });
+  callouts.push({ part: 'shPanelWall', label: 'Dinding panel · 2 m dari pagar', pos: [panelWallX + 0.02, panelWallH * 0.72, pwCenterZ + panelWallLen * 0.32], n: [1, 0, 0] });
 
   return {
     group: root, W: W, D: D, H: H, a: a, zb: zb, zf: zf, gateH: gateH, doors: doors, callouts: callouts,
@@ -2052,7 +2024,7 @@ function buildShelter(T, opts) {
     panelWallLen: pwLen, panelWallT: panelWallT, panelWallZ: pwCenterZ,
     wallT: tW, doorH: doorH, rise: rise, ridgeY: ridgeY, roofBase: roofBase,
     variant: 'mesh',
-    panelZ: panelZ, panelRowZ: panelRowZ, atsZ: atsZ, kwhZ: kwhZ, panelBoardW: panelBoardW,
+    panelZ: panelZ, panelRowZ: panelRowZ, distZ: distZ, kwhZ: kwhZ, panelBoardW: panelBoardW,
     setWalls: function (op) { fade(wallMats, wallMeshes, op); },
     setRoof: function (op) { fade(roofMats, roofMeshes, op); },
     setExhaust: setExhaust, isExhaustVisible: isExhaustVisible,
@@ -2069,6 +2041,7 @@ function buildShelter(T, opts) {
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var stage = $('#stage'), canvas = $('#gl');
   var fmt = function (v) { return v.toFixed(1).replace('.', ','); };
+  var fmt2 = function (v) { return v.toFixed(2).replace('.', ','); };
   var planModal = $('#planModal'), planSvg = $('#planSvg');
   var planIsOpen = false, planCurrent = 'sheet', planFocusReturn = null, planBodyOverflow = '';
 
@@ -2103,22 +2076,21 @@ function buildShelter(T, opts) {
     shRoof: { n: 'Atap spandek bubungan', k: 'Rumah genset', d: 'Atap spandek dua bidang bertemu di bubungan dan ditopang rangka baja ringan. Bukaan louvre berada pada kedua bidang miring, sedangkan kedua ujung gable tetap terbuka. Cerobong berhenti di bawah atap tanpa melubanginya.', c: function (S) { return { t: [0, S.H, S.zf * 0.4], az: 0.5, pol: 0.9, r: 7.5 }; } },
     shGableFrame: { n: 'Gable terbuka · rangka baja ringan', k: 'Rumah genset', d: 'Kedua ujung segitiga di bawah atap dibiarkan terbuka. Rangka segitiga, batang ikat, dan batang tengah menopang bidang spandek.', c: function (S) { return { t: [-(S.a + 0.15), S.roofBase + S.rise * 0.58, 0], az: -1.35, pol: 1.25, r: 5.2 }; } },
     shVentSide: { n: 'Bukaan louvre sisi spandek', k: 'Rumah genset', d: 'Bukaan pada kedua bidang miring spandek dilindungi bilah louvre agar udara panas keluar sementara tampias hujan berkurang. Ujung gable tetap terbuka.', c: function (S) { return { t: [0, S.ridgeY - 0.22, 0.65], az: 0.15, pol: 0.78, r: 4.8 }; } },
-    shPanelWall: { n: 'Dinding panel · 2 m dari pagar', k: 'Rumah genset', d: 'Dinding beton ringan 15 cm setinggi 2,70 m berdiri 2,00 m di luar pagar wiremesh. Panel ATS dan panel kWh genset dipasang terpisah dan menghadap jalur servis serta genset.', c: function (S) { return { t: [S.panelWallX + 0.18, 1.95, S.panelRowZ], az: 0.70, pol: 1.48, r: 2.7 }; } },
-    shGateStop: { n: 'Pengganjal pintu geser', k: 'Rumah genset', d: 'Dua ganjal kecil di lantai menahan roda ketika daun pintu diparkir terbuka di samping.', c: function (S) { return { t: [S.a + 2.0, 0.1, S.zf], az: 1.0, pol: 1.25, r: 3.4 }; } },
+    shPanelWall: { n: 'Dinding panel · 2 m dari pagar', k: 'Rumah genset', d: 'Dinding beton ringan 15 cm setinggi 2,70 m berdiri 2,00 m di luar pagar dan dimundurkan 0,45 m dari pusat genset agar tidak menghalangi pintu. Panel distribusi dan panel kWh terpisah serta menghadap genset.', c: function (S) { return { t: [S.panelWallX + 0.18, 1.95, S.panelRowZ], az: 0.70, pol: 1.48, r: 2.7 }; } },
     gateL: { n: 'Pintu geser kiri', k: 'Rumah genset', d: 'Daun geser kiri sama lebar dengan daun kanan. Gagang berada di sisi pertemuan; geser ke kiri untuk membuka.', c: function (S) { return { t: [-S.a * 0.5, S.gateH / 2, S.zf], az: -0.45, pol: 1.4, r: 5.4 }; }, gates: true },
     gateR: { n: 'Pintu geser kanan', k: 'Rumah genset', d: 'Daun geser kanan identik dengan kiri. Keduanya sejajar pada satu rel, bertemu di tengah, dan memiliki gagang simetris.', c: function (S) { return { t: [S.a * 0.5, S.gateH / 2, S.zf], az: 0.45, pol: 1.4, r: 5.4 }; }, gates: true },
     shWalls: { n: 'Pagar wiremesh', k: 'Rumah genset', d: 'Pagar keliling dengan jaring wiremesh 10 × 10 cm dan empat tiang hollow 60 × 60 mm di sudut. Udara masuk melalui pagar dan keluar melalui louvre atap serta gable terbuka. Sisi belakang dibuat panel lepas untuk servis.', c: function (S) { return { t: [0, 1.4, -0.5], az: 2.6, pol: 1.25, r: 8 }; } },
     shFloor: { n: 'Pondasi genset 15 cm', k: 'Rumah genset', d: 'Pondasi beton hanya di bawah dudukan genset, bukan sloof keliling. Genset dan jalur knalpot terangkat bersama; pagar berdiri di atas pelat lantai tipis agar lantai servis dan rel pintu tetap rata.', c: function (S) { return { t: [0, 0, S.zf * 0.5], az: 0.4, pol: 1.15, r: 7 }; } },
     shPosts: { n: 'Tiang hollow 60 × 60 (4 sudut)', k: 'Rumah genset', d: 'Empat tiang utama hollow 60 × 60 mm di sudut depan dan belakang naik sampai balok ring; wiremesh ditopang rel ringan tanpa tiang pembagi tambahan.', c: function (S) { return { t: [S.a + 0.15, S.H / 2, S.zf], az: 0.7, pol: 1.3, r: 5 }; } },
     shSign: { n: 'Papan peringatan', k: 'Rumah genset', d: 'Papan AWAS RUANG GENSET di sisi kiri dekat pintu: listrik tegangan tinggi dan dilarang masuk bagi yang tidak berkepentingan.', c: function (S) { return { t: [-(S.a + 0.2), 1.65, S.zf - 0.7], az: -1.15, pol: 1.4, r: 3.0 }; } },
-    shPanel: { n: 'Panel ATS + panel kWh genset', k: 'Rumah genset', d: 'Dua kabinet terpisah dan sejajar pada dinding panel 2,00 m di luar pagar, dengan muka panel menghadap genset. Jalur kabel konsep turun ke cable tray dan menuju genset.', c: function (S) { return { t: [S.panelWallX + 0.18, 1.95, S.panelRowZ], az: 0.70, pol: 1.48, r: 2.7 }; } },
-    shATS: { n: 'Panel ATS', k: 'Rumah genset', d: 'Kabinet automatic transfer switch terpisah, dengan indikator dan kontrol perpindahan sumber. Muka panel menghadap genset dan jalur servis.', c: function (S) { return { t: [S.panelWallX + 0.18, 1.92, S.atsZ], az: 0.80, pol: 1.48, r: 2.5 }; } },
-    shKwh: { n: 'Panel kWh genset', k: 'Rumah genset', d: 'Kabinet meter energi genset terpisah di samping panel ATS, dengan muka panel menghadap genset dan jalur servis.', c: function (S) { return { t: [S.panelWallX + 0.18, 1.92, S.kwhZ], az: 0.80, pol: 1.48, r: 2.5 }; } },
+    shPanel: { n: 'Panel distribusi genset + panel kWh genset', k: 'Rumah genset', d: 'Dua kabinet terpisah dan sejajar pada dinding panel 2,00 m di luar pagar, dengan muka panel menghadap genset. Jalur kabel konsep turun ke cable tray dan menuju genset.', c: function (S) { return { t: [S.panelWallX + 0.18, 1.95, S.panelRowZ], az: 0.70, pol: 1.48, r: 2.7 }; } },
+    shDistribution: { n: 'Panel distribusi genset', k: 'Rumah genset', d: 'Kabinet distribusi terpisah dengan indikator fasa R/S/T, meter konsep, pemutus utama, dan pemutus cabang. Muka panel menghadap genset dan jalur servis; spesifikasi listrik belum ditentukan.', c: function (S) { return { t: [S.panelWallX + 0.18, 1.92, S.distZ], az: 0.80, pol: 1.48, r: 2.5 }; } },
+    shKwh: { n: 'Panel kWh genset', k: 'Rumah genset', d: 'Kabinet meter energi genset terpisah di samping panel distribusi genset, dengan muka panel menghadap genset dan jalur servis.', c: function (S) { return { t: [S.panelWallX + 0.18, 1.92, S.kwhZ], az: 0.80, pol: 1.48, r: 2.5 }; } },
     shApar: { n: 'APAR (pemadam api)', k: 'Rumah genset', d: 'Alat pemadam api ringan 6 kg ABC dengan pengikat pada sisi belakang dekat radiator, lengkap dengan tanda hijau.', c: function (S) { return { t: [S.a - 0.4, 1.2, S.zb], az: 0.35, pol: 1.4, r: 4.2 }; }, gates: true },
     shExhaust: { n: 'Cerobong (di bawah atap)', k: 'Rumah genset', d: 'Elbow berbalut panas menyambung turbo ke joint fleksibel dan stack tegak bertudung. Dua hanger menahan pipa ke gording; ujungnya berhenti di bawah bidang atap tanpa menembus spandek atau pagar.', c: function (S) { return { t: [0.88, 2.30, -0.55], az: 2.5, pol: 1.18, r: 3.6 }; } }
   };
   var ORDER = [
-    ['Rumah genset', ['shRoof', 'shGableFrame', 'shVentSide', 'gateL', 'gateR', 'shGateStop', 'shWalls', 'shSign', 'shATS', 'shKwh', 'shPanelWall', 'shApar', 'shFloor', 'shPosts', 'shExhaust']],
+    ['Rumah genset', ['shRoof', 'shGableFrame', 'shVentSide', 'gateL', 'gateR', 'shWalls', 'shSign', 'shDistribution', 'shKwh', 'shPanelWall', 'shApar', 'shFloor', 'shPosts', 'shExhaust']],
     ['Kanopi', ['enclosure', 'header', 'airIn', 'airOut', 'lift']],
     ['Pintu kanopi', ['engineDoor', 'altDoor', 'ctrlDoor', 'backDoors']],
     ['Mesin', ['engine', 'turbo', 'intake', 'filters', 'belt', 'exhaust']],
@@ -2515,7 +2487,7 @@ function buildShelter(T, opts) {
     var P = PARTS[id]; if (!P) return;
     var isShelter = typeof P.c === 'function';
     if (isShelter && !shelterOn) setShelter(true);
-    if (['shPanel', 'shPanelWall', 'shATS', 'shKwh'].indexOf(id) !== -1 && opWall < 0.15) setWallOp(1);
+    if (['shPanel', 'shPanelWall', 'shDistribution', 'shKwh'].indexOf(id) !== -1 && opWall < 0.15) setWallOp(1);
     if (id === 'shExhaust' && shelter && !shelter.isExhaustVisible()) {
       $('#layer_exhaust').checked = true;
       shelter.setExhaust(true);
@@ -2729,7 +2701,7 @@ function buildShelter(T, opts) {
   /* ---------- denah konsep 2D multi-tampak ---------- */
   var PLAN_VIEWS = {
     sheet: { name: 'Lembar 4 sisi', desc: 'Denah tata letak, tampak depan, sisi panel luar, dan rencana atap. Semua ukuran mengikuti slider dimensi rumah.' },
-    plan: { name: 'Denah atas', desc: 'Tata letak ruang bersih, genset, panel ATS dan panel kWh genset, jalur kabel, bukaan pintu, rel, dan ganjal.' },
+    plan: { name: 'Denah atas', desc: 'Tata letak ruang bersih, genset, panel distribusi dan panel kWh genset, jalur kabel, bukaan pintu, dan rel.' },
     front: { name: 'Tampak depan', desc: 'Elevasi akses utama dengan dua daun pintu, gagang di tepi pertemuan, rel/pemandu, serta tinggi rangka.' },
     rear: { name: 'Tampak belakang', desc: 'Elevasi pagar belakang dan catatan jarak servis.' },
     left: { name: 'Sisi kiri · panel', desc: 'Potongan konsep: dua panel berjajar menghadap genset pada dinding 2,00 m dari pagar, dengan cable tray menuju genset.' },
@@ -2780,10 +2752,10 @@ function buildShelter(T, opts) {
   }
   function drawPlanView(frame, geom) {
     var W = geom.W, D = geom.D, t = geom.t, outerW = geom.outerW, outerD = geom.outerD;
-    var doorW = W / 2;
-    var sidePad = 4.0, topPad = .78, bottomPad = 1.55;
+    var doorW = geom.gateW;
+    var sidePad = 4.0, topPad = 1.10, bottomPad = 1.55;
     var worldW = outerW + sidePad * 2, worldH = outerD + topPad + bottomPad;
-    var X = sidePad, Y = topPad, front = Y + outerD, gateY = front - t / 2;
+    var X = sidePad, Y = topPad, front = Y + outerD, gateY = front - t + SHELTER_GATE_LINE_OFFSET;
     var roofW = geom.roofW, roofD = geom.roofD;
     var roofX = X + (outerW - roofW) / 2, roofY = Y + (outerD - roofD) / 2;
     var s = planFit(frame, worldW, worldH), out = s;
@@ -2800,14 +2772,12 @@ function buildShelter(T, opts) {
     out += planWireBand(X + t + W, Y + t, t, D, wallFill);
     // Hanya empat titik tiang hollow utama di sudut; jaring tidak diberi tiang pembagi besar.
     out += planWireBand(X + t, Y, W, t, 'url(#planMesh)', '.55');
-    var postSize = .06;
+    var postSize = SHELTER_POST_SIZE, postInset = t - SHELTER_POST_OFFSET;
     [
-      [X + .10 - postSize / 2, Y + .10 - postSize / 2],
-      [X + outerW - .10 - postSize / 2, Y + .10 - postSize / 2],
-      [X + .10 - postSize / 2, Y + outerD - .10 - postSize / 2],
-      [X + outerW - .10 - postSize / 2, Y + outerD - .10 - postSize / 2]
-    ].forEach(function (p) {
-      out += '<rect x="' + p[0] + '" y="' + p[1] + '" width="' + postSize + '" height="' + postSize + '" fill="#35423f"/>';
+      [X + postInset, Y], [X + outerW - postInset, Y],
+      [X + postInset, front - t], [X + outerW - postInset, front - t]
+    ].forEach(function (p, i) {
+      out += '<rect data-post-plan="' + i + '" x="' + (p[0] - postSize / 2) + '" y="' + (p[1] - postSize / 2) + '" width="' + postSize + '" height="' + postSize + '" fill="#35423f"/>';
     });
     // Genset footprint, separated into radiator, engine, alternator and base zones.
     var genW = Math.min(3.0, W), genD = Math.min(1.10, D - .25);
@@ -2833,18 +2803,18 @@ function buildShelter(T, opts) {
     out += planSvgText(genX + genW / 2, genY + genD + .11, 'GENSET 3,00 × 1,10 m', .14, 'middle', '#35413f', 700);
     // Dua kabinet terpisah di muka dinding yang menghadap jalur servis / genset.
     var pwFace = X - geom.panelWallGap;
-    // Titik z=0 tetap pada pusat genset meski kedalaman pagar berubah.
-    var panelY = Y + t + .55 + geom.rearGap;
+    // Dinding panel tetap terhadap genset dan mundur dari lintasan pintu.
+    var panelY = Y + t + .55 + geom.rearGap + SHELTER_PANEL_WALL_Z_OFFSET;
     var panelRowY = panelY + .28;
     var pwY0 = panelY - geom.panelWallLen / 2, pwY1 = panelY + geom.panelWallLen / 2;
-    out += '<rect x="' + (pwFace - .15) + '" y="' + pwY0 + '" width=".15" height="' + geom.panelWallLen + '" fill="#dedaa8" stroke="#4b5450" stroke-width=".045"/>';
+    out += '<rect data-panel-wall-plan="true" x="' + (pwFace - .15) + '" y="' + pwY0 + '" width=".15" height="' + geom.panelWallLen + '" fill="#dedaa8" stroke="#4b5450" stroke-width=".045"/>';
     [pwY0, pwY1 - .18].forEach(function (cy) {
       out += '<rect x="' + (pwFace - .17) + '" y="' + cy + '" width=".19" height=".18" fill="#b9bdb5" stroke="#4b5450" stroke-width=".035"/>';
     });
     out += '<rect x="' + (pwFace + .01) + '" y="' + (panelRowY - geom.panelBoardW / 2) + '" width=".03" height="' + geom.panelBoardW + '" fill="#d9ddde" stroke="#35413f" stroke-width=".02"/>';
     [
       { id: 'kwh', y: panelRowY - .50, width: .72, label: 'PANEL kWh GENSET' },
-      { id: 'ats', y: panelRowY + .50, width: .82, label: 'PANEL ATS' }
+      { id: 'distribution', y: panelRowY + .50, width: .82, label: 'PANEL DISTRIBUSI GENSET' }
     ].forEach(function (panel) {
       out += '<rect data-panel="' + panel.id + '" x="' + (pwFace + .04) + '" y="' + (panel.y - panel.width / 2) + '" width=".13" height="' + panel.width + '" rx=".02" fill="#c8cecf" stroke="#35413f" stroke-width=".025"/>';
       out += '<path d="M' + (pwFace + .19) + ' ' + panel.y + 'h.25" fill="none" stroke="#a34135" stroke-width=".025" marker-end="url(#moveArrow)"/>';
@@ -2871,30 +2841,21 @@ function buildShelter(T, opts) {
     var aparX = X + t + W - .40, aparY = Y + t + .22;
     out += '<circle cx="' + aparX + '" cy="' + aparY + '" r=".10" fill="#c94c3f" stroke="#6f2824" stroke-width=".025"/><path d="M' + aparX + ' ' + (aparY - .13) + 'v.06m-.04-.06h.08" stroke="#293330" stroke-width=".022"/>';
     out += planSvgText(aparX, aparY + .21, 'APAR', .105, 'middle', '#9c3f35', 700);
-    // Rel pendek berhenti di batas modul; pintu terbuka digambar solid, posisi tutup sebagai ghost.
-    var gateLineY = gateY;
-    /* Satu garis rel untuk kedua daun: denah menampilkan kedua daun sejajar,
-       masing-masing menutup separuh bukaan dan bertemu tepat di as pintu. */
-    var leaf = doorW, closedL = X + t, closedR = X + t + W - leaf;
+    // Rel sebatas modul; posisi tertutup (putus-putus) mencapai kedua tiang.
+    var gateLineY = gateY, midGate = X + outerW / 2;
+    var leaf = doorW, closedL = midGate - leaf, closedR = midGate;
     var openL = closedL - leaf, openR = closedR + leaf;
     out += '<path d="M' + X + ' ' + gateLineY + 'H' + (X + outerW) + '" stroke="#303b39" stroke-width=".045"/>';
-    // posisi tertutup (ghost) di bukaan
-    out += '<rect x="' + closedL + '" y="' + (gateLineY - .05) + '" width="' + W + '" height=".10" fill="none" stroke="#9aa5a0" stroke-width=".02" stroke-dasharray=".08 .06"/>';
-    out += '<path d="M' + (X + t + W / 2) + ' ' + (gateLineY + .03) + 'v.28" stroke="#26332f" stroke-width=".022"/>';
-    out += planSvgText(X + t + W / 2, gateLineY + .44, 'PERTEMUAN TEPAT DI AS', .10, 'middle', '#33413e', 700);
-    // daun terbuka (parkir) di kiri dan kanan, sejajar pada rel yang sama
-    out += '<rect x="' + openL + '" y="' + (gateLineY - .065) + '" width="' + leaf + '" height=".13" fill="url(#planMesh)" stroke="#34413e" stroke-width=".035"/>';
-    out += '<rect x="' + openR + '" y="' + (gateLineY - .065) + '" width="' + leaf + '" height=".13" fill="url(#planMesh)" stroke="#34413e" stroke-width=".035"/>';
+    out += '<rect data-gate-plan="closed-left" x="' + closedL + '" y="' + (gateLineY - .025) + '" width="' + leaf + '" height=".05" fill="none" stroke="#9aa5a0" stroke-width=".02" stroke-dasharray=".08 .06"/>';
+    out += '<rect data-gate-plan="closed-right" x="' + closedR + '" y="' + (gateLineY - .025) + '" width="' + leaf + '" height=".05" fill="none" stroke="#9aa5a0" stroke-width=".02" stroke-dasharray=".08 .06"/>';
+    out += '<path d="M' + midGate + ' ' + (gateLineY + .03) + 'v.28" stroke="#26332f" stroke-width=".022"/>';
+    out += planSvgText(midGate, gateLineY + .44, 'PERTEMUAN TEPAT DI AS', .10, 'middle', '#33413e', 700);
+    // Daun terbuka di kiri dan kanan, bergeser sejauh satu lebar daun.
+    out += '<rect data-gate-plan="open-left" x="' + openL + '" y="' + (gateLineY - .025) + '" width="' + leaf + '" height=".05" fill="url(#planMesh)" stroke="#34413e" stroke-width=".035"/>';
+    out += '<rect data-gate-plan="open-right" x="' + openR + '" y="' + (gateLineY - .025) + '" width="' + leaf + '" height=".05" fill="url(#planMesh)" stroke="#34413e" stroke-width=".035"/>';
     out += '<path d="M' + (X + t + W * .34) + ' ' + (gateLineY + .30) + 'H' + (openL + leaf * .50) + '" fill="none" stroke="#c55240" stroke-width=".025" marker-end="url(#moveArrow)"/>';
     out += '<path d="M' + (X + t + W * .66) + ' ' + (gateLineY + .30) + 'H' + (openR + leaf * .50) + '" fill="none" stroke="#c55240" stroke-width=".025" marker-end="url(#moveArrow)"/>';
-    // pengganjal roda di posisi parkir, simetris
-    var stopOffset = W / 2 + leaf - .20;
-    [-1, 1].forEach(function (side) {
-      var sx = X + outerW / 2 + side * stopOffset;
-      out += '<path d="M' + (sx - .11) + ' ' + (gateLineY + .09) + 'h.22v.04l-.22 .07Z" fill="#d9ad32" stroke="#765d21" stroke-width=".018"/>';
-      out += '<rect x="' + (sx - .09) + '" y="' + (gateLineY - .02) + '" width=".18" height=".04" fill="none" stroke="#c7a139" stroke-width=".018" stroke-dasharray=".035 .025"/>';
-    });
-    out += planSvgText(X + outerW / 2, gateLineY + .90, '2 DAUN GESER SEJAJAR · 1 REL · GANJAL', .13, 'middle', '#a34135', 700);
+    out += planSvgText(midGate, gateLineY + .90, '2 DAUN GESER SEJAJAR · 1 REL', .13, 'middle', '#a34135', 700);
     // Garis dimensi luar/ruang bersih dan arah akses.
     out += planDimH(X, X + outerW, Y - .35, Y, planCM(outerW));
     out += planDimH(X + t, X + t + W, genY - .20, genY, 'RUANG BERSIH ' + planCM(W));
@@ -2907,39 +2868,35 @@ function buildShelter(T, opts) {
   function drawLongElevation(frame, geom, which) {
     var W = geom.W, t = geom.t, outerW = geom.outerW;
     var wallH = geom.wallH, roofBase = geom.roofBase, totalH = geom.totalH, doorH = geom.doorH;
-    var gateW = W / 2;
-    var extra = Math.max(1.8, W / 2 + gateW + .15 - outerW / 2);
+    var gateW = geom.gateW;
+    var extra = Math.max(1.8, gateW * 2 - outerW / 2 + .15);
     var worldW = outerW + extra * 2, worldH = totalH + .94;
     var X = extra, ground = worldH - .34, s = planFit(frame, worldW, worldH), out = s;
     var title = which === 'front' ? 'AKSES DEPAN · 2 DAUN GESER' : 'BELAKANG · WIREMESH + TIANG SUDUT';
     var isFront = which === 'front';
     out += '<path d="M' + (X - extra + .18) + ' ' + ground + 'H' + (X + outerW + extra - .18) + '" stroke="#58615e" stroke-width=".035"/>';
     out += '<rect x="' + X + '" y="' + (ground - wallH) + '" width="' + outerW + '" height="' + wallH + '" fill="' + 'url(#planMesh)' + '" stroke="#293632" stroke-width=".045"/>';
-    // Tampak muka/belakang hanya memperlihatkan sepasang tiang sudut, bukan tiang antara.
-    [X, X + outerW].forEach(function (px) {
-      out += '<rect x="' + (px - .03) + '" y="' + (ground - wallH) + '" width=".06" height="' + wallH + '" fill="#667471" opacity=".9"/>';
+    // Pusat tiang sesuai model 3D, bukan pada garis terluar modul.
+    var postInset = t - SHELTER_POST_OFFSET;
+    [X + postInset, X + outerW - postInset].forEach(function (px, i) {
+      out += '<rect data-post-elevation="' + (i ? 'right' : 'left') + '" x="' + (px - SHELTER_POST_SIZE / 2) + '" y="' + (ground - wallH) + '" width="' + SHELTER_POST_SIZE + '" height="' + wallH + '" fill="#667471" opacity=".9"/>';
     });
     out += '<rect x="' + X + '" y="' + (ground - wallH) + '" width="' + outerW + '" height=".10" fill="#65716d" stroke="#303b38" stroke-width=".025"/>';
     if (isFront) {
-      /* Dua daun geser sama lebar yang bertemu tepat di as pintu: tidak ada
-         tumpang, kedua stile pertemuan segaris dan sejajar di satu rel. */
-      var leftX = X + t, rightX = X + t + W - gateW, topGate = ground - doorH;
-      out += '<rect x="' + leftX + '" y="' + topGate + '" width="' + gateW + '" height="' + doorH + '" fill="url(#planMesh)" stroke="#34413e" stroke-width=".045"/>';
-      out += '<rect x="' + rightX + '" y="' + topGate + '" width="' + gateW + '" height="' + doorH + '" fill="url(#planMesh)" stroke="#34413e" stroke-width=".045"/>';
+      /* Daun ditutup dari muka dalam tiang hingga as pintu, tanpa tumpang. */
+      var leftX = X + outerW / 2 - gateW, rightX = X + outerW / 2, topGate = ground - doorH;
+      var gateDrawHeight = doorH - .04;
+      out += '<rect data-gate-elevation="left" x="' + leftX + '" y="' + topGate + '" width="' + gateW + '" height="' + gateDrawHeight + '" fill="url(#planMesh)" stroke="#34413e" stroke-width=".045"/>';
+      out += '<rect data-gate-elevation="right" x="' + rightX + '" y="' + topGate + '" width="' + gateW + '" height="' + gateDrawHeight + '" fill="url(#planMesh)" stroke="#34413e" stroke-width=".045"/>';
       out += '<path d="M' + leftX + ' ' + topGate + 'H' + (leftX + gateW) + ' M' + rightX + ' ' + topGate + 'H' + (rightX + gateW) + '" stroke="#293330" stroke-width=".055"/>';
       // garis pertemuan di as pintu + dua gagang simetris menghadap ke dalam
       var handleY = ground - doorH * .52, mid = X + t + W / 2;
-      out += '<path d="M' + mid + ' ' + topGate + 'V' + ground + '" stroke="#26312f" stroke-width=".03"/>';
+      out += '<path d="M' + mid + ' ' + topGate + 'V' + (ground - .04) + '" stroke="#26312f" stroke-width=".03"/>';
       [-.06, .06].forEach(function (hx) {
         out += '<rect x="' + (mid + hx - .022) + '" y="' + (handleY - .16) + '" width=".044" height=".32" rx=".016" fill="#d4d9d6" stroke="#26312f" stroke-width=".022"/>';
       });
-      // rel bawah/atas berhenti tepat di modul; ganjal di posisi parkir
+      // Rel bawah/atas hanya ditampilkan sepanjang modul.
       out += '<path d="M' + X + ' ' + (ground - .035) + 'H' + (X + outerW) + ' M' + X + ' ' + (topGate - .06) + 'H' + (X + outerW) + '" stroke="#303936" stroke-width=".045"/>';
-      var stop = W / 2 + gateW - .20;
-      [-1, 1].forEach(function (side) {
-        var sx = X + outerW / 2 + side * stop;
-        out += '<path d="M' + (sx - .12) + ' ' + ground + 'h.24v-.09l-.24 .05Z" fill="#d8ad32" stroke="#745e25" stroke-width=".02"/>';
-      });
       out += planDimH(leftX, leftX + gateW, topGate + .12, topGate, planCM(gateW));
       out += planSvgText(X + outerW / 2, ground - doorH + .42, '2 DAUN SAMA · PERTEMUAN DI AS', .14, 'middle', '#35413f', 700, ' paint-order="stroke" stroke="#f8f7ef" stroke-width=".06" stroke-linejoin="round"');
     } else {
@@ -2971,9 +2928,9 @@ function buildShelter(T, opts) {
     var eaveY = ground - roofBase, peakY = ground - totalH, wallTop = ground - wallH;
     out += '<path d="M.12 ' + ground + 'H' + (worldW - .12) + '" stroke="#58615e" stroke-width=".035"/>';
     out += '<rect x="' + bx + '" y="' + wallTop + '" width="' + bw + '" height="' + wallH + '" fill="' + 'url(#planMesh)' + '" stroke="#303b38" stroke-width=".045"/>';
-    // Sisi kiri/kanan memperlihatkan dua tiang sudut utama saja.
-    [bx, bx + bw].forEach(function (xx) {
-      out += '<rect x="' + (xx - .03) + '" y="' + wallTop + '" width=".06" height="' + wallH + '" fill="#64726e" opacity=".9"/>';
+    // Pusat tiang belakang dan depan mengikuti posisi z model 3D.
+    [bx, bx + bw - t].forEach(function (xx) {
+      out += '<rect x="' + (xx - SHELTER_POST_SIZE / 2) + '" y="' + wallTop + '" width="' + SHELTER_POST_SIZE + '" height="' + wallH + '" fill="#64726e" opacity=".9"/>';
     });
     out += '<rect x="' + bx + '" y="' + (wallTop - .10) + '" width="' + bw + '" height=".10" fill="#5d6965" stroke="#2f3936" stroke-width=".025"/>';
     // Ujung gable dibiarkan kosong: hanya bidang spandek, rangka segitiga, dan batang ikat.
@@ -2995,11 +2952,12 @@ function buildShelter(T, opts) {
       out += planDimH(wallFace, bx, ground + .30, ground, 'JARAK ' + fmt(geom.panelWallGap) + ' m');
       // Profil kedua kabinet bertumpuk pada potongan; posisinya terpisah pada denah atas.
       out += '<rect x="' + boardX + '" y="' + boardTop + '" width=".03" height="1.82" fill="#d9ddde" stroke="#596568" stroke-width=".025"/>';
-      out += '<rect data-panel-profile="ats-kwh" x="' + (boardX + .03) + '" y="' + cabinetTop + '" width=".13" height="1.08" rx=".02" fill="#c8cecf" stroke="#26322f" stroke-width=".03"/>';
+      out += '<rect data-panel-profile="distribution-kwh" x="' + (boardX + .03) + '" y="' + cabinetTop + '" width=".13" height="1.08" rx=".02" fill="#c8cecf" stroke="#26322f" stroke-width=".03"/>';
       out += '<rect x="' + (boardX + .16) + '" y="' + (cabinetTop + .06) + '" width=".02" height=".96" fill="#e0e2df" stroke="#657174" stroke-width=".02"/>';
-      out += planSvgText(boardX + .24, cabinetTop + .20, 'PANEL ATS + kWh', .10, 'start', '#293632', 700);
-      out += planSvgText(boardX + .24, cabinetTop + .38, 'SEJAJAR · MENGHADAP GENSET', .085, 'start', '#33413e', 700);
-      out += '<path d="M' + (boardX + .20) + ' ' + (cabinetTop + .55) + 'h.42" fill="none" stroke="#a34135" stroke-width=".025" marker-end="url(#moveArrow)"/>';
+      out += planSvgText(boardX + .24, cabinetTop + .16, 'PANEL DISTRIBUSI', .10, 'start', '#293632', 700);
+      out += planSvgText(boardX + .24, cabinetTop + .30, 'GENSET + PANEL kWh', .10, 'start', '#293632', 700);
+      out += planSvgText(boardX + .24, cabinetTop + .46, 'SEJAJAR · MENGHADAP GENSET', .08, 'start', '#33413e', 700);
+      out += '<path d="M' + (boardX + .20) + ' ' + (cabinetTop + .64) + 'h.42" fill="none" stroke="#a34135" stroke-width=".025" marker-end="url(#moveArrow)"/>';
       // cable tray di lantai jalur servis menuju gland pada pagar
       out += '<rect x="' + (wallFace + .16) + '" y="' + (ground - .14) + '" width="' + (bx - wallFace - .16) + '" height=".12" fill="none" stroke="#7d8a85" stroke-width=".022"/>';
       var cablePath = 'M' + (boardX + .10) + ' ' + (ground - 1.18) + 'V' + (ground - .20) + 'H' + (bx + .70);
@@ -3092,7 +3050,7 @@ function buildShelter(T, opts) {
   }
   function drawSingleView(key, geom, box) {
     var frame = { x: box.x + 18, y: box.y + 38, w: box.w - 36, h: box.h - 50 };
-    if (key === 'plan') return planPanel(box.x, box.y, box.w, box.h, 'PINTU TERBUKA · REL SEBATAS MODUL + GANJAL', drawPlanView(frame, geom));
+    if (key === 'plan') return planPanel(box.x, box.y, box.w, box.h, 'PINTU TERBUKA · REL SEBATAS MODUL', drawPlanView(frame, geom));
     if (key === 'front') return planPanel(box.x, box.y, box.w, box.h, 'DEPAN · DUA DAUN, GAGANG DI TENGAH', drawLongElevation(frame, geom, 'front'));
     if (key === 'rear') return planPanel(box.x, box.y, box.w, box.h, 'BELAKANG · WIREMESH + TIANG SUDUT', drawLongElevation(frame, geom, 'rear'));
     if (key === 'left') return planPanel(box.x, box.y, box.w, box.h, 'SISI PANEL · KABEL TERHUBUNG KE GENSET', drawSideElevation(frame, geom, 'left'));
@@ -3103,11 +3061,11 @@ function buildShelter(T, opts) {
     return [
       'Modul luar konsep ' + fmt(geom.outerW) + ' × ' + fmt(geom.outerD) + ' m; ukuran bersih mengikuti kontrol dimensi.',
       'Jarak servis nominal: depan ' + fmt(geom.frontClear) + ' m, belakang ' + fmt(geom.rearGap) + ' m; kedalaman mengikuti slider.',
-      'Pintu terdiri dari 2 daun sama lebar, masing-masing ' + fmt(geom.gateW) + ' m, pada satu garis rel dan sejajar; kedua daun bertemu tepat di as pintu tanpa tumpang, gagang simetris di stile pertemuan.',
-      'Rel/pemandu sepanjang modul luar ' + fmt(geom.outerW) + ' m; roda ditahan ganjal saat parkir. Ruang bukaan ditampilkan putus-putus.',
+      'Pintu terdiri dari 2 daun sama lebar, masing-masing ' + fmt2(geom.gateW) + ' m; keduanya bertemu di as pintu dan mencapai muka dalam tiang, dengan gagang simetris di stile pertemuan.',
+      'Rel/pemandu digambar sepanjang modul luar ' + fmt(geom.outerW) + ' m. Dukungan dan pengaman saat daun terbuka perlu dirancang sebelum pelaksanaan; posisi tutup ditampilkan putus-putus.',
       'Empat tiang sudut hollow 60 × 60 mm; wiremesh konsep 10 × 10 cm; tinggi puncak ' + fmt(geom.totalH) + ' m.',
       'Atap spandek bubungan dengan louvre pada kedua bidang; kedua gable terbuka memakai rangka baja ringan.',
-      'Panel ATS dan panel kWh genset adalah dua kabinet terpisah dan sejajar pada dinding panel 2,00 m di luar pagar; keduanya menghadap genset dan tersambung melalui jalur kabel konsep.',
+      'Panel distribusi dan kWh adalah dua kabinet terpisah pada dinding 2,00 m di luar pagar. Pusat dinding mundur 0,45 m dari pusat genset agar bebas lintasan pintu; keduanya menghadap genset dan terhubung oleh kabel konsep.',
       'Pondasi 15 cm hanya di bawah dudukan genset (' + planCM(geom.genPadW) + ' × ' + planCM(geom.genPadLen) + '); rumah wiremesh berdiri di atas pelat lantai tipis, bukan sloof keliling.'
     ];
   }
@@ -3134,7 +3092,7 @@ function buildShelter(T, opts) {
       roofD: D + t + .7,
       rearGap: .4,
       frontClear: D - .4 - 1.1,
-      gateW: W / 2
+      gateW: shelterGateLeafWidth(W)
     };
     var caption = PLAN_VIEWS[planCurrent] || PLAN_VIEWS.sheet;
     var versionText = 'V2 · Pagar wiremesh';
@@ -3146,7 +3104,7 @@ function buildShelter(T, opts) {
     html += planSvgText(1155, 48, 'DENAH 2D · R-02', 11, 'end', '#45534f', 700, ' letter-spacing=".7"');
     html += '<path d="M40 81H1160" stroke="#aeb6ad" stroke-width="1"/>';
     if (planCurrent === 'sheet') {
-      html += planPanel(36, 94, 556, 326, 'PINTU TERBUKA · REL SEBATAS MODUL + GANJAL', drawPlanView({ x: 48, y: 132, w: 532, h: 274 }, geom));
+      html += planPanel(36, 94, 556, 326, 'PINTU TERBUKA · REL SEBATAS MODUL', drawPlanView({ x: 48, y: 132, w: 532, h: 274 }, geom));
       html += planPanel(608, 94, 556, 326, 'DEPAN · DUA DAUN, GAGANG DI TENGAH', drawLongElevation({ x: 620, y: 132, w: 532, h: 274 }, geom, 'front'));
       html += planPanel(36, 434, 556, 326, 'SISI PANEL · KABEL TERHUBUNG KE GENSET', drawSideElevation({ x: 48, y: 472, w: 532, h: 274 }, geom, 'left'));
       html += planPanel(608, 434, 556, 326, 'ATAP · LOUVRE DI KEDUA BIDANG SPANDEK', drawRoofView({ x: 620, y: 472, w: 532, h: 274 }, geom));
@@ -3176,7 +3134,7 @@ function buildShelter(T, opts) {
       '<div class="plan-metric"><small>Jarak servis depan</small><b>' + fmt(geom.frontClear) + ' m</b></div>' +
       '<div class="plan-metric"><small>Jarak servis belakang</small><b>' + fmt(geom.rearGap) + ' m</b></div>' +
       '<div class="plan-metric"><small>Tinggi puncak konsep</small><b>' + fmt(totalH) + ' m</b></div>' +
-      '<div class="plan-metric"><small>Lebar pintu / daun</small><b>' + fmt(geom.gateW) + ' m / daun</b></div>' +
+      '<div class="plan-metric"><small>Lebar pintu / daun</small><b>' + fmt2(geom.gateW) + ' m / daun</b></div>' +
       '<div class="plan-metric"><small>Lebar / kedalaman genset</small><b>3,00 × 1,10 m</b></div>';
     var notes = $('#planNotes');
     if (notes) notes.innerHTML = planNotesFor(geom).map(function (n) { return '<li>' + planEsc(n) + '</li>'; }).join('');
