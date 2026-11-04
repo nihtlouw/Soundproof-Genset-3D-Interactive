@@ -1,13 +1,13 @@
 # Analisis Sketsa & Implementasi V2 — Rumah Genset Pagar Wiremesh
 
-Dokumen ini awalnya disusun sebagai **analisis + rencana** untuk V2. Model aplikasi kini memakai revisi visual terbaru: kedua ujung gable terbuka dengan rangka baja ringan yang terlihat (tanpa infill atau kisi ujung), hanya empat tiang hollow 60 × 60 mm di sudut, dan dua daun pintu geser simetris pada satu garis rel yang bertemu tepat di as pintu. Louvre tetap ada pada kedua bidang spandek miring; knalpot berhenti di bawah atap. **V1 · Dinding plester tidak diubah.**
+Dokumen ini awalnya disusun sebagai **analisis + rencana** untuk V2. Model aplikasi kini memakai revisi visual terbaru: kedua ujung gable terbuka dengan rangka baja ringan yang terlihat (tanpa infill atau kisi ujung), hanya empat tiang hollow 60 × 60 mm di sudut, dan dua daun pintu geser simetris pada satu garis rel yang bertemu tepat di as pintu. Louvre tetap ada pada kedua bidang spandek miring; knalpot berhenti di bawah atap. Rumah plester V1 dan dekorasi taman tidak lagi tersedia di aplikasi. Revisi terbaru menampilkan panel distribusi genset dan panel kWh sebagai dua kabinet terpisah yang menghadap genset, tanpa talang bulat maupun pipa turunnya. Kedua daun mencapai tiang sudut saat tertutup, dan pengganjal pintu tidak ditampilkan.
 
-Revisi terakhir mengikuti tiga koreksi klien: (1) **panel genset + kWh tidak lagi menempel di pagar** — keduanya dipasang pada **dinding panel tersendiri 2,00 m di luar pagar wiremesh**, dihubungkan cable tray dan dua jalur kabel; (2) **pondasi 15 cm hanya di bawah dudukan genset**, bukan sloof keliling seluruh rumah genset; (3) **dua daun pintu geser dibuat sejajar dan bertemu rapi di as pintu** tanpa tumpang.
+Revisi sebelumnya mengikuti tiga koreksi klien: (1) **panel genset + kWh tidak lagi menempel di pagar** — keduanya dipasang pada **dinding panel tersendiri 2,00 m di luar pagar wiremesh**, dihubungkan cable tray dan dua jalur kabel; (2) **pondasi 15 cm hanya di bawah dudukan genset**, bukan sloof keliling seluruh rumah genset; (3) **dua daun pintu geser dibuat sejajar dan bertemu rapi di as pintu** tanpa tumpang.
 
 Gambar SVG rencana di bawah adalah referensi visual awal, bukan sumber ukuran kerja. Dimensi model harus dibaca dari kontrol dan denah yang dihasilkan aplikasi.
 
 Model V2 tersedia di [Soundproof-Genset-3D-Interactive](https://nihtlouw.github.io/Soundproof-Genset-3D-Interactive/)
-pada tab **Rumah → Versi rumah → V2 · Pagar wiremesh**.
+sebagai tampilan utama; dimensinya dapat diatur pada tab **Rumah**.
 
 Gambar rencana SVG (`docs/img/v2-pagar-rencana.svg`) adalah referensi visual awal dengan ukuran ilustratif; pratinjau PNG terkait merupakan snapshot historis sebelum koreksi visual terakhir. Model aktif dan ukurannya harus dibaca dari aplikasi.
 
@@ -42,7 +42,7 @@ Label angka pada sketsa menjadi petunjuk visual, bukan konfirmasi dimensi proyek
 | Profil tiang | hollow 60 × 60 mm | ditetapkan untuk empat tiang sudut pada koreksi model terbaru |
 | Tinggi dinding | **tidak tertulis** | nilai aplikasi; bukan konfirmasi dari gambar |
 | Tinggi atap | **tidak tertulis** | nilai aplikasi; bukan konfirmasi dari gambar |
-| Lebar daun pintu | **tidak tertulis** | dihitung dari geometri aktif; dua daun sama lebar, ±2,16 m bawaan, overlap 32 cm |
+| Lebar daun pintu | **tidak tertulis** | dihitung dari muka dalam tiang ke as pintu; dua daun sama lebar, masing-masing 2,12 m pada ukuran bawaan |
 
 ## 3 · Perubahan terhadap V2 sebelum revisi
 
@@ -53,10 +53,10 @@ Sebelum rancangan ini diterapkan, V2 masih memakai pagar wiremesh **datar (tanpa
 | Atap | seng datar, tanpa kemiringan | **spandek pelana (gable)** dengan bubungan memanjang; kedua ujung segitiga terbuka, hanya rangka baja ringan tampak |
 | Tinggi | 2,35 m (dipotong otomatis dari tinggi ruangan) | pagar **2,40 m** + ring 10 cm + naik atap 50 cm = **puncak 3,00 m** |
 | Pintu | 2 daun **engsel**, buka ke depan | 2 daun **geser samping** dengan roda (“seperti pagar roda”) |
-| Bukaan | pintu menutup sebagian depan | **seluruh sisi depan** bisa dibuka (bukaan 4,00 m) |
+| Bukaan | pintu menutup sebagian depan | **seluruh sisi depan** bisa dibuka; ruang bersih bawaan 4,00 m, jarak antar muka dalam tiang 4,24 m |
 | Knalpot & ventilasi | knalpot kanopi menembus atap; ventilasi belum diperinci | Elbow berbalut panas dan joint fleksibel berflens mengalir ke stack tegak bertudung; ujung **16 cm di bawah atap**, spandek utuh; louvre hanya pada kedua bidang miring dan gable tetap terbuka |
-| Kelistrikan | panel distribusi di dalam | **Kabinet kontrol + meter kWh di pelat dudukan solid lokal pada sisi luar wiremesh**; indikator, meter/timer, dan tombol mengikuti foto; kabel merah/hitam tampak tersambung ke genset |
-| Lampu | fixture downlight dan dua titik lampu di V1 | **Tidak ada fixture/lampu plafon di V2**; versi V1 tetap seperti semula |
+| Kelistrikan | panel distribusi di dalam | **Panel distribusi genset dan panel kWh genset pada dinding panel tersendiri 2,00 m di luar pagar**; keduanya berjajar dan menghadap genset, dengan jalur kabel konsep menuju genset |
+| Lampu | penerangan belum diperinci | **Tidak ada fixture/lampu plafon** pada model wiremesh |
 | Dinding | rangka + jaring | rangka + jaring, **empat tiang hollow 60 × 60 mm di sudut saja**, **3 rel ringan** (atas/tengah/bawah), tanpa tiang pembagi besar |
 | Pondasi | plat beton | **pondasi 15 cm khusus di bawah genset** + pelat lantai kerja tipis |
 
@@ -69,22 +69,22 @@ Lihat gambar: `docs/img/v2-pagar-rencana.svg`.
 - **Modul**: aplikasi menyediakan preset luar 4,50 × 2,50 m dengan ruang bersih bawaan 4,00 × 2,00 m. Angka ini berasal dari model/slider, bukan pengukuran terkonfirmasi dari sketsa.
 - **Dinding**: hanya empat tiang hollow 60 × 60 mm di sudut utama; tiga rel ringan atas/tengah/bawah dan wiremesh 10 × 10 cm mengisi bidang tanpa tiang pembagi besar. Pagar belakang dibuat **panel lepas** (sekrup) supaya servis dari belakang tetap mungkin walau ruangnya sempit.
 - **Tinggi dinding**: 2,40 m, ditambah balok ring 10 cm dan naik atap 50 cm → total 3,00 m (keputusan klien).
-- **Atap**: baja ringan + spandek pelana (gable), **bubungan memanjang** dengan kemiringan ±19°, naik 50 cm dari balok ring → puncak 3,00 m. Menonjol 35 cm di depan-belakang, dilengkapi nok, lis, dan talang. Kedua ujung segitiga dibiarkan terbuka; rangka segitiga baja ringan terlihat tanpa panel penutup atau kisi ujung.
+- **Atap**: baja ringan + spandek pelana (gable), **bubungan memanjang** dengan kemiringan ±19°, naik 50 cm dari balok ring → puncak 3,00 m. Menonjol 35 cm di depan-belakang, dilengkapi nok dan lis, tanpa talang bulat atau pipa turun pada model. Kedua ujung segitiga dibiarkan terbuka; rangka segitiga baja ringan terlihat tanpa panel penutup atau kisi ujung.
 - **Ventilasi keluar**: inlet melalui bidang wiremesh. Louvre berada pada **kedua bidang miring spandek** (±2,90 × 0,30 m per sisi); gable terbuka tanpa panel/end-louvre.
 - **Knalpot / cerobong**: jalur baru menyambung dari outlet turbo melalui elbow berbalut panas dan joint fleksibel berflens ke stack tegak di sisi kanan-belakang. Tudung hujan dan dua hanger menguatkan bentuknya; puncak tetap **16 cm di bawah bidang atap**, spandek tidak dilubangi.
-- **Pintu geser**: 2 daun sama lebar (2,00 m per daun pada lebar bawaan) dan simetris, rangka hollow + wiremesh, gagang pada stile pertemuan tanpa silangan, dan roda bawah. **Kedua daun memakai satu garis rel yang sama sehingga sejajar**, menutup tepat separuh bukaan dan bertemu di as pintu tanpa tumpang. Rel/pemandu hanya sepanjang modul luar 4,50 m; saat daun diparkir di kiri/kanan, roda ditahan pengganjal di lantai.
-- **Kelistrikan**: kabinet kontrol luar berwarna abu-abu mengikuti referensi (dua baris indikator hijau/biru/merah, tampilan voltase dan timer, kontrol bawah), ditambah meter kWh terpisah. Keduanya terpasang pada **dinding panel beton ringan 15 cm × 2,70 m** yang berdiri sendiri pada jalur servis sisi kiri, **2,00 m di luar pagar wiremesh**. Dua kabel merah/hitam turun ke cable tray, melintasi jalur servis, masuk lewat gland pada pagar, lalu berakhir di slot panel kontrol genset.
+- **Pintu geser**: 2 daun sama lebar (2,12 m per daun pada lebar bawaan) dan simetris, rangka hollow + wiremesh, gagang pada stile pertemuan tanpa silangan, dan roda bawah. **Kedua daun memakai satu garis rel yang sama**, bertemu di as tanpa tumpang dan mencapai muka dalam tiang sudut di kedua sisi. Siku di tepi daun memperkecil celah antarbidang. Rel/pemandu pada model hanya sepanjang modul luar 4,50 m; dukungan rel dan pengaman posisi terbuka perlu dirancang sebelum pelaksanaan.
+- **Kelistrikan**: panel distribusi genset dengan indikator fasa, meter konsep, pemutus utama dan cabang, serta panel kWh genset, dibuat sebagai dua kabinet terpisah yang berjajar. Rating dan rancangan sirkuit belum ditentukan. Keduanya terpasang pada **dinding panel beton ringan 15 cm × 2,70 m** di sisi kiri, **2,00 m di luar pagar wiremesh**, dengan muka panel menghadap genset. Pusat dinding dimundurkan 0,45 m dari pusat genset agar tidak menghalangi daun kiri saat bergeser. Jalur kabel konsep turun ke cable tray, melintasi jalur servis, dan masuk lewat gland pagar menuju genset.
 - **Pondasi**: **pondasi beton 15 cm hanya seluas dudukan genset** (bukan sloof keliling). Rumah wiremesh berdiri di atas pelat lantai tipis 5–10 cm, sehingga lantai kerja dan rel pintu tetap rata; genset beserta jalur knalpotnya naik 15 cm.
 
 ## 5 · Keputusan yang sudah diambil
 
 1. **Tinggi total** — **3,00 m** (pagar 2,40 m + balok ring 10 cm + naik atap 50 cm), supaya panel kanopi genset tetap bisa dibuka di dalam.
-2. **Pintu geser** — **2 daun sama lebar**, masing-masing ±2,16 m dengan overlap 32 cm; gagang berada simetris pada stile pertemuan, tidak bersilangan, roda bawah, dan pengganjal saat diparkir.
+2. **Pintu geser** — **2 daun sama lebar**, masing-masing 2,12 m pada ukuran bawaan, dari muka dalam tiang hingga as pertemuan tanpa tumpang; gagang berada simetris pada stile pertemuan, dengan roda bawah.
 3. **Modul** — **4,50 × 2,50 m dipakai sebagai preset aplikasi** (ruang bersih bawaan 4,00 × 2,00 m); angka gambar rencana awal bukan sumber ukuran kerja.
 4. **Sisi depan** — **sisi panjang 450 cm**, jadi bubungan memanjang.
 5. **Atap & knalpot** — atap tetap **spandek bubungan**, kedua ujung gable terbuka dengan rangka baja ringan; **knalpot tidak menembus atap**, berhenti di bawahnya.
 6. **Ventilasi keluar** — louvre berada pada kedua bidang atap; gable terbuka tanpa panel atau kisi ujung; wiremesh tetap menjadi inlet.
-7. **Peletakan panel** — kabinet + kWh dipindahkan ke **dinding panel tersendiri 2,00 m dari pagar** (revisi klien), bukan menempel di pagar.
+7. **Peletakan panel** — panel distribusi genset dan panel kWh genset berjajar pada **dinding panel tersendiri 2,00 m dari pagar**, dengan muka keduanya menghadap genset.
 8. **Pondasi** — **15 cm hanya di bawah genset**; pagar dan pintu tetap di lantai kerja (revisi klien).
 9. **Pintu geser** — **dua daun sejajar pada satu rel**, bertemu tepat di as pintu tanpa tumpang (revisi klien).
 
@@ -92,15 +92,15 @@ Lihat gambar: `docs/img/v2-pagar-rencana.svg`.
 
 Model statis ini tidak memerlukan build step; geometri dan interaksi berada di `index.html`.
 
-1. **Preset V2**: tombol versi rumah tetap “V2 · Pagar wiremesh”; nilai bawaan berasal dari geometri aplikasi (ruang bersih 4,00 × 2,00 m, isi 25 cm, tinggi puncak 3,00 m) dan dapat diubah lewat kontrol dimensi. Angka referensi sketsa tidak dianggap ukuran proyek terkonfirmasi.
-2. **Atap bubungan**: dua bidang spandek + gording/rangka + lis dan talang; gable ujung dibiarkan terbuka dengan rangka baja ringan, tanpa panel infill atau louvre ujung. Bukaan louvre tetap ada pada kedua bidang miring.
-3. **Pintu geser**: dua daun sama lebar dan simetris; gagang masing-masing berada pada stile pertemuan tanpa saling menyilang. Rel hanya sepanjang kotak, dengan animasi geser kiri/kanan dan pengganjal roda di posisi parkir.
+1. **Model V2**: pagar wiremesh menjadi tampilan utama; nilai bawaan berasal dari geometri aplikasi (ruang bersih 4,00 × 2,00 m, isi 25 cm, tinggi puncak 3,00 m) dan dapat diubah lewat kontrol dimensi. Angka referensi sketsa tidak dianggap ukuran proyek terkonfirmasi.
+2. **Atap bubungan**: dua bidang spandek + gording/rangka + lis, tanpa talang bulat atau pipa turun; gable ujung dibiarkan terbuka dengan rangka baja ringan, tanpa panel infill atau louvre ujung. Bukaan louvre tetap ada pada kedua bidang miring.
+3. **Pintu geser**: dua daun sama lebar dan simetris; gagang masing-masing berada pada stile pertemuan tanpa saling menyilang. Rel hanya digambar sepanjang kotak, dengan animasi geser kiri/kanan; dukungan di posisi terbuka belum dirancang.
 4. **Knalpot**: jalur elbow berbalut panas, sambungan fleksibel, stack tegak, tudung hujan, dan dua hanger; ujung stack berjarak 16 cm dari bidang atap dan spandek utuh tanpa lubang.
-5. **Panel + kWh di luar (revisi)**: kabinet kontrol bergaya foto dan meter terpisah dipasang pada **dinding panel tersendiri 2,00 m di luar pagar**; dua kabel merah/hitam melintasi jalur servis lewat cable tray, masuk gland pagar, lalu kontinu sampai genset.
+5. **Panel distribusi genset + panel kWh genset (revisi)**: dua kabinet terpisah dipasang berjajar pada **dinding panel tersendiri 2,00 m di luar pagar**, menghadap genset; jalur kabel konsep melintasi jalur servis lewat cable tray menuju genset.
 6. **Pondasi 15 cm khusus genset (revisi)**: pondasi hanya seluas dudukan genset; lantai kerja tetap rata untuk pintu geser, dan jalur knalpot ikut naik 15 cm.
-7. **Label & teks**: semua callout, teks tab Rumah, README, gambar rencana, dan tautan *Bagikan* ikut diperbarui (hash versi dinaikkan supaya tautan lama tidak menampilkan campuran).
+7. **Label & teks**: semua callout, teks tab Rumah, README, gambar rencana, dan tautan *Bagikan* ikut diperbarui (tautan wiremesh `v2` lama tetap didukung, sedangkan tautan plester lama diabaikan).
 8. **Ventilasi atap**: bukaan louvre ±2,90 × 0,30 m pada masing-masing bidang spandek; kedua gable terbuka dan tanpa kisi ujung. Jalur inlet wiremesh tetap terbuka.
-9. **Penerangan V2**: empat fixture plafon dan lampu titik dihapus dari V2 saja; lampu pada V1 dibiarkan seperti semula.
-10. **Pratinjau**: model aktif menampilkan rute kabel, louvre bidang atap, gable terbuka berangka ringan, empat tiang sudut, pintu dengan pengganjal, dan gagang simetris di tengah. Jalur knalpot berhenti di bawah spandek; V1 tetap tersedia tanpa perubahan.
+9. **Penerangan V2**: model wiremesh tidak memakai fixture atau lampu plafon.
+10. **Pratinjau**: model aktif menampilkan rute kabel, louvre bidang atap, gable terbuka berangka ringan, empat tiang sudut, pintu yang mencapai kedua tiang, dan gagang simetris di tengah. Jalur knalpot berhenti di bawah spandek; model plester dan dekorasi taman telah dihapus.
 
 Kalau ada angka lain dari lapangan (misal gensetnya 2,5 m atau 3 m panjang), sebutkan saja — modul 4,50 m masih cukup untuk genset sampai 3,2 m.
