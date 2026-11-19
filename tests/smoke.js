@@ -66,6 +66,16 @@
     var wall = rect(svg, '[data-panel-wall-plan="true"]');
     assert(wall.y + wall.h < openL.y, 'Lintasan daun kiri melewati dinding panel pada denah.');
   }
+  function checkPanelSheet(svg, dims) {
+    var text = svg.textContent;
+    assert(/PANEL PAGAR WIREMESH/.test(text), 'Kop lembar panel tidak ada.');
+    assert(new RegExp('TAMPAK DEPAN').test(text), 'Gambar tampak depan panel tidak ada.');
+    assert(new RegExp('DETAIL KAKI').test(text), 'Gambar detail kaki panel tidak ada.');
+    assert(new RegExp('DENAH').test(text), 'Gambar denah panel tidak ada.');
+    assert(text.indexOf(dims[0] + ' × ' + dims[1] + ' CM') !== -1, 'Ukuran panel pada kop tidak sesuai.');
+    assert(text.indexOf(dims[2] + ' CM') !== -1, 'Ukuran kaki pada kop tidak sesuai.');
+    assert(!/NaN|Infinity|undefined/.test(svg.innerHTML), 'Ada angka tidak valid pada lembar panel.');
+  }
   function checkFrontGates(svg, width) {
     var left = rect(svg, '[data-gate-elevation="left"]'), right = rect(svg, '[data-gate-elevation="right"]');
     var lp = rect(svg, '[data-post-elevation="left"]'), rp = rect(svg, '[data-post-elevation="right"]');
@@ -308,6 +318,42 @@
         assert(params.get('v') === 'v3' && params.get('dims') === '4.8,2.5,3.2', 'Tautan baru tidak sesuai.');
         assert(!params.has('hv') && !params.has('garden') && !params.has('lights'), 'Tautan masih menyimpan kontrol yang dihapus.');
       });
+      await test('Workspace 01 menjadi lembar pertama dan workspace 02 berisi panel 160 × 120', function () {
+        var doc = app.doc;
+        assert(doc.querySelector('#ws01').hidden === false && doc.querySelector('#ws02').hidden === true, 'Workspace pertama bukan rumah genset.');
+        assert(doc.querySelector('[data-ws-go="ws02"]'), 'Tombol workspace panel tidak ada.');
+        assert(app.win.PanelWorkspace, 'Workspace panel tidak dimuat.');
+        var g = app.win.PanelWorkspace.geom();
+        assert(closeTo(g.W, 1.6) && closeTo(g.H, 1.2) && closeTo(g.D, 0.3), 'Ukuran panel bawaan bukan 160 × 120 dengan kaki 30 cm.');
+        assert(g.meshNx === 15 && g.meshNy === 11, 'Jumlah mata jaring 10 cm tidak sesuai bidang panel.');
+        click(app, '[data-ws-go="ws02"]');
+        assert(doc.querySelector('#ws01').hidden === true && doc.querySelector('#ws02').hidden === false, 'Workspace panel tidak terbuka.');
+        assert(doc.querySelector('#fDimWVal').textContent === '160 cm', 'Ukuran panel pada workspace kedua salah.');
+        assert(doc.querySelector('#fSub').textContent.indexOf('kaki segitiga 30 cm') !== -1, 'Ringkasan workspace panel tidak menyebut kaki 30 cm.');
+        assert(/ws=ws02/.test(app.win.location.hash), 'Tautan tidak menyimpan workspace aktif.');
+        assert(doc.querySelector('#fSpecFlat').textContent === '30 cm', 'Tabel kaki panel tidak terisi.');
+      });
+      await test('Lembar gambar panel mengikuti ukuran panel dan kaki', function () {
+        var doc = app.doc;
+        click(app, '#fPlanOpen');
+        assert(!doc.querySelector('#fPlanModal').hidden, 'Lembar panel tidak terbuka.');
+        ['sheet', 'front', 'side', 'plan', 'foot'].forEach(function (view) {
+          click(app, '[data-fplan-view="' + view + '"]');
+          var svg = doc.querySelector('#fPlanSvg');
+          assert(svg.children.length > 0, 'Gambar panel kosong: ' + view);
+          assert(!/NaN|Infinity/.test(svg.innerHTML), 'Angka gambar panel tidak valid: ' + view);
+        });
+        click(app, '[data-fplan-view="sheet"]');
+        checkPanelSheet(doc.querySelector('#fPlanSvg'), [160, 120, 30]);
+        var sw = app.doc.querySelector('#fDimW');
+        sw.value = '200'; sw.dispatchEvent(new app.win.Event('input', { bubbles: true }));
+        assert(doc.querySelector('#fDimWVal').textContent === '200 cm', 'Lebar panel tidak diperbarui.');
+        assert(doc.querySelector('#fPlanMetrics').textContent.indexOf('200 cm') !== -1, 'Metrik lembar panel tidak ikut berubah.');
+        click(app, '#fPlanClose');
+        sw.value = '160'; sw.dispatchEvent(new app.win.Event('input', { bubbles: true }));
+        click(app, '[data-ws-go="ws01"]');
+        assert(doc.querySelector('#ws01').hidden === false, 'Tidak bisa kembali ke workspace rumah genset.');
+      });
       if (sharedHash) {
         var restored = await loadApp(sharedHash);
         await test('Tautan baru memulihkan dimensi, pintu, dan skala manusia', function () {
@@ -316,6 +362,15 @@
           assert(doc.querySelector('#door_gateL').checked && doc.querySelector('#human').checked, 'Pintu atau skala manusia tidak dipulihkan.');
         });
       }
+      var panelShared = await loadApp('#v=p1&ws=ws02&dims=2.00,1.40,0.45&mesh=5&paint=dark&sw=1101011');
+      await test('Tautan panel memulihkan workspace 02, ukuran, dan warna', function () {
+        var doc = panelShared.doc;
+        assert(doc.querySelector('#ws02').hidden === false && doc.querySelector('#ws01').hidden === true, 'Workspace panel tidak dipulihkan dari tautan.');
+        assert(doc.querySelector('#fDimWVal').textContent === '200 cm' && doc.querySelector('#fDimHVal').textContent === '140 cm', 'Ukuran panel tidak dipulihkan.');
+        assert(doc.querySelector('#fDimFVal').textContent === '45 cm', 'Kedalaman kaki tidak dipulihkan.');
+        assert(doc.querySelector('#fMeshPVal').textContent === '5 cm', 'Mata jaring tidak dipulihkan.');
+        assert(doc.querySelector('[data-paint="dark"]').getAttribute('aria-pressed') === 'true', 'Warna panel tidak dipulihkan.');
+      });
       var legacy = await loadApp('#v=v2&hv=mesh&dims=4.7,2.6,3.2&roof=0.5&wall=0.3&doors=0000011&garden=1&lights=1');
       await test('Tautan wiremesh v2 lama tetap dapat digunakan', function () {
         var doc = legacy.doc;

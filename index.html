@@ -264,6 +264,7 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
   body{overflow:visible;background:#fff}
   .app{display:none!important}
   .plan-modal{position:static;display:block!important;background:#fff;padding:0;backdrop-filter:none}
+  .plan-modal[hidden]{display:none!important}
   .plan-window{display:block;width:100%;height:auto;border:0;box-shadow:none;background:#fff;color:#111}
   .plan-head,.plan-side{display:none!important}
   .plan-layout,.plan-canvas-area{display:block;overflow:visible;padding:0;background:#fff}
@@ -272,8 +273,50 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
+
+/* ==================================================================
+   WORKSPACE — dua lembar kerja dalam satu berkas.
+   WS 01 = rumah genset wiremesh (model lama), WS 02 = desain panel
+   pagar wiremesh 160 × 120 cm dengan kaki segitiga 30 cm.
+   ================================================================== */
+.ws{height:100%;min-height:0}
+.ws-switch{gap:7px}
+.ws-switch .n{font:700 8.5px/1 var(--f-mono);letter-spacing:.06em;color:var(--lime);padding:3px 5px;border-radius:5px;
+  border:1px solid rgba(198,247,92,.32);background:rgba(198,247,92,.12)}
+.ws-switch[aria-pressed="true"] .n{background:rgba(10,16,18,.2);border-color:rgba(10,16,18,.3);color:var(--ink)}
+.ws-switch[aria-pressed="true"]:hover{background:var(--lime);color:var(--ink)}
+/* kartu ringkas identitas workspace di atas panel kontrol */
+.ws-card{display:grid;gap:10px;margin:0 0 14px;padding:12px 13px;border-radius:12px;border:1px solid var(--line);
+  background:linear-gradient(158deg,rgba(198,247,92,.07),rgba(198,247,92,0) 58%),var(--panel-2)}
+.ws-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ws-card-badge{font:700 8.5px/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--lime)}
+.ws-card-head b{font:500 13px/1.2 var(--f-display);letter-spacing:-.01em;color:#f0f4ec}
+.ws-card p{margin:0;color:var(--mist);font-size:11.5px;line-height:1.5}
+.ws-dims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:9px;overflow:hidden}
+.ws-dims>div{padding:8px 9px;background:var(--panel);min-width:0}
+.ws-dims small{display:block;font:500 7.5px/1.25 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mist-2)}
+.ws-dims b{display:block;margin-top:4px;font:600 12px/1.2 var(--f-mono);color:#eaf0e6;overflow-wrap:anywhere}
+.ws-card .btnrow{margin:0}
+/* tab dan halaman workspace 02 memakai gaya yang sama dengan workspace 01,
+   tetapi kelasnya berbeda agar skrip masing-masing tidak saling ganggu */
+.ftab{flex:1;min-width:0;border:1px solid transparent;background:transparent;padding:9px 2px;border-radius:99px;
+  font:600 10px/1 var(--f-mono);letter-spacing:.11em;text-transform:uppercase;color:var(--mist-2);cursor:pointer;transition:.18s}
+.ftab:hover{color:#fff;background:rgba(255,255,255,.05)}
+.ftab[aria-selected="true"]{background:rgba(198,247,92,.12);border-color:rgba(198,247,92,.3);color:var(--lime)}
+.fpage:not([hidden]){animation:rise-in .28s cubic-bezier(.2,.7,.3,1) both}
+.fpreset[aria-pressed="true"]{background:rgba(198,247,92,.14);border-color:rgba(198,247,92,.45);color:var(--lime)}
+.plan-tab2{flex:none;border:1px solid transparent;background:transparent;color:var(--mist);border-radius:99px;padding:7px 11px;
+  font:600 9px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:.16s}
+.plan-tab2:hover{color:#fff;background:rgba(255,255,255,.06)}
+.plan-tab2[aria-pressed="true"]{background:var(--lime);border-color:var(--lime);color:var(--ink)}
+/* tabel detail di tab Kaki pada workspace 02 */
+table.spec{width:100%;border-collapse:collapse;font:500 11.5px/1.45 var(--f-body);color:#dfe6de}
+table.spec th,table.spec td{padding:7px 8px;border-bottom:1px solid var(--line-soft);text-align:left;vertical-align:top}
+table.spec th{font:600 8.5px/1.3 var(--f-mono);letter-spacing:.11em;text-transform:uppercase;color:var(--mist-2)}
+table.spec td:last-child{font:600 11px/1.35 var(--f-mono);color:var(--lime);white-space:nowrap;text-align:right}
 </style>
 
+<section class="ws" id="ws01" data-ws="ws01" aria-label="Workspace 01 · Rumah genset wiremesh">
 <div class="app">
   <main class="stage" id="stage">
     <canvas id="gl" tabindex="0" aria-label="Model 3D genset interaktif. Seret untuk memutar, gulir atau cubit untuk zoom, tombol panah juga memutar."></canvas>
@@ -293,6 +336,10 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
         </div>
       </div>
       <div class="hud-nav">
+      <div class="views ws-switch" role="group" aria-label="Pilih workspace">
+        <button class="vbtn ws-switch" type="button" data-ws-go="ws01" aria-pressed="true" title="Rumah genset wiremesh"><span class="n">01</span>Rumah genset</button>
+        <button class="vbtn ws-switch" type="button" data-ws-go="ws02" aria-pressed="false" title="Desain panel pagar wiremesh 160 × 120 cm"><span class="n">02</span>Panel pagar</button>
+      </div>
       <div class="views" role="group" aria-label="Sudut kamera">
         <button class="vbtn" data-view="front" aria-pressed="false" type="button">Depan</button>
         <button class="vbtn" data-view="back" aria-pressed="false" type="button">Belakang</button>
@@ -329,6 +376,16 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
       <button class="tab" role="tab" data-tab="labels" id="t-labels" aria-selected="false" tabindex="-1" type="button">Teks</button>
     </div>
     <div class="pages">
+      <div class="ws-card">
+        <div class="ws-card-head"><span class="ws-card-badge">Workspace 01</span><b>Rumah genset wiremesh</b></div>
+        <p>Rumah pagar wiremesh 4,50 × 2,50 m berisi genset soundproof, dua pintu geser, atap spandek, dan dinding panel terpisah. Ukurannya dapat diubah di tab <em>Rumah</em>.</p>
+        <div class="ws-dims">
+          <div><small>Modul luar</small><b id="ws01Outer">4,50 × 2,50 m</b></div>
+          <div><small>Puncak</small><b id="ws01Top">3,10 m</b></div>
+          <div><small>Pintu / daun</small><b id="ws01Gate">2,12 m</b></div>
+        </div>
+        <div class="btnrow"><button class="btn" id="ws01Go02" type="button">Buka desain panel pagar (02) →</button></div>
+      </div>
       <div class="page" data-page="doors" role="tabpanel">
         <p class="lead">Pintu kanopi berayun pada engsel, sedangkan pintu rumah bergeser ke samping. Klik pintu pada tampilan 3D untuk membuka atau menutupnya.</p>
         <ul class="rows" id="doorList"></ul>
@@ -486,6 +543,200 @@ h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--li
     </div>
   </section>
 </div>
+</section>
+
+<section class="ws" id="ws02" data-ws="ws02" hidden aria-label="Workspace 02 · Desain panel pagar wiremesh">
+<div class="app">
+  <main class="stage" id="fStage">
+    <canvas id="fGl" tabindex="0" aria-label="Model 3D panel pagar wiremesh 160 × 120 cm dengan kaki segitiga 30 cm. Seret untuk memutar, gulir atau cubit untuk zoom."></canvas>
+    <div class="hud">
+      <div class="brand">
+        <span class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 5h16v9H4z"/><path d="M4 9.5h16M4 14h16M9.3 5v9M14.6 5v9"/><path d="M6 14l-1.5 6M18 14l1.5 6"/><path d="M4.2 17h15.6"/>
+          </svg>
+          <i></i>
+        </span>
+        <div class="brand-txt">
+          <h1>Panel pagar wiremesh</h1>
+          <p id="fSub">Panel 160 × 120 cm · jaring 10 × 10 cm · kaki segitiga 30 cm</p>
+        </div>
+      </div>
+      <div class="hud-nav">
+      <div class="views ws-switch" role="group" aria-label="Pilih workspace">
+        <button class="vbtn ws-switch" type="button" data-ws-go="ws01" aria-pressed="false" title="Rumah genset wiremesh"><span class="n">01</span>Rumah genset</button>
+        <button class="vbtn ws-switch" type="button" data-ws-go="ws02" aria-pressed="true" title="Desain panel pagar wiremesh 160 × 120 cm"><span class="n">02</span>Panel pagar</button>
+      </div>
+      <div class="views" role="group" aria-label="Sudut kamera panel">
+        <button class="vbtn" data-fview="front" aria-pressed="false" type="button">Depan</button>
+        <button class="vbtn" data-fview="back" aria-pressed="false" type="button">Belakang</button>
+        <button class="vbtn" data-fview="side" aria-pressed="false" type="button">Sisi</button>
+        <button class="vbtn" data-fview="top" aria-pressed="false" type="button">Atas</button>
+        <button class="vbtn" data-fview="foot" aria-pressed="false" type="button">Kaki</button>
+        <button class="vbtn" data-fview="iso" aria-pressed="true" type="button">3D</button>
+      </div>
+      <div class="tools">
+        <button class="vbtn" id="fPlanOpen" type="button" title="Buka lembar gambar panel" aria-label="Buka lembar gambar panel" aria-haspopup="dialog" aria-controls="fPlanModal" aria-expanded="false">Denah 2D</button>
+      </div>
+      </div>
+    </div>
+    <div class="hint">Seret untuk memutar · gulir atau cubit untuk zoom<br>Shift + seret atau dua jari untuk menggeser · klik kaki untuk menyorotnya</div>
+  </main>
+
+  <section class="panel" aria-label="Kontrol panel pagar">
+    <div class="tabs" role="tablist">
+      <button class="ftab" role="tab" data-fpage="panel" id="ft-panel" aria-selected="true" type="button">Panel</button>
+      <button class="ftab" role="tab" data-fpage="foot" id="ft-foot" aria-selected="false" tabindex="-1" type="button">Kaki</button>
+      <button class="ftab" role="tab" data-fpage="view" id="ft-view" aria-selected="false" tabindex="-1" type="button">Tampilan</button>
+    </div>
+    <div class="pages">
+      <div class="ws-card">
+        <div class="ws-card-head"><span class="ws-card-badge">Workspace 02</span><b>Panel pagar wiremesh</b></div>
+        <p>Satu panel pagar berdiri sendiri dengan dua kaki segitiga. Semua ukuran dapat diubah di bawah; model 3D dan lembar 2D selalu ikut.</p>
+        <div class="ws-dims">
+          <div><small>Lebar</small><b id="fDimWOut">160 cm</b></div>
+          <div><small>Tinggi</small><b id="fDimHOut">120 cm</b></div>
+          <div><small>Kaki</small><b id="fDimFOut">30 cm</b></div>
+        </div>
+        <div class="btnrow"><button class="btn" id="ws02Go01" type="button">← Kembali ke rumah genset (01)</button></div>
+      </div>
+
+      <div class="fpage" data-fpage="panel" role="tabpanel">
+        <p class="lead">Panel persegi dengan rangka pipa, isi jaring wiremesh, dan dua kaki segitiga yang dilipat ke belakang. Bukaan standar panel 160 × 120 cm.</p>
+        <h3>Ukuran panel</h3>
+        <div class="sliderrow"><label for="fDimW">Lebar panel</label><output id="fDimWVal" for="fDimW">160 cm</output></div>
+        <input type="range" id="fDimW" min="80" max="240" step="5" value="160">
+        <div class="sliderrow"><label for="fDimH">Tinggi panel</label><output id="fDimHVal" for="fDimH">120 cm</output></div>
+        <input type="range" id="fDimH" min="80" max="200" step="5" value="120">
+        <div class="sliderrow"><label for="fDimF">Kedalaman kaki</label><output id="fDimFVal" for="fDimF">30 cm</output></div>
+        <input type="range" id="fDimF" min="15" max="60" step="5" value="30">
+        <div class="btnrow"><button class="btn" id="fDimReset" type="button">Ukuran standar (160 × 120 · 30)</button></div>
+        <p class="note">Lebar dan tinggi diukur dari sisi luar rangka, kedalaman kaki diukur mendatar dari muka panel ke ujung kaki. Jarak mata jaring, profil rangka, dan alas kaki diatur di tab <em>Kaki</em>.</p>
+        <h3>Mata jaring</h3>
+        <div class="sliderrow"><label for="fMeshP">Jarak kawat</label><output id="fMeshPVal" for="fMeshP">10 cm</output></div>
+        <input type="range" id="fMeshP" min="5" max="20" step="1" value="10">
+        <div class="btnrow">
+          <button class="btn fpreset" data-mesh="5" aria-pressed="false" type="button">5 cm</button>
+          <button class="btn fpreset" data-mesh="10" aria-pressed="true" type="button">10 cm</button>
+          <button class="btn fpreset" data-mesh="15" aria-pressed="false" type="button">15 cm</button>
+        </div>
+      </div>
+
+      <div class="fpage" data-fpage="foot" role="tabpanel" hidden>
+        <p class="lead">Dua kaki segitiga menopang panel: satu batang mendatar ke belakang sepanjang kedalaman kaki, lalu satu batang miring dari ujungnya ke tepi atas rangka.</p>
+        <h3>Kedalaman kaki</h3>
+        <div class="sliderrow"><label for="fDimF2">Kedalaman mendatar</label><output id="fDimF2Val" for="fDimF2">30 cm</output></div>
+        <input type="range" id="fDimF2" min="15" max="60" step="5" value="30">
+        <div class="btnrow" style="margin-top:0">
+          <button class="btn fpreset" data-foot="20" aria-pressed="false" type="button">20 cm</button>
+          <button class="btn fpreset" data-foot="30" aria-pressed="true" type="button">30 cm</button>
+          <button class="btn fpreset" data-foot="45" aria-pressed="false" type="button">45 cm</button>
+        </div>
+        <h3>Batang kaki</h3>
+        <table class="spec">
+          <thead><tr><th>Batang</th><th>Profil</th></tr></thead>
+          <tbody>
+            <tr><td>Kaki mendatar (per kaki)</td><td id="fSpecFlat">30 cm</td></tr>
+            <tr><td>Kaki miring</td><td id="fSpecDiag">—</td></tr>
+            <tr><td>Sudut kaki</td><td id="fSpecAng">—</td></tr>
+            <tr><td>Beban per kaki</td><td id="fSpecLoad">—</td></tr>
+          </tbody>
+        </table>
+        <h3>Profil dan alas</h3>
+        <div class="sliderrow"><label for="fPost">Profil rangka</label><output id="fPostVal" for="fPost">40 × 40 mm</output></div>
+        <input type="range" id="fPost" min="25" max="60" step="5" value="40">
+        <div class="sliderrow"><label for="fFoot">Profil kaki</label><output id="fFootVal" for="fFoot">30 × 30 mm</output></div>
+        <input type="range" id="fFoot" min="20" max="50" step="5" value="30">
+        <ul class="rows">
+          <li><div class="row-txt"><span class="row-name">Alas kaki (pelat / sepatu)</span><span class="row-sub">lebar 6 cm · menapak lantai</span></div><label class="sw"><input type="checkbox" id="fPad" checked aria-label="Alas kaki"><span class="sw-ui"></span></label></li>
+          <li><div class="row-txt"><span class="row-name">Hubung silang antar kaki</span><span class="row-sub">batang mendatar di lantai</span></div><label class="sw"><input type="checkbox" id="fTie" checked aria-label="Hubung silang antar kaki"><span class="sw-ui"></span></label></li>
+          <li><div class="row-txt"><span class="row-name">Ujung miring di tepi atas</span><span class="row-sub">pangkuan ke batang atas</span></div><label class="sw"><input type="checkbox" id="fClamp" checked aria-label="Bracket ujung miring"><span class="sw-ui"></span></label></li>
+          <li><div class="row-txt"><span class="row-name">Pelat segitiga pada kaki</span><span class="row-sub">seperti foto · pengaku bidang</span></div><label class="sw"><input type="checkbox" id="fPlate" aria-label="Pelat segitiga pada kaki"><span class="sw-ui"></span></label></li>
+        </ul>
+      </div>
+
+      <div class="fpage" data-fpage="view" role="tabpanel" hidden>
+        <h3>Tampilan</h3>
+        <ul class="rows">
+          <li><span class="row-name">Jaring wiremesh</span><label class="sw"><input type="checkbox" id="fMeshOn" checked aria-label="Jaring wiremesh"><span class="sw-ui"></span></label></li>
+          <li><span class="row-name">Garis tepi rangka</span><label class="sw"><input type="checkbox" id="fEdges" aria-label="Garis tepi rangka"><span class="sw-ui"></span></label></li>
+          <li><span class="row-name">Ukuran di layar</span><label class="sw"><input type="checkbox" id="fDims" checked aria-label="Ukuran di layar"><span class="sw-ui"></span></label></li>
+          <li><span class="row-name">Kotak lantai</span><label class="sw"><input type="checkbox" id="fGrid" checked aria-label="Kotak lantai"><span class="sw-ui"></span></label></li>
+        </ul>
+        <h3>Warna</h3>
+        <div class="btnrow" style="margin-top:0">
+          <button class="btn fpreset" data-paint="galv" aria-pressed="true" type="button">Galvanis</button>
+          <button class="btn fpreset" data-paint="dark" aria-pressed="false" type="button">Hitam doff</button>
+          <button class="btn fpreset" data-paint="green" aria-pressed="false" type="button">Hijau genset</button>
+        </div>
+        <h3>Cahaya</h3>
+        <div class="sliderrow"><label for="fSun">Kekuatan matahari</label><output id="fSunVal" for="fSun">70%</output></div>
+        <input type="range" id="fSun" min="20" max="130" step="5" value="70">
+        <h3>Bagikan</h3>
+        <div class="btnrow" style="margin-top:0"><button class="btn" id="fShare" type="button">Salin tautan tampilan</button></div>
+        <span class="sr" id="fShareStatus" role="status" aria-live="polite"></span>
+        <p class="note">Tautan menyimpan ukuran panel, kaki, mata jaring, warna, dan sudut kamera. Angka pada lembar 2D selalu mengikuti ukuran yang aktif.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="plan-modal" id="fPlanModal" hidden>
+  <div class="plan-backdrop" data-fplan-close aria-hidden="true"></div>
+  <section class="plan-window" role="dialog" aria-modal="true" aria-labelledby="fPlanTitle">
+    <header class="plan-head">
+      <div class="plan-brand">
+        <span class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 5h16v9H4z"/><path d="M4 9.5h16M4 14h16M9.3 5v9M14.6 5v9"/><path d="M6 14l-1.5 6M18 14l1.5 6"/><path d="M4.2 17h15.6"/>
+          </svg>
+          <i></i>
+        </span>
+        <div class="brand-txt">
+          <h2 id="fPlanTitle">Gambar Panel</h2>
+          <p>Panel pagar wiremesh · lembar detail</p>
+        </div>
+      </div>
+      <nav class="plan-view-tabs" id="fPlanTabs" aria-label="Pilih gambar panel">
+        <button class="plan-tab2" data-fplan-view="sheet" aria-pressed="true" type="button">Lembar</button>
+        <button class="plan-tab2" data-fplan-view="front" aria-pressed="false" type="button">Depan</button>
+        <button class="plan-tab2" data-fplan-view="side" aria-pressed="false" type="button">Samping</button>
+        <button class="plan-tab2" data-fplan-view="plan" aria-pressed="false" type="button">Denah</button>
+        <button class="plan-tab2" data-fplan-view="foot" aria-pressed="false" type="button">Kaki</button>
+      </nav>
+      <div class="plan-actions">
+        <button class="plan-action" id="fPlanDownload" type="button" title="Simpan gambar vektor SVG">Unduh SVG</button>
+        <button class="plan-action" id="fPlanPrint" type="button" title="Cetak lembar panel">Cetak</button>
+        <button class="plan-action pri" id="fPlanClose" type="button" aria-label="Tutup gambar panel">Tutup</button>
+      </div>
+    </header>
+    <div class="plan-layout">
+      <main class="plan-canvas-area" aria-label="Gambar panel pagar wiremesh">
+        <svg class="plan-paper" id="fPlanSvg" viewBox="0 0 1600 1200" role="img" aria-label="Lembar gambar panel pagar wiremesh"></svg>
+      </main>
+      <aside class="plan-side" aria-label="Detail gambar panel">
+        <section class="plan-card">
+          <div class="plan-card-title"><strong id="fPlanCurrentView">Lembar 4 gambar</strong><span id="fPlanBadge">V1 · Panel 160 × 120</span></div>
+          <p class="plan-description" id="fPlanDescription">Tampak depan, tampak samping, denah, dan detail kaki dalam satu lembar.</p>
+        </section>
+        <section class="plan-card">
+          <h3>Ukuran utama</h3>
+          <div class="plan-metrics" id="fPlanMetrics"></div>
+        </section>
+        <section class="plan-card">
+          <h3>Kaki segitiga</h3>
+          <p class="plan-description" id="fPlanFootNote">Dua kaki segitiga, masing-masing dengan batang mendatar dan batang miring.</p>
+        </section>
+        <section class="plan-card">
+          <h3>Catatan lapangan</h3>
+          <ul class="plan-notes" id="fPlanNotes"></ul>
+        </section>
+        <p class="plan-warning">GAMBAR KONSEP · Untuk koordinasi ukuran dan tata letak. Bukan gambar kerja struktur, pengelasan, atau perhitungan beban angin.</p>
+      </aside>
+    </div>
+  </section>
+</div>
+</section>
 
 <script src="vendor/three.min.js"></script>
 <script>
@@ -2231,7 +2482,14 @@ function buildShelter(T, opts) {
     // Sisakan ruang untuk dinding panel di luar pagar dan rumah dengan dimensi lebih besar.
     return 1.8 * Math.max(1, Math.sqrt(dims.W * dims.W + dims.D * dims.D) / 5.68);
   }
+  function syncWsCard() {
+    var a = $('#ws01Outer'), b = $('#ws01Top'), c = $('#ws01Gate');
+    if (a) a.textContent = fmt(dims.W + 0.5) + ' × ' + fmt(dims.D + 0.5) + ' m';
+    if (b) b.textContent = fmt((shelter && shelter.topY) ? shelter.topY : dims.H) + ' m';
+    if (c) c.textContent = fmt2(shelterGateLeafWidth(dims.W)) + ' m';
+  }
   function applyGround() {
+    syncWsCard();
     slab.visible = !shelterOn; catcher.visible = !shelterOn; gridObj.visible = !shelterOn;
     var hShow = (shelter && shelter.topY) ? shelter.topY : dims.H;
     $('#sub').textContent = shelterOn
@@ -3275,6 +3533,13 @@ function buildShelter(T, opts) {
     s += plPx(x1, y + 16, 'DITURUNKAN DARI KONTROL MODEL', 8.5, 'end', '#7f9090', 500, 'mono', '.02em');
     return s;
   }
+  /* Perkakas gambar dipakai bersama oleh lembar workspace 02 (panel pagar). */
+  window.PlanKit = {
+    PL: PL, plPx: plPx, plT: plT, plFit: plFit, plDim: plDim, plArrow: plArrow, plGround: plGround,
+    plLevel: plLevel, plDefs: plDefs, plCard: plCard, plBody: plBody, plKop: plKop, plStamp: plStamp,
+    plWeldMark: plWeldMark, planEsc: planEsc, plNum: plNum, planCM: planCM,
+    SHEET_W: SHEET_W, SHEET_H: SHEET_H
+  };
   function renderSheet(g, caption, versionText) {
     var W = SHEET_W, H = SHEET_H;
     var html = '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#0d1517"/>' + plKop(W, g, versionText);
@@ -3517,6 +3782,7 @@ function buildShelter(T, opts) {
     var q = [];
     function add(k, v) { q.push(k + '=' + encodeURIComponent(v)); }
     add('v', SHARE_KEY);
+    add('ws', 'ws01');
     add('cam', [view.az, view.pol, view.r, view.t.x, view.t.y, view.t.z].map(function (n) { return n.toFixed(3); }).join(','));
     add('dims', [dims.W, dims.D, dims.H].join(','));
     add('sun', Math.round(sunLevel * 100) / 100);
@@ -3662,4 +3928,1166 @@ function buildShelter(T, opts) {
 
 </script>
 
+<script>
+/* ==================================================================
+   WORKSPACE 02 · PANEL PAGAR WIREMESH
+   Satu panel 160 × 120 cm dengan rangka pipa, isi jaring 10 × 10 cm,
+   dan dua kaki segitiga 30 cm. Model 3D, kontrol, tautan bagikan, dan
+   lembar gambar 2D memakai satu sumber ukuran (F.dims).
+   ================================================================== */
+(function () {
+  'use strict';
+  var T = window.THREE;
+  var $ = function (q, r) { return (r || document).querySelector(q); };
+  var $$ = function (q, r) { return Array.prototype.slice.call((r || document).querySelectorAll(q)); };
+  var PV = window.PlanKit;
+  if (!T || !PV) return;
+
+  /* ---------- keadaan ---------- */
+  var F = {
+    dims: { W: 1.60, H: 1.20, D: 0.30 },   // lebar, tinggi, kedalaman kaki (meter)
+    post: 0.040, foot: 0.030, mesh: 0.10,
+    pad: true, tie: true, clamp: true, plate: false,
+    meshOn: true, edges: false, dimsOn: true, gridOn: true,
+    paint: 'galv', sun: 0.70
+  };
+  F.version = 'V1';
+  var fmt2 = function (v) { return v.toFixed(2).replace('.', ','); };
+  var fmt3 = function (v) { return v.toFixed(3).replace('.', ','); };
+  var cm = function (v) { return Math.round(v * 100); };
+  var cmStr = function (v) { return cm(v) + ' cm'; };
+  var clampN = function (n, lo, hi, fb) { return isFinite(n) ? Math.max(lo, Math.min(hi, n)) : fb; };
+  var DEG = 180 / Math.PI;
+
+  function geom() {
+    var W = F.dims.W, H = F.dims.H, D = F.dims.D;
+    var pw = F.post, fw = F.foot, tw = pw * 0.62;
+    var ps = Math.min(pw, fw);                  // profil diagonal tidak lebih tebal dari batang kaki
+    var zf = -(pw / 2 + 0.002);                 // muka jaring, sedikit di belakang bidang rangka depan
+    var zfB = 0.002 + pw / 2;
+    var xl = -(W / 2 - pw / 2), xr = W / 2 - pw / 2;
+    var zTop = (fw / 2 + 0.002);
+    var slant = Math.atan2(H - pw, D) ;
+    var diagLen = Math.sqrt(D * D + (H - pw) * (H - pw));
+    var topY = H - pw / 2;
+    return {
+      W: W, H: H, D: D, pw: pw, fw: fw, ps: ps, tw: tw,
+      xl: xl, xr: xr, zf: zf, zfB: zfB, zTop: zTop,
+      slant: slant, slantDeg: slant * DEG, diagLen: diagLen, topY: topY,
+      openW: W - 2 * pw, openH: H - 2 * pw,
+      meshNx: Math.max(2, Math.round((W - 2 * pw) / F.mesh)),
+      meshNy: Math.max(2, Math.round((H - 2 * pw) / F.mesh)),
+      pitchX: (W - 2 * pw) / Math.max(2, Math.round((W - 2 * pw) / F.mesh)),
+      pitchY: (H - 2 * pw) / Math.max(2, Math.round((H - 2 * pw) / F.mesh)),
+      mass: W * H * 13.5,
+      mesh: F.mesh,
+      wireR: Math.max(0.0015, Math.min(0.0022, F.mesh * 0.02))
+    };
+  }
+
+  /* ---------- renderer ---------- */
+  var stage = $('#fStage'), canvas = $('#fGl');
+  if (!stage || !canvas) return;
+  var renderer;
+  try {
+    renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  } catch (e) {
+    stage.insertAdjacentHTML('beforeend', '<p class="nogl">Halaman ini membutuhkan WebGL untuk menggambar panel 3D. Coba browser atau perangkat lain.</p>');
+    return;
+  }
+  renderer.outputEncoding = T.sRGBEncoding;
+  renderer.toneMapping = T.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
+  renderer.setClearColor(0x000000, 0);
+
+  var scene = new T.Scene();
+  var camera = new T.PerspectiveCamera(34, 1, 0.05, 60);
+
+  (function env() {
+    var pm = new T.PMREMGenerator(renderer);
+    var es = new T.Scene();
+    var geo = new T.SphereGeometry(20, 32, 16);
+    var pos = geo.attributes.position, cols = new Float32Array(pos.count * 3);
+    for (var i = 0; i < pos.count; i++) {
+      var y = pos.getY(i) / 20, k = Math.max(0, (y + 1) / 2);
+      var g1 = 0.06 + 0.5 * Math.pow(k, 2.2);
+      var c = new T.Color().setRGB(g1 * 0.95, g1, g1 * 1.05);
+      cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
+    }
+    geo.setAttribute('color', new T.BufferAttribute(cols, 3));
+    es.add(new T.Mesh(geo, new T.MeshBasicMaterial({ vertexColors: true, side: T.BackSide })));
+    [[0, 12, 4, 10, 2.6, [1, 0.99, 0.94]], [-14, 6, 8, 2.6, 7, [0.82, 0.93, 0.98]], [14, 5, -6, 2.4, 6, [0.9, 0.98, 0.86]]].forEach(function (p) {
+      var m = new T.Mesh(new T.PlaneGeometry(p[3], p[4]), new T.MeshBasicMaterial({ color: new T.Color(p[5][0], p[5][1], p[5][2]).multiplyScalar(1.9), side: T.DoubleSide }));
+      m.position.set(p[0], p[1], p[2]); m.lookAt(0, 0, 0); es.add(m);
+    });
+    scene.environment = pm.fromScene(es, 0.03).texture;
+    pm.dispose();
+  })();
+
+  var hemi = new T.HemisphereLight(0xe9f4ff, 0x1b2526, 0.34); scene.add(hemi);
+  var key = new T.DirectionalLight(0xfff4e2, 1.5);
+  key.position.set(2.4, 3.6, 3.2); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  var sc = key.shadow.camera; sc.left = -2.6; sc.right = 2.6; sc.top = 2.6; sc.bottom = -2.6; sc.near = 0.5; sc.far = 12;
+  key.shadow.bias = -0.0006; key.shadow.normalBias = 0.012;
+  scene.add(key);
+  var fill = new T.DirectionalLight(0xdfeeff, 0.24); fill.position.set(-3, 2, -2); scene.add(fill);
+  var rim = new T.DirectionalLight(0xc6f75c, 0.3); rim.position.set(-3.4, 2.6, 3.4); scene.add(rim);
+
+  function applySun() {
+    var s = F.sun;
+    key.intensity = 1.5 * s;
+    hemi.intensity = 0.34 * Math.max(0.4, s);
+    fill.intensity = 0.24 * Math.max(0.4, s);
+    rim.intensity = 0.3 * Math.max(0.45, s);
+    var envI = 0.3 + 0.55 * s;
+    scene.traverse(function (o) {
+      if (!o.material) return;
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) {
+        if (m && m.isMeshStandardMaterial) m.envMapIntensity = envI;
+      });
+    });
+    kick(30);
+  }
+
+  /* lantai + kotak bantu */
+  var floorM = new T.MeshStandardMaterial({ color: new T.Color(0x2b3436).convertSRGBToLinear(), roughness: 0.86, metalness: 0.04 });
+  var floor = new T.Mesh(new T.PlaneGeometry(16, 16), floorM);
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  var gridGeo = (function () {
+    var p = [], s = 4, n = 20, st = s / n;
+    for (var i = 0; i <= n; i++) { var v = -s / 2 + i * st; p.push(v, 0, -s / 2, v, 0, s / 2, -s / 2, 0, v, s / 2, 0, v); }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(p, 3));
+    return g;
+  })();
+  var gridMat = new T.LineBasicMaterial({ color: 0x9fd9c4, transparent: true, opacity: 0.22 });
+  var grid = new T.LineSegments(gridGeo, gridMat);
+  grid.position.y = 0.001; scene.add(grid);
+
+  /* ---------- bahan ---------- */
+  var PAINTS = {
+    galv: { frame: 0xb3bcc0, mesh: 0xcdd5d8, foot: 0x9aa4a8, rough: 0.4, metal: 0.82 },
+    dark: { frame: 0x2b3033, mesh: 0x3d4549, foot: 0x272b2e, rough: 0.55, metal: 0.45 },
+    green: { frame: 0x1d6b3a, mesh: 0x2c8a4c, foot: 0x144a29, rough: 0.5, metal: 0.4 }
+  };
+  function col(h) { return new T.Color(h).convertSRGBToLinear(); }
+  var mats = {};
+  function buildMats() {
+    Object.keys(PAINTS).forEach(function (k) {
+      if (mats[k]) return;
+      var p = PAINTS[k];
+      mats[k] = {
+        frame: new T.MeshStandardMaterial({ color: col(p.frame), roughness: p.rough, metalness: p.metal }),
+        mesh: new T.MeshStandardMaterial({ color: col(p.mesh), roughness: p.rough + 0.08, metalness: p.metal, transparent: true, opacity: 0.96 }),
+        foot: new T.MeshStandardMaterial({ color: col(p.foot), roughness: p.rough + 0.06, metalness: p.metal }),
+        pad: new T.MeshStandardMaterial({ color: col(0x3a4145), roughness: 0.85, metalness: 0.2 })
+      };
+    });
+  }
+  buildMats();
+  function M() { return mats[F.paint]; }
+
+  /* ---------- geometri panel ---------- */
+  var root = new T.Group(); root.name = 'panel'; scene.add(root);
+  var parts = {};          // part -> Group (untuk sorot)
+  var edgeLines = [], dimLines = [], meshMeshes = [];
+
+  function addPart(id) {
+    var g = new T.Group(); g.userData.part = id; parts[id] = g; root.add(g); return g;
+  }
+  function box(parent, w, h, d, m, x, y, z, rx) {
+    var me = new T.Mesh(new T.BoxGeometry(w, h, d), m);
+    me.position.set(x, y, z); if (rx) me.rotation.x = rx;
+    me.castShadow = true; me.receiveShadow = true; parent.add(me); return me;
+  }
+  function build() {
+    // bersihkan geometri dan bahan lama sebelum membangun ulang
+    root.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+    while (root.children.length) root.remove(root.children[0]);
+    Object.keys(parts).forEach(function (k) { delete parts[k]; });
+    edgeLines.length = 0; dimLines.length = 0; meshMeshes.length = 0;
+    while (dimG.children.length) {
+      var old = dimG.children.pop();
+      if (old.geometry) old.geometry.dispose();
+      if (old.material) { old.material.map && old.material.map.dispose(); old.material.dispose(); }
+    }
+    var g = geom(), m = M();
+
+    /* --- rangka panel --- */
+    var frameG = addPart('fFrame');
+    var topY = g.H - g.pw / 2;
+    box(frameG, g.W, g.pw, g.pw, m.frame, 0, topY, 0);
+    box(frameG, g.W, g.pw, g.pw, m.frame, 0, g.pw / 2, 0);
+    box(frameG, g.pw, g.openH, g.pw, m.frame, g.xl, g.pw + g.openH / 2, 0);
+    box(frameG, g.pw, g.openH, g.pw, m.frame, g.xr, g.pw + g.openH / 2, 0);
+    /* profil penguat tengah: satu batang mendatar tipis di tengah tinggi */
+    if (g.H >= 1.0) box(frameG, g.openW, g.pw * 0.55, g.pw * 0.55, m.frame, 0, g.H * 0.5, 0);
+
+    /* --- jaring: batang kawat individual supaya terlihat seperti foto --- */
+    var meshG = addPart('fMesh');
+    var r = g.wireR;
+    var wz0 = g.zf - r, wz1 = g.zf + r;
+    var vLines = g.meshNx + 1, hLines = g.meshNy + 1;
+    for (var i = 0; i < vLines; i++) {
+      var x = g.xl + g.pw / 2 + (g.openW) * (i / (vLines - 1));
+      var v = new T.Mesh(new T.BoxGeometry(r * 2, g.openH + 0.004, r * 2), m.mesh);
+      v.position.set(x, g.pw + g.openH / 2, g.zf); v.castShadow = false; v.receiveShadow = true;
+      meshG.add(v); meshMeshes.push(v);
+    }
+    for (var j = 0; j < hLines; j++) {
+      var y = g.pw + g.openH * (j / (hLines - 1));
+      var hbar = new T.Mesh(new T.BoxGeometry(g.openW + 0.004, r * 2, r * 2), m.mesh);
+      hbar.position.set(0, Math.min(g.H - g.pw, Math.max(g.pw, y)), g.zf); hbar.receiveShadow = true;
+      meshG.add(hbar); meshMeshes.push(hbar);
+    }
+
+    /* --- kaki segitiga (dua) --- */
+    var footG = addPart('fFoot');
+    var fw = g.fw, ps = g.ps;
+    [g.xl, g.xr].forEach(function (x, idx) {
+      var side = idx === 0 ? 'footL' : 'footR';
+      var sg = addPart(side); footG.add(sg);
+      // menempel di sisi luar rangka
+      var sx = x + (idx === 0 ? -1 : 1) * (g.pw * 0.25);
+      // batang mendatar: dari muka bawah panel ke belakang sepanjang D
+      box(sg, fw, fw, g.D, m.foot, sx, fw / 2, -g.D / 2);
+      // batang miring: dari ujung belakang kaki ke batang atas rangka
+      var x0 = 0, y0 = fw / 2, x1 = 0, z0 = -g.D, z1 = g.zTop;
+      var dy = g.H - fw / 2 - fw / 2, dz = z0 - z1;
+      var len = Math.sqrt(dy * dy + dz * dz);
+      var ang = Math.atan2(dz, dy);
+      var diag = new T.Mesh(new T.BoxGeometry(ps, len, ps), m.foot);
+      diag.position.set(sx, y0 + dy / 2, (z0 + z1) / 2);
+      diag.rotation.x = -ang;
+      diag.castShadow = true; diag.receiveShadow = true;
+      sg.add(diag);
+      // sepatu/alas di kedua ujung kaki
+      if (F.pad) {
+        box(sg, fw * 1.7, 0.012, 0.06, m.pad, sx, 0.006, -g.D + 0.03);
+        box(sg, fw * 1.9, 0.010, 0.06, m.pad, sx, 0.005, 0.03);
+      }
+      // pelat segitiga pengaku (opsional, seperti foto)
+      if (F.plate) {
+        var shp = new T.Shape();
+        shp.moveTo(0, 0);
+        shp.lineTo(g.D, 0);
+        shp.lineTo(0, g.H - fw / 2);
+        shp.closePath();
+        var pg = new T.ExtrudeGeometry(shp, { depth: Math.max(0.004, ps * 0.22), bevelEnabled: false });
+        var plate = new T.Mesh(pg, m.foot);
+        plate.rotation.y = Math.PI / 2;
+        plate.position.set(sx, fw / 2, 0);
+        plate.castShadow = true; plate.receiveShadow = true;
+        sg.add(plate);
+      }
+      // pangkuan ujung miring ke batang atas
+      if (F.clamp) {
+        box(sg, ps * 1.5, ps * 1.15, ps * 1.9, m.foot, sx, g.H - fw / 2, g.zTop);
+      }
+    });
+    // hubung silang antar kaki di lantai (opsional)
+    if (F.tie && g.D >= 0.2) {
+      var tie = new T.Mesh(new T.BoxGeometry(g.W - g.pw, ps * 0.8, ps * 0.8), m.foot);
+      tie.position.set(0, fw * 0.45, -g.D + ps);
+      tie.castShadow = true; sg_tie_add(tie);
+    }
+    function sg_tie_add(o) { footG.add(o); }
+
+    /* garis tepi */
+    if (F.edges) {
+      root.traverse(function (o) {
+        if (!o.isMesh || !o.geometry) return;
+        var l = new T.LineSegments(new T.EdgesGeometry(o.geometry, 30), new T.LineBasicMaterial({ color: 0x0d1416, transparent: true, opacity: 0.6 }));
+        l.position.copy(o.position); l.rotation.copy(o.rotation); l.userData.edge = true;
+        o.parent.add(l); edgeLines.push(l);
+      });
+    }
+
+    /* garis bantu ukuran */
+    dimG.visible = F.dimsOn;
+    if (F.dimsOn) buildDimLines(g);
+
+    meshG.visible = F.meshOn;
+    buildLabels(g);
+    kick(60);
+    syncControls();
+  }
+
+  /* ---------- garis ukur 3D (sprites) ---------- */
+  var dimG = new T.Group(); scene.add(dimG);
+  function dimLabel(txt, x, y, z, wScale) {
+    var c = document.createElement('canvas'); c.width = 256; c.height = 96;
+    var g2 = c.getContext('2d');
+    g2.fillStyle = 'rgba(10,16,18,.82)'; g2.fillRect(0, 0, 256, 96);
+    g2.strokeStyle = 'rgba(198,247,92,.55)'; g2.lineWidth = 4; g2.strokeRect(2, 2, 252, 92);
+    g2.fillStyle = '#eaf3dd'; g2.font = '600 46px "JetBrains Mono",monospace'; g2.textAlign = 'center'; g2.textBaseline = 'middle';
+    g2.fillText(txt, 128, 50);
+    var tex = new T.CanvasTexture(c); tex.encoding = T.sRGBEncoding;
+    var sp = new T.Sprite(new T.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+    var sc = wScale || 1;
+    sp.scale.set(0.30 * sc, 0.112 * sc, 1); sp.position.set(x, y, z); sp.renderOrder = 5;
+    dimG.add(sp); dimLines.push(sp); return sp;
+  }
+  function tickLine(a, b) {
+    var geo = new T.BufferGeometry().setFromPoints([a, b]);
+    var l = new T.Line(geo, new T.LineBasicMaterial({ color: 0xc6f75c, transparent: true, opacity: 0.85, depthTest: false }));
+    l.renderOrder = 4; dimG.add(l); dimLines.push(l); return l;
+  }
+  function buildDimLines(g) {
+    var y0 = -0.06, z = g.zf - 0.02;
+    var V = function (x, y, zz) { return new T.Vector3(x, y, zz); };
+    // lebar
+    var yb = -0.05;
+    tickLine(V(-g.W / 2, yb, z), V(g.W / 2, yb, z));
+    tickLine(V(-g.W / 2, yb - 0.03, z), V(-g.W / 2, 0.02, z));
+    tickLine(V(g.W / 2, yb - 0.03, z), V(g.W / 2, 0.02, z));
+    dimLabel(cmStr(g.W), 0, yb - 0.03, z);
+    // tinggi
+    var xd = g.W / 2 + 0.16;
+    tickLine(V(xd, 0, z), V(xd, g.H, z));
+    tickLine(V(xd - 0.04, 0, z), V(g.W / 2 - g.pw, 0, z));
+    dimLabel(cmStr(g.H), xd + 0.13, g.H / 2, z);
+    if (F.dimsOn !== 'wonly') {
+      // kedalaman kaki
+      var zz = -g.D;
+      tickLine(V(g.xl - 0.02, 0.02, 0), V(g.xl - 0.02, 0.02, zz));
+      dimLabel(cmStr(g.D), g.xl - 0.22, 0.06, zz / 2, 0.62);
+    }
+  }
+
+  /* ---------- label 3D pada bagian ---------- */
+  var labelEls = [];
+  function buildLabels(g) {
+    labelEls.forEach(function (o) { o.el.remove(); }); labelEls = [];
+    var items = [
+      ['fFrame', 'Rangka ' + cmStr(g.pw), [-g.W / 2 + 0.02, g.H - g.pw / 2, 0.08]],
+      ['fMesh', 'Jaring ' + (cm(g.pitchX * 100) / 100) + ' × ' + g.meshNy + ' baris', [0, g.H * 0.62, g.zf]],
+      ['fFoot', 'Kaki segitiga · ' + cmStr(g.D), [g.xl - 0.06, 0.14, -g.D * 0.78]]
+    ];
+    var wrap = $('#fLabels');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'fLabels'; wrap.style.cssText = 'position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none';
+      stage.appendChild(wrap);
+    }
+    items.forEach(function (it) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'co'; b.tabIndex = -1; b.textContent = it[1];
+      b.addEventListener('click', function (e) { e.stopPropagation(); focusPart(it[0]); });
+      wrap.appendChild(b);
+      labelEls.push({ el: b, v: new T.Vector3(it[2][0], it[2][1], it[2][2]), part: it[0] });
+    });
+  }
+  function placeLabels() {
+    var w = canvas.clientWidth, h = canvas.clientHeight, tv = new T.Vector3();
+    labelEls.forEach(function (c) {
+      tv.copy(c.v).project(camera);
+      var on = F.dimsOn && tv.z < 1 && Math.abs(tv.x) < 1.05 && Math.abs(tv.y) < 1.05;
+      c.el.hidden = !on;
+      if (on) c.el.style.transform = 'translate(' + ((tv.x * .5 + .5) * w).toFixed(1) + 'px,' + ((-tv.y * .5 + .5) * h).toFixed(1) + 'px) translate(-50%,-140%)';
+    });
+  }
+
+  /* ---------- kamera ---------- */
+  var VIEWS = {
+    front: { az: 0, pol: 1.40, r: 0 },
+    back: { az: Math.PI, pol: 1.35, r: 0 },
+    side: { az: Math.PI / 2, pol: 1.36, r: 0 },
+    top: { az: 0.0001, pol: 0.22, r: 0 },
+    foot: { az: 0.95, pol: 1.30, r: 0 },
+    iso: { az: 0.72, pol: 1.20, r: 0 }
+  };
+  var view = { az: 0.72, pol: 1.20, r: 3.4, t: new T.Vector3(0, 0.6, 0) };
+  var tween = null;
+  function autoR() { return Math.max(F.dims.W, F.dims.H) * 1.85 + 0.9; }
+  function viewCenter() { return new T.Vector3(0, F.dims.H * 0.52, -F.dims.D * 0.28); }
+  function applyCamera() {
+    var sp = Math.sin(view.pol), cp = Math.cos(view.pol);
+    camera.position.set(view.t.x + view.r * sp * Math.sin(view.az), view.t.y + view.r * cp, view.t.z + view.r * sp * Math.cos(view.az));
+    camera.lookAt(view.t);
+  }
+  function clampView() {
+    view.pol = Math.max(0.10, Math.min(1.56, view.pol));
+    view.r = Math.max(0.7, Math.min(12, view.r));
+    view.t.x = Math.max(-4, Math.min(4, view.t.x));
+    view.t.y = Math.max(0, Math.min(3.5, view.t.y));
+    view.t.z = Math.max(-4, Math.min(4, view.t.z));
+  }
+  function goTo(v, dur) {
+    var to = { az: v.az, pol: v.pol, r: v.r || autoR(), t: viewCenter() };
+    if (to.az - view.az > Math.PI) to.az -= Math.PI * 2;
+    if (to.az - view.az < -Math.PI) to.az += Math.PI * 2;
+    tween = { from: { az: view.az, pol: view.pol, r: view.r, t: view.t.clone() }, to: to, t0: performance.now(), dur: (dur || 0.85) * 1000 };
+    kick(70);
+  }
+  function stepTween(now) {
+    if (!tween) return;
+    var k = Math.min(1, (now - tween.t0) / tween.dur);
+    var e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    view.az = tween.from.az + (tween.to.az - tween.from.az) * e;
+    view.pol = tween.from.pol + (tween.to.pol - tween.from.pol) * e;
+    view.r = tween.from.r + (tween.to.r - tween.from.r) * e;
+    view.t.lerpVectors(tween.from.t, tween.to.t, e);
+    if (k >= 1) tween = null;
+  }
+  function resetView() {
+    view.t = viewCenter();
+    view.r = autoR();
+  }
+
+  var ptrs = new Map(), downInfo = null, lastPinch = 0;
+  function pan(dx, dy) {
+    var m = camera.matrixWorld.elements, k = view.r * 0.0016;
+    view.t.x += (-m[0] * dx + m[4] * dy) * k;
+    view.t.y += (-m[1] * dx + m[5] * dy) * k;
+    view.t.z += (-m[2] * dx + m[6] * dy) * k;
+  }
+  canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  canvas.addEventListener('pointerdown', function (e) {
+    canvas.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    tween = null;
+    if (ptrs.size === 1) downInfo = { x: e.clientX, y: e.clientY, t: performance.now(), moved: 0, btn: e.button, shift: e.shiftKey };
+    if (ptrs.size === 2) { var a = Array.from(ptrs.values()); lastPinch = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); if (downInfo) downInfo.moved = 99; }
+    kick();
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    var p = ptrs.get(e.pointerId);
+    if (!p) { hoverSig(e); return; }
+    var dx = e.clientX - p.x, dy = e.clientY - p.y;
+    if (ptrs.size === 1) {
+      if (downInfo) downInfo.moved += Math.abs(dx) + Math.abs(dy);
+      if (downInfo && (downInfo.btn === 2 || downInfo.shift)) pan(dx, dy);
+      else { view.az -= dx * 0.0062; view.pol -= dy * 0.0062; }
+    } else if (ptrs.size === 2) {
+      p.x = e.clientX; p.y = e.clientY;
+      var a = Array.from(ptrs.values());
+      var dist = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
+      if (lastPinch > 0) view.r *= lastPinch / dist;
+      lastPinch = dist; pan(dx / 2, dy / 2);
+    }
+    p.x = e.clientX; p.y = e.clientY;
+    clampView(); kick();
+  });
+  function endPtr(e) {
+    var had = ptrs.delete(e.pointerId);
+    if (!had) return;
+    if (ptrs.size === 0 && downInfo && downInfo.moved < 6 && performance.now() - downInfo.t < 500 && e.type === 'pointerup') pick(e.clientX, e.clientY);
+    if (ptrs.size < 2) lastPinch = 0;
+    if (ptrs.size === 0) downInfo = null;
+  }
+  canvas.addEventListener('pointerup', endPtr);
+  canvas.addEventListener('pointercancel', endPtr);
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault(); tween = null;
+    view.r *= Math.exp(e.deltaY * 0.0012);
+    clampView(); kick();
+  }, { passive: false });
+  canvas.addEventListener('keydown', function (e) {
+    var h = true;
+    if (e.key === 'ArrowLeft') view.az -= 0.1; else if (e.key === 'ArrowRight') view.az += 0.1;
+    else if (e.key === 'ArrowUp') view.pol -= 0.08; else if (e.key === 'ArrowDown') view.pol += 0.08;
+    else if (e.key === '+' || e.key === '=') view.r *= 0.9; else if (e.key === '-') view.r *= 1.1;
+    else h = false;
+    if (h) { e.preventDefault(); tween = null; clampView(); kick(); }
+  });
+
+  /* ---------- sorot bagian ---------- */
+  var ray = new T.Raycaster(), ndc = new T.Vector2(), selBox = null;
+  function partOf(o) {
+    var cur = o;
+    while (cur) { if (cur.userData && cur.userData.part) return cur.userData.part; cur = cur.parent; }
+    return null;
+  }
+  function rayHit(cx, cy) {
+    var r = canvas.getBoundingClientRect();
+    ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    var h = ray.intersectObjects(root.children, true);
+    return h.length ? h[0].object : null;
+  }
+  function hoverSig(e) {
+    if (e.pointerType === 'touch') return;
+    canvas.style.cursor = rayHit(e.clientX, e.clientY) ? 'pointer' : 'grab';
+  }
+  function pick(cx, cy) {
+    var o = rayHit(cx, cy);
+    focusPart(o ? partOf(o) : null);
+  }
+  function focusPart(id) {
+    if (selBox) { scene.remove(selBox); selBox.geometry.dispose(); selBox = null; }
+    $$('[data-fpart]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.fpart === id ? 'true' : 'false'); });
+    if (!id || !parts[id]) { kick(); return; }
+    var b = new T.Box3().setFromObject(parts[id]);
+    selBox = new T.Box3Helper(b, new T.Color(0xc6f75c));
+    selBox.material.transparent = true; selBox.material.opacity = 0.9;
+    scene.add(selBox); kick(40);
+  }
+
+  /* ---------- panel kontrol ---------- */
+  function syncControls() {
+    var g = geom();
+    var set = function (id, v) { var el = $('#' + id); if (el) el.value = v; };
+    var txt = function (id, t) { var el = $('#' + id); if (el) el.textContent = t; };
+    set('fDimW', cm(F.dims.W)); txt('fDimWVal', cmStr(F.dims.W));
+    set('fDimH', cm(F.dims.H)); txt('fDimHVal', cmStr(F.dims.H));
+    set('fDimF', cm(F.dims.D)); txt('fDimFVal', cmStr(F.dims.D));
+    set('fDimF2', cm(F.dims.D)); txt('fDimF2Val', cmStr(F.dims.D));
+    set('fMeshP', Math.round(F.mesh * 100)); txt('fMeshPVal', cmStr(F.mesh));
+    var mm = function (v) { return Math.round(v * 1000); };
+    set('fPost', mm(F.post)); txt('fPostVal', mm(F.post) + ' × ' + mm(F.post) + ' mm');
+    set('fFoot', mm(F.foot)); txt('fFootVal', mm(F.foot) + ' × ' + mm(F.foot) + ' mm');
+    set('fSun', Math.round(F.sun * 100)); txt('fSunVal', Math.round(F.sun * 100) + '%');
+    txt('fDimWOut', cmStr(F.dims.W)); txt('fDimHOut', cmStr(F.dims.H)); txt('fDimFOut', cmStr(F.dims.D));
+    var clearH = 0.06;
+    txt('fSpecFlat', cmStr(F.dims.D));
+    txt('fSpecDiag', cmStr(g.diagLen));
+    txt('fSpecAng', Math.round(g.slantDeg) + '° dari datar · ' + Math.round(90 - g.slantDeg) + '° dari tegak');
+    var half = g.mass / 2;
+    txt('fSpecLoad', '≈ ' + Math.round(half) + ' kg (asumsi 13,5 kg/m² jaring)');
+    txt('fSub', 'Panel ' + cm(F.dims.W) + ' × ' + cm(F.dims.H) + ' cm · jaring ' + cm(F.mesh) + ' × ' + cm(F.mesh) +
+      ' cm · kaki segitiga ' + cm(F.dims.D) + ' cm');
+    $$('[data-mesh]').forEach(function (b) { b.setAttribute('aria-pressed', +b.dataset.mesh === Math.round(F.mesh * 100) ? 'true' : 'false'); });
+    $$('[data-foot]').forEach(function (b) { b.setAttribute('aria-pressed', +b.dataset.foot === cm(F.dims.D) ? 'true' : 'false'); });
+    $$('[data-paint]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.paint === F.paint ? 'true' : 'false'); });
+    ['fMeshOn', 'fEdges', 'fDims', 'fGrid', 'fPad', 'fTie', 'fClamp', 'fPlate'].forEach(function (id) {
+      var el = $('#' + id); if (!el) return;
+      el.checked = { fMeshOn: F.meshOn, fEdges: F.edges, fDims: F.dimsOn, fGrid: F.gridOn, fPad: F.pad, fTie: F.tie, fClamp: F.clamp, fPlate: F.plate }[id];
+    });
+    var w1 = $('#ws01Outer'); if (w1) { /* workspace 01 tetap mengurus teksnya sendiri */ }
+    if (planOpen) renderPlan();
+  }
+
+  /* slider dan tombol */
+  var rebuildT = null;
+  function rebuildNow() { clearTimeout(rebuildT); rebuildT = setTimeout(function () { build(); if (planOpen) renderPlan(); }, 70); }
+  [['fDimW', 'W'], ['fDimH', 'H'], ['fDimF', 'D'], ['fDimF2', 'D']].forEach(function (p) {
+    var el = $('#' + p[0]); if (!el) return;
+    el.addEventListener('input', function () {
+      F.dims[p[1]] = parseFloat(el.value) / 100;
+      syncControls(); rebuildNow();
+    });
+  });
+  var meshEl = $('#fMeshP');
+  if (meshEl) meshEl.addEventListener('input', function () { F.mesh = parseFloat(meshEl.value) / 100; syncControls(); rebuildNow(); });
+  var postEl = $('#fPost');
+  if (postEl) postEl.addEventListener('input', function () { F.post = parseFloat(postEl.value) / 1000; syncControls(); rebuildNow(); });
+  var footEl = $('#fFoot');
+  if (footEl) footEl.addEventListener('input', function () { F.foot = parseFloat(footEl.value) / 1000; syncControls(); rebuildNow(); });
+  var sunEl = $('#fSun');
+  if (sunEl) sunEl.addEventListener('input', function () { F.sun = parseFloat(sunEl.value) / 100; syncControls(); applySun(); });
+  $$('[data-mesh]').forEach(function (b) { b.addEventListener('click', function () { F.mesh = +b.dataset.mesh / 100; syncControls(); rebuildNow(); }); });
+  $$('[data-foot]').forEach(function (b) { b.addEventListener('click', function () { F.dims.D = +b.dataset.foot / 100; syncControls(); rebuildNow(); }); });
+  $$('[data-paint]').forEach(function (b) {
+    b.addEventListener('click', function () { F.paint = b.dataset.paint; build(); });
+  });
+  var resetB = $('#fDimReset');
+  if (resetB) resetB.addEventListener('click', function () {
+    F.dims = { W: 1.60, H: 1.20, D: 0.30 }; F.mesh = 0.10; F.post = 0.040; F.foot = 0.030;
+    syncControls(); rebuildNow();
+  });
+  [['fMeshOn', 'meshOn'], ['fEdges', 'edges'], ['fDims', 'dimsOn'], ['fGrid', 'gridOn'], ['fPad', 'pad'], ['fTie', 'tie'], ['fClamp', 'clamp'], ['fPlate', 'plate']].forEach(function (p) {
+    var el = $('#' + p[0]); if (!el) return;
+    el.addEventListener('change', function () {
+      F[p[1]] = el.checked;
+      if (p[1] === 'gridOn') { grid.visible = F.gridOn; kick(); }
+      else if (p[1] === 'dimsOn') { dimG.visible = F.dimsOn; kick(); }
+      else if (p[1] === 'meshOn') { if (parts.fMesh) parts.fMesh.visible = F.meshOn; kick(); }
+      else build();
+    });
+  });
+
+  /* tab workspace 02 */
+  var ftabs = $$('.ftab'), fpages = $$('.fpage');
+  ftabs.forEach(function (t) {
+    t.addEventListener('click', function () { openFTab(t.dataset.fpage); });
+    t.addEventListener('keydown', function (e) {
+      var i = ftabs.indexOf(t), nx = null;
+      if (e.key === 'ArrowRight') nx = ftabs[(i + 1) % ftabs.length];
+      if (e.key === 'ArrowLeft') nx = ftabs[(i + ftabs.length - 1) % ftabs.length];
+      if (nx) { nx.focus(); openFTab(nx.dataset.fpage); }
+    });
+  });
+  function openFTab(n) {
+    ftabs.forEach(function (t) { var on = t.dataset.fpage === n; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; });
+    fpages.forEach(function (p) { p.hidden = p.dataset.fpage !== n; });
+  }
+
+  /* tombol sudut kamera */
+  $$('.vbtn[data-fview]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      goTo(VIEWS[b.dataset.fview], 0.85);
+      $$('.vbtn[data-fview]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      focusPart(null);
+    });
+  });
+
+  /* ---------- tautan bagikan ---------- */
+  var SHARE = function () {
+    var q = [];
+    function add(k, v) { q.push(k + '=' + encodeURIComponent(v)); }
+    add('v', 'p1');
+    add('ws', 'ws02');
+    add('dims', [F.dims.W, F.dims.H, F.dims.D].map(function (v) { return v.toFixed(2); }).join(','));
+    add('mesh', Math.round(F.mesh * 100));
+    add('post', Math.round(F.post * 1000));
+    add('foot', Math.round(F.foot * 1000));
+    add('paint', F.paint);
+    add('sun', Math.round(F.sun * 100) / 100);
+    add('sw', [F.meshOn, F.edges, F.dimsOn, F.gridOn, F.pad, F.tie, F.clamp].map(function (b) { return b ? '1' : '0'; }).join(''));
+    add('plate', F.plate ? '1' : '0');
+    add('cam', [view.az, view.pol, view.r, view.t.x, view.t.y, view.t.z].map(function (n) { return n.toFixed(3); }).join(','));
+    return q.join('&');
+  };
+  function readShare() {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return null;
+    var p = {};
+    h.split('&').forEach(function (kv) {
+      var i = kv.indexOf('=');
+      if (i > 0) { try { p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1)); } catch (e) { } }
+    });
+    if (p.v !== 'p1') return null;
+    var d = (p.dims || '').split(',').map(parseFloat);
+    if (d.length === 3 && d.every(isFinite)) F.dims = { W: clampN(d[0], 0.8, 2.4, 1.6), H: clampN(d[1], 0.8, 2.0, 1.2), D: clampN(d[2], 0.15, 0.60, 0.30) };
+    if (p.mesh) F.mesh = clampN(parseFloat(p.mesh) / 100, 0.05, 0.20, 0.10);
+    if (p.post) F.post = clampN(parseFloat(p.post) / 1000, 0.025, 0.060, 0.040);
+    if (p.foot) F.foot = clampN(parseFloat(p.foot) / 1000, 0.020, 0.050, 0.030);
+    if (p.paint && PAINTS[p.paint]) F.paint = p.paint;
+    if (p.plate != null) F.plate = p.plate === '1';
+    if (p.sun) F.sun = clampN(parseFloat(p.sun), 0.2, 1.3, 0.7);
+    if (p.sw && p.sw.length === 7) {
+      F.meshOn = p.sw[0] === '1'; F.edges = p.sw[1] === '1'; F.dimsOn = p.sw[2] === '1'; F.gridOn = p.sw[3] === '1';
+      F.pad = p.sw[4] === '1'; F.tie = p.sw[5] === '1'; F.clamp = p.sw[6] === '1';
+    }
+    var cam = (p.cam || '').split(',').map(parseFloat);
+    if (cam.length === 6 && cam.every(isFinite)) {
+      view.az = cam[0]; view.pol = cam[1]; view.r = cam[2]; view.t.set(cam[3], cam[4], cam[5]);
+    }
+    return true;
+  }
+  var shareB = $('#fShare');
+  if (shareB) shareB.addEventListener('click', function () {
+    var url = location.href.split('#')[0] + '#' + SHARE();
+    try { history.replaceState(null, '', url); } catch (e) { location.hash = SHARE(); }
+    var st = $('#fShareStatus');
+    function done(msg) { if (st) st.textContent = msg; shareB.textContent = 'Tersalin ✓'; setTimeout(function () { shareB.textContent = 'Salin tautan tampilan'; }, 1700); }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).then(function () { done('Tautan panel disalin ke papan klip.'); },
+        function () { window.prompt('Salin tautan panel:', url); });
+    } else window.prompt('Salin tautan panel:', url);
+  });
+
+  /* ---------- ukuran tampilan ---------- */
+  var dirty = 60;
+  function kick(n) { dirty = Math.max(dirty, n || 24); }
+  function resize() {
+    var w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.fov = w / h < 0.9 ? 50 : 34;
+    camera.updateProjectionMatrix();
+    kick();
+  }
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
+
+  var last = performance.now();
+  function loop(now) {
+    requestAnimationFrame(loop);
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    var active = dirty > 0 || tween;
+    if (!active) return;
+    if (dirty > 0) dirty--;
+    stepTween(now);
+    applyCamera(); camera.updateMatrixWorld();
+    renderer.render(scene, camera);
+    placeLabels();
+  }
+
+  /* ================= LEMBAR GAMBAR 2D (workspace 02) ================= */
+  var PL = PV.PL;
+  var SHEET_W = 1600, SHEET_H = 1200;
+  var planModal = $('#fPlanModal'), planSvg = $('#fPlanSvg');
+  var planOpen = false, planView = 'sheet', planFocusReturn = null, planBodyOverflow = '';
+
+  function fDefs(g) {
+    var p = Math.max(0.04, g.pitchX);
+    var sw = Math.max(0.0022, p * 0.026);
+    return '<defs>' +
+      '<pattern id="fWire" width="' + p + '" height="' + p + '" patternUnits="userSpaceOnUse">' +
+      '<path d="M' + p + ' 0H0V' + p + '" fill="none" stroke="' + PL.ink2 + '" stroke-width="' + sw + '"/></pattern>' +
+      '<pattern id="fWireSoft" width="' + p + '" height="' + p + '" patternUnits="userSpaceOnUse">' +
+      '<path d="M' + p + ' 0H0V' + p + '" fill="none" stroke="#8e9a92" stroke-width="' + (sw * 0.8) + '"/></pattern>' +
+      '<pattern id="fSteel" width="0.06" height="0.06" patternUnits="userSpaceOnUse">' +
+      '<path d="M0 0L.06 .06M.06 0L0 .06" stroke="#7d8a86" stroke-width=".005"/></pattern>' +
+      '<pattern id="fConcrete" width="0.16" height="0.16" patternUnits="userSpaceOnUse">' +
+      '<rect width="0.16" height="0.16" fill="#e8e7dc"/><path d="M.03 .05l.02 .015M.11 .13l.02-.012M.13 .04l.015 .01" stroke="#a7aaa4" stroke-width=".012"/></pattern>' +
+      '<marker id="fArrow" markerWidth=".14" markerHeight=".14" refX=".11" refY=".07" orient="auto-start-reverse" markerUnits="userSpaceOnUse">' +
+      '<path d="M0 .015L.13 .07L0 .125Z" fill="' + PL.rust + '"/></marker>' +
+      '</defs>';
+  }
+  /* penanda elevasi lokal: segitiga + label di kiri (di luar gambar) */
+  function lvMark(x, y, label, size, swT) {
+    var h = size || 0.06;
+    return '<g><path d="M' + x + ' ' + y + 'l' + (-h * 0.9) + ' ' + (-h) + 'h' + (h * 1.8) + 'Z" fill="none" stroke="' + PL.steel + '" stroke-width="' + (swT * 1.2) + '"/>' +
+      '<path d="M' + (x - h * 1.2) + ' ' + y + 'H' + (x + h * 1.2) + '" stroke="' + PL.steel + '" stroke-width="' + (swT * 0.9) + '"/>' +
+      PV.plT(x - h * 1.35, y, label, h * 1.45, 'end', PL.steel, 700, 0, true) + '</g>';
+  }
+  /* tanda las: dua garis silang dengan tebal garis dalam satuan gambar */
+  function weldMark(x, y, size, color, w) {
+    var h = (size || 0.02) / 2, c = color || PL.rust, t = w || 0.0035;
+    return '<path d="M' + (x - h) + ' ' + (y - h) + 'l' + (h * 2) + ' ' + (h * 2) + 'M' + (x + h) + ' ' + (y - h) + 'l' + (-h * 2) + ' ' + (h * 2) +
+      '" stroke="' + c + '" stroke-width="' + t + '" stroke-linecap="round" fill="none"/>';
+  }
+
+  /* ---------------------------- TAMPAK DEPAN ---------------------------- */
+  function drawFront(rect, g, detail) {
+    var W = g.W, H = g.H, pw = g.pw, fw = g.fw;
+    var L = -W / 2, R = W / 2;
+    var xMin = L - 0.42, xMax = R + 0.34;
+    var yMin = -(H + 0.14), yMax = 0.50;
+    var Ft = PV.plFit(rect, xMax - xMin, yMax - yMin, xMin, yMin), s = Ft.s, out = Ft.open;
+    var fsD = 11 / s, fsS = 9.2 / s, fsT = 8.2 / s, sw = 1.2 / s, swT = 0.85 / s, swF = 2.1 / s;
+
+    /* lantai + garis tanah */
+    out += PV.plGround(L - 0.03, R + 0.03, 0, { h: 0.13, w: swF });
+    out += '<rect x="' + (L - 0.04) + '" y="-0.055" width="' + (W + 0.08) + '" height="0.055" fill="#b9bdb5" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+
+    /* bidang jaring + rangka */
+    out += '<rect x="' + L + '" y="' + (-H) + '" width="' + W + '" height="' + H + '" fill="' + PL.paperLt + '"/>';
+    out += '<rect x="' + (L + pw) + '" y="' + (-(H - pw)) + '" width="' + (W - 2 * pw) + '" height="' + (H - 2 * pw) +
+      '" fill="url(#fWire)" stroke="' + PL.ink + '" stroke-width="' + (swT * 0.7) + '"/>';
+    out += '<rect x="' + L + '" y="' + (-H) + '" width="' + pw + '" height="' + H + '" fill="#6d7a76" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += '<rect x="' + (R - pw) + '" y="' + (-H) + '" width="' + pw + '" height="' + H + '" fill="#6d7a76" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += '<rect x="' + L + '" y="' + (-H) + '" width="' + W + '" height="' + pw + '" fill="#6d7a76" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += '<rect x="' + L + '" y="' + (-pw) + '" width="' + W + '" height="' + pw + '" fill="#6d7a76" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    var midH = pw * 0.55;
+    if (H >= 1.0) out += '<rect x="' + (L + pw) + '" y="' + (-H / 2 - midH / 2) + '" width="' + (W - 2 * pw) + '" height="' + midH + '" fill="#6d7a76" stroke="' + PL.ink + '" stroke-width="' + (swT * 0.8) + '"/>';
+    /* kaki di belakang panel (garis putus) */
+    [g.xl, g.xr].forEach(function (x) {
+      out += '<rect x="' + (x - fw / 2) + '" y="' + (-fw) + '" width="' + fw + '" height="' + fw + '" fill="none" stroke="' + PL.steel + '" stroke-width="' + swT + '" stroke-dasharray="' + (5 / s) + ' ' + (4 / s) + '"/>';
+    });
+    /* satu mata jaring dilingkari */
+    out += '<rect x="' + (L + pw) + '" y="' + (-(H - pw)) + '" width="' + g.pitchX + '" height="' + g.pitchY + '" fill="none" stroke="' + PL.rust + '" stroke-width="' + (sw * 1.2) + '" stroke-dasharray="' + (4 / s) + ' ' + (3 / s) + '"/>';
+
+    /* dimensi lebar di bawah garis tanah */
+    out += PV.plDim({ x1: L, y1: 0, x2: R, y2: 0, off: 0.41, label: 'LEBAR ' + PV.plNum(W), size: fsD, w: swT, color: PL.ink, tick: 6 / s, ext: 0.04 / s });
+
+    /* dimensi tinggi di kanan */
+    out += PV.plDim({ x1: R + 0.16, y1: 0, x2: R + 0.16, y2: -H, off: 0, label: 'TINGGI ' + PV.plNum(H), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+
+    /* elevasi di kiri */
+    out += lvMark(L - 0.24, 0, '±0,00', detail ? 0.052 : 0.042, swT);
+    out += lvMark(L - 0.24, -H, '+' + fmt2(H).replace('.', ','), detail ? 0.052 : 0.042, swT);
+    if (detail) {
+      out += PV.plT(0, 0.45, 'TAMPAK DEPAN · SISI MUKA JARING', fsS, 'middle', PL.mut, 700, 0, false);
+      out += PV.plT(L + pw / 2, -H - 0.07, 'TIANG ' + Math.round(pw * 1000), fsT, 'middle', PL.mut, 700, 0, false);
+      out += PV.plT(0, -H / 2, 'JARING ' + cm(g.mesh) + ' × ' + cm(g.mesh) + ' CM', fsT, 'middle', PL.ink2, 700, 0, true);
+    }
+    out += '</g>';
+    return out;
+  }
+
+  /* ---------------------------- TAMPAK SAMPING ---------------------------- */
+  function drawSide(rect, g, detail) {
+    var H = g.H, D = g.D, pw = g.pw, fw = g.fw, ps = g.ps;
+    var xMin = -(D + 0.78), xMax = 0.30;
+    var yMin = -(H + 0.14), yMax = 0.50;
+    var Ft = PV.plFit(rect, xMax - xMin, yMax - yMin, xMin, yMin), s = Ft.s, out = Ft.open;
+    var fsD = 11 / s, fsS = 9.2 / s, fsT = 8.2 / s, sw = 1.2 / s, swT = 0.85 / s, swF = 2.1 / s;
+
+    out += PV.plGround(-D - 0.03, 0.10, 0, { h: 0.13, w: swF });
+
+    /* panel (potongan) */
+    out += '<rect x="' + (-pw / 2) + '" y="' + (-H) + '" width="' + pw + '" height="' + H + '" fill="url(#fSteel)" stroke="' + PL.ink + '" stroke-width="' + sw + '"/>';
+    out += '<rect x="' + (g.zf - 0.006) + '" y="' + (-(H - pw)) + '" width="0.006" height="' + (H - 2 * pw) + '" fill="#8d968f" opacity=".85"/>';
+
+    /* kaki segitiga */
+    var yF = fw / 2, yT = H - fw / 2, z0 = -D, z1 = 0;
+    out += '<rect x="' + z0 + '" y="' + (-fw) + '" width="' + D + '" height="' + fw + '" fill="#7c8783" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += '<path d="M' + z0 + ' ' + (-yF) + 'L' + z1 + ' ' + (-yT) + '" fill="none" stroke="' + PL.ink + '" stroke-width="' + (ps * 2.1) + '"/>';
+    out += '<path d="M' + z0 + ' ' + (-yF) + 'L' + z1 + ' ' + (-yT) + '" fill="none" stroke="#98a29d" stroke-width="' + (ps * 1.25) + '"/>';
+    out += '<rect x="' + (z1 - ps * 1.1) + '" y="' + (-H) + '" width="' + (ps * 2.2) + '" height="' + (fw * 1.2) + '" fill="#6d7a76" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += '<rect x="' + (z0 - 0.02) + '" y="-0.014" width="0.09" height="0.014" fill="#40484b" stroke="' + PL.ink + '" stroke-width="' + (swT * 0.8) + '"/>';
+    out += '<rect x="-0.045" y="-0.014" width="0.09" height="0.014" fill="#40484b" stroke="' + PL.ink + '" stroke-width="' + (swT * 0.8) + '"/>';
+
+    if (F.plate) out += '<path d="M' + z1 + ' ' + (-yF) + 'L' + z0 + ' ' + (-yF) + 'L' + z1 + ' ' + (-yT) + 'Z" fill="url(#fSteel)" stroke="' + PL.ink2 + '" stroke-width="' + (swT * 0.8) + '" opacity=".45"/>';
+    /* sudut kaki */
+    out += PV.plT(z1 + 0.035, -yF - 0.055, Math.round(g.slantDeg) + '°', fsS, 'start', PL.rust, 700, 0, true);
+
+    /* dimensi */
+    out += PV.plDim({ x1: z0, y1: 0, x2: z1, y2: 0, off: 0.22, label: 'KEDALAMAN ' + PV.plNum(D), size: fsD, w: swT, color: PL.rust, tick: 6 / s, ext: 0.04 / s });
+    out += PV.plDim({ x1: 0.16, y1: 0, x2: 0.16, y2: -H, off: 0, label: 'TINGGI ' + PV.plNum(H), size: fsD, w: swT, color: PL.ink, tick: 6 / s });
+    out += PV.plDim({ x1: z0, y1: -yF, x2: z1, y2: -yT, off: -0.14, label: 'MIRING ' + PV.plNum(g.diagLen), size: fsS, w: swT, color: PL.steelDeep, tick: 5 / s, ext: 0.04 / s });
+    out += lvMark(-D - 0.26, 0, '±0,00', detail ? 0.052 : 0.042, swT);
+    out += lvMark(-D - 0.26, -H, '+' + fmt2(H).replace('.', ','), detail ? 0.052 : 0.042, swT);
+    if (detail) {
+      out += PV.plT(-D / 2, 0.45, 'TAMPAK SAMPING · MUKA DEPAN DI KANAN', fsS, 'middle', PL.mut, 700, 0, false);
+      out += PV.plT(-0.10, -H * 0.80, 'PANEL', fsT, 'middle', PL.ink2, 700, 90, true);
+      out += PV.plT(z0 * 0.86, -H * 0.62, 'KAKI SEGITIGA', fsT, 'middle', PL.steelDeep, 700, -g.slantDeg, true);
+    }
+    out += '</g>';
+    return out;
+  }
+
+  /* ------------------------------- DENAH ------------------------------- */
+  function drawPlan(rect, g, detail) {
+    var W = g.W, D = g.D, pw = g.pw, fw = g.fw;
+    var L = -W / 2, R = W / 2;
+    var xMin = L - 0.20, xMax = R + 0.52, yMin = -(D + 0.60), yMax = 0.26;
+    var Ft = PV.plFit(rect, xMax - xMin, yMax - yMin, xMin, yMin), s = Ft.s, out = Ft.open;
+    var fsD = 11 / s, fsS = 9.2 / s, fsT = 8.2 / s, sw = 1.2 / s, swT = 0.85 / s;
+
+    /* panel: sumbu X, kaki ke arah -y (belakang) */
+    out += '<rect x="' + L + '" y="' + (-pw) + '" width="' + W + '" height="' + pw + '" fill="#6d7a76" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += '<rect x="' + (L + pw) + '" y="' + (-(pw - 0.004)) + '" width="' + (W - 2 * pw) + '" height="' + (pw - 0.008) + '" fill="' + PL.paperLt + '"/>';
+    out += '<rect x="' + (L + pw) + '" y="' + (-(pw - 0.004)) + '" width="' + (W - 2 * pw) + '" height="' + (pw - 0.008) + '" fill="url(#fWireSoft)" opacity=".8"/>';
+    [g.xl, g.xr].forEach(function (x) {
+      out += '<rect x="' + (x - fw / 2) + '" y="' + (-D) + '" width="' + fw + '" height="' + (D + fw / 2) + '" fill="#7c8783" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+      out += '<rect x="' + (x - fw * 0.9) + '" y="' + (-D) + '" width="' + (fw * 1.8) + '" height="0.026" fill="#454e51" stroke="' + PL.ink + '" stroke-width="' + (swT * 0.8) + '"/>';
+    });
+    if (g.tie) {
+      out += '<rect x="' + (g.xl + fw / 2) + '" y="' + (-D + g.ps) + '" width="' + (g.xr - g.xl - fw) + '" height="' + (g.ps * 0.8) + '" fill="none" stroke="' + PL.steelDeep + '" stroke-width="' + swT + '" stroke-dasharray="' + (6 / s) + ' ' + (4 / s) + '"/>';
+    }
+    /* arah muka */
+    out += PV.plArrow(0, 0.07, 0, 0.17, PL.rust, swT * 1.1, 0.06);
+    out += PV.plT(0, 0.21, 'MUKA DEPAN', fsT, 'middle', PL.rust, 700, 0, false);
+
+    /* dimensi */
+    out += PV.plDim({ x1: L, y1: -D, x2: R, y2: -D, off: -0.16, label: 'LEBAR ' + PV.plNum(W), size: fsD, w: swT, color: PL.ink, tick: 6 / s, ext: 0.04 / s });
+    out += PV.plDim({ x1: g.xl, y1: -D, x2: g.xr, y2: -D, off: -0.36, label: 'JARAK KAKI ' + PV.plNum(g.xr - g.xl), size: fsS, w: swT, color: PL.steelDeep, tick: 5 / s, ext: 0.04 / s });
+    out += PV.plDim({ x1: R, y1: 0, x2: R, y2: -D, off: -0.18, label: 'KEDALAMAN ' + PV.plNum(D), size: fsD, w: swT, color: PL.rust, tick: 6 / s });
+    if (detail) {
+      out += PV.plT(0, 0.24, 'DENAH · PANEL DAN DUA KAKI', fsS, 'middle', PL.mut, 700, 0, false);
+      out += PV.plT(0, -D + g.ps - 0.03, 'HUBUNG SILANG', fsT, 'middle', PL.steelDeep, 700, 0, true);
+    }
+    out += '</g>';
+    return out;
+  }
+
+  /* ----------------------------- DETAIL KAKI ----------------------------- */
+  /* pembesaran sambungan bawah kaki: batang mendatar, batang miring, sudut,
+     tanda las, dan alas kaki. Batang miring diputus dengan garis patah. */
+  function drawFootDetail(rect, g, detail) {
+    var D = g.D, fw = g.fw, ps = g.ps, pw = g.pw;
+    var legLen = 0.46;                                   // panjang batang miring yang tampak
+    var dyLeg = legLen * Math.sin(g.slant), dzLeg = legLen * Math.cos(g.slant);
+    var xMin = -(D + 0.26), xMax = 0.34;
+    var yMin = -(dyLeg + 0.26), yMax = 0.34;
+    var Ft = PV.plFit(rect, xMax - xMin, yMax - yMin, xMin, yMin), s = Ft.s, out = Ft.open;
+    var fsD = 11 / s, fsS = 9.2 / s, fsT = 8.2 / s, sw = 1.5 / s, swT = 0.95 / s;
+    var yF = fw / 2, z0 = -D, z1 = 0;
+    var tipY = -yF - dyLeg, tipZ = z1 + dzLeg;
+
+    out += PV.plGround(-D - 0.03, 0.12, 0, { h: 0.10, w: sw * 1.3 });
+
+    /* batang mendatar + alas */
+    out += '<rect x="' + z0 + '" y="' + (-fw) + '" width="' + D + '" height="' + fw + '" fill="#7c8783" stroke="' + PL.ink + '" stroke-width="' + swT + '"/>';
+    out += '<rect x="' + (z0 - 0.018) + '" y="-0.012" width="' + (fw * 1.9) + '" height="0.012" fill="#40484b" stroke="' + PL.ink + '" stroke-width="' + (swT * 0.8) + '"/>';
+    /* batang miring (dipotong) */
+    out += '<path d="M' + z0 + ' ' + (-yF) + 'L' + tipZ + ' ' + tipY + '" fill="none" stroke="' + PL.ink + '" stroke-width="' + (ps * 2.4) + '"/>';
+    out += '<path d="M' + z0 + ' ' + (-yF) + 'L' + tipZ + ' ' + tipY + '" fill="none" stroke="#98a29d" stroke-width="' + (ps * 1.4) + '"/>';
+    /* garis patah di ujung atas */
+    var bx = tipZ, by = tipY, br = 0.05;
+    out += '<path d="M' + (bx - br) + ' ' + (by - br * 0.5) + 'l' + (br * 0.6) + ' ' + (-br * 0.7) + 'l' + (br * 0.6) + ' ' + (br * 1.3) + 'l' + (br * 0.6) + ' ' + (-br * 0.7) +
+      '" fill="none" stroke="' + PL.ink + '" stroke-width="' + (sw * 1.2) + '"/>';
+    /* lanjutan batang ke batang atas (dipotong) */
+    out += '<rect x="' + (bx - 0.008) + '" y="' + (by - 0.10) + '" width="0.016" height="0.10" fill="none" stroke="' + PL.steelDeep + '" stroke-width="' + (swT * 0.9) + '" stroke-dasharray="' + (4 / s) + ' ' + (3 / s) + '"/>';
+
+    /* tanda las */
+    out += weldMark(z0 + 0.022, -fw * 0.75, 0.022, PL.rust, 0.003);
+    out += weldMark(-0.016, -yF + 0.026, 0.022, PL.rust, 0.003);
+    out += weldMark(-0.016, -0.05, 0.022, PL.rust, 0.003);
+
+    if (F.plate) out += '<path d="M' + z1 + ' ' + (-yF) + 'L' + z0 + ' ' + (-yF) + 'L' + z1 + ' ' + tipY + 'Z" fill="url(#fSteel)" stroke="' + PL.ink2 + '" stroke-width="' + (swT * 0.8) + '" opacity=".9"/>';
+    /* busur sudut */
+    out += PV.plT(z1 + 0.04, -yF - 0.06, 'SUDUT ' + Math.round(g.slantDeg) + '°', fsS, 'start', PL.rust, 700, 0, true);
+
+    /* dimensi */
+    out += PV.plDim({ x1: z0, y1: 0, x2: z1, y2: 0, off: 0.13, label: 'MENDATAR ' + PV.plNum(D), size: fsD, w: swT, color: PL.rust, tick: 6 / s, ext: 0.04 / s });
+    out += PV.plDim({ x1: z0, y1: -yF, x2: tipZ, y2: tipY, off: -0.10, label: 'MIRING ' + PV.plNum(g.diagLen), size: fsS, w: swT, color: PL.steelDeep, tick: 5 / s, ext: 0.04 / s });
+    if (detail) {
+      out += PV.plT(z0 / 2 + 0.05, 0.30, 'DETAIL A · SAMBUNGAN BAWAH KAKI SEGITIGA', fsS, 'middle', PL.mut, 700, 0, false);
+      out += PV.plT(z0 - 0.02, 0.08, 'ALAS KAKI', fsT, 'end', PL.ink2, 700, 0, false);
+      out += PV.plT(z0 * 0.58, -yF - dyLeg * 0.55, 'BATANG MIRING ' + Math.round(ps * 1000) + '×' + Math.round(ps * 1000), fsT, 'middle', PL.steelDeep, 700, -g.slantDeg, true);
+    }
+    out += '</g>';
+    return out;
+  }
+  /* ------------------------- KOP, KAKI, DAN LEMBAR ------------------------- */
+  function fKop(g) {
+    var x0 = 40, x1 = SHEET_W - 40, s = '';
+    s += PV.plPx(x0, 52, 'PANEL PAGAR WIREMESH · GAMBAR KONSEP', 22, 'start', '#f2f5ee', 600, 'sg', '.01em');
+    s += PV.plPx(x0, 73, 'V1 · PANEL ' + cm(g.W) + ' × ' + cm(g.H) + ' CM  ·  JARING ' + cm(g.mesh) + ' × ' + cm(g.mesh) +
+      ' CM  ·  KAKI SEGITIGA ' + cm(g.D) + ' CM  ·  TINGGI ' + cm(g.H) + ' CM', 9.5, 'start', '#8fa3a3', 600, 'mono', '.13em');
+    s += PV.plPx(x1, 50, 'DETAIL PANEL', 10, 'end', '#c6f75c', 700, 'mono', '.18em');
+    s += PV.plPx(x1, 66, 'SKALA MENYESUAIKAN LAYAR · SATUAN CM', 8.5, 'end', '#7f9090', 600, 'mono', '.10em');
+    s += '<path d="M' + x0 + ' 84H' + x1 + '" stroke="rgba(255,255,255,.09)"/>';
+    return s;
+  }
+  function fStamp(g, y) {
+    var x0 = 40, x1 = SHEET_W - 40, s = '';
+    s += '<path d="M' + x0 + ' ' + (y - 14) + 'H' + x1 + '" stroke="rgba(255,255,255,.09)"/>';
+    var items = [
+      ['RANGKA', 'pipa ' + Math.round(g.pw * 1000) + '×' + Math.round(g.pw * 1000) + ' mm · ' + (g.H >= 1.0 ? 'penguat tengah' : 'tanpa penguat')],
+      ['JARING', cm(g.mesh) + '×' + cm(g.mesh) + ' cm · kawat Ø ' + (Math.round(g.wireR * 20000) / 10) + ' mm'],
+      ['KAKI', 'segitiga ' + cm(g.D) + ' cm · profil ' + Math.round(g.fw * 1000) + '×' + Math.round(g.fw * 1000) + ' mm'],
+      ['BERAT', '≈ ' + Math.round(g.mass) + ' kg panel · ≈ ' + Math.round(g.mass / 2) + ' kg / kaki']
+    ];
+    var step = (x1 - x0) / items.length;
+    items.forEach(function (it, i) {
+      var x = x0 + step * i;
+      s += PV.plPx(x, y + 2, it[0], 8.5, 'start', '#c6f75c', 700, 'mono', '.12em');
+      s += PV.plPx(x, y + 16, it[1], 8.5, 'start', '#8fa3a3', 500, 'mono', '.02em');
+    });
+    s += PV.plPx(x1, y + 2, 'BUKAN GAMBAR KERJA', 8.5, 'end', '#7f9090', 700, 'mono', '.12em');
+    s += PV.plPx(x1, y + 16, 'VERIFIKASI BEBAN ANGIN & LAS', 8.5, 'end', '#7f9090', 500, 'mono', '.02em');
+    return s;
+  }
+  function renderSheet(g) {
+    var html = '<rect x="0" y="0" width="' + SHEET_W + '" height="' + SHEET_H + '" fill="#0d1517"/>' + fKop(g);
+    html += '<rect x="0" y="0" width="' + SHEET_W + '" height="' + SHEET_H + '" fill="url(#plSheetGrid)"/>';
+    var cards = [
+      { idx: '01', title: 'TAMPAK DEPAN', sub: cm(g.W) + ' × ' + cm(g.H) + ' CM', x: 40, y: 92, w: 836, h: 556, fn: drawFront },
+      { idx: '02', title: 'TAMPAK SAMPING', sub: 'KAKI ' + cm(g.D) + ' CM', x: 884, y: 92, w: 676, h: 556, fn: drawSide },
+      { idx: '03', title: 'DENAH', sub: 'KEDALAMAN ' + cm(g.D) + ' CM', x: 40, y: 656, w: 504, h: 450, fn: drawPlan },
+      { idx: '04', title: 'DETAIL KAKI', sub: Math.round(g.slantDeg) + '°', x: 552, y: 656, w: 504, h: 450, fn: drawFootDetail },
+      { idx: '05', title: 'MATA JARING', sub: cm(g.mesh) + ' CM', x: 1064, y: 656, w: 496, h: 450, fn: drawMeshDetail }
+    ];
+    cards.forEach(function (c) {
+      html += PV.plCard({ x: c.x, y: c.y, w: c.w, h: c.h, idx: c.idx, title: c.title, sub: c.sub, body: c.fn(PV.plBody(c), g, false) });
+    });
+    html += fStamp(g, SHEET_H - 32);
+    return html;
+  }
+  /* detail mata jaring: pola las / anyaman */
+  function drawMeshDetail(rect, g, detail) {
+    var p = Math.max(0.04, g.pitchX);
+    var span = p * 3;
+    var xMin = -span / 2 - 0.12, xMax = span / 2 + 0.14, yMin = -span * 0.62 - 0.20, yMax = span * 0.62 + 0.34;
+    var Ft = PV.plFit(rect, xMax - xMin, yMax - yMin, xMin, yMin), s = Ft.s, out = Ft.open;
+    var fsD = 11 / s, fsS = 9.2 / s, fsT = 8.2 / s, swT = 0.9 / s;
+    var r = g.wireR;
+    var n = 3, top = -span * 0.5, bot = span * 0.5;
+    for (var i = 0; i <= n; i++) {
+      var x = -span / 2 + i * p;
+      out += '<rect x="' + (x - r) + '" y="' + top + '" width="' + (2 * r) + '" height="' + (bot - top) + '" fill="#7c8783" stroke="' + PL.ink + '" stroke-width="' + (swT * 0.5) + '"/>';
+    }
+    for (var j = 0; j <= n; j++) {
+      var y = top + j * p;
+      out += '<rect x="' + (xMin + 0.09) + '" y="' + (y - r) + '" width="' + (span + 0.02) + '" height="' + (2 * r) + '" fill="#96a09b" stroke="' + PL.ink + '" stroke-width="' + (swT * 0.5) + '"/>';
+    }
+    /* satu bukaan diberi ukuran */
+    out += PV.plDim({ x1: -p / 2, y1: top, x2: p / 2, y2: top, off: -0.10, label: PV.plNum(p), size: fsD, w: swT, color: PL.rust, tick: 5 / s, ext: 0.03 / s, flip: true });
+    out += PV.plDim({ x1: xMin + 0.09, y1: top, x2: xMin + 0.09, y2: top + p, off: 0, label: PV.plNum(g.pitchY), size: fsD, w: swT, color: PL.rust, tick: 5 / s, ext: 0.03 / s });
+    if (detail) {
+      out += PV.plT(0, bot + 0.26, 'MATA JARING ' + cm(g.mesh) + ' × ' + cm(g.mesh) + ' CM', fsS, 'middle', PL.ink, 700, 0, false);
+      out += PV.plT(0, top - 0.24, 'KOLOM ' + g.meshNx + ' · BARIS ' + g.meshNy, fsT, 'middle', PL.mut, 700, 0, false);
+    }
+    out += '</g>';
+    return out;
+  }
+
+  function planNotesFor(g) {
+    return [
+      'Panel ' + cm(g.W) + ' × ' + cm(g.H) + ' cm diukur dari sisi luar rangka pipa ' + Math.round(g.pw * 1000) + ' × ' + Math.round(g.pw * 1000) + ' mm.',
+      'Dua kaki segitiga di sisi kiri dan kanan, masing-masing ' + cm(g.D) + ' cm mendatar ke belakang dan batang miring ' + cm(g.diagLen) + ' cm (sudut ' + Math.round(g.slantDeg) + '°).',
+      'Jaring ' + cm(g.mesh) + ' × ' + cm(g.mesh) + ' cm diisi di dalam rangka dan diikat/las pada setiap batang tepi.',
+      'Tinggi panel ' + cm(g.H) + ' cm; ujung batang miring bertumpu di batang atas, bukan di tengah bidang jaring.',
+      'Berat konsep ≈ ' + Math.round(g.mass) + ' kg per panel; beban per kaki ≈ ' + Math.round(g.mass / 2) + ' kg (belum termasuk angin).',
+      'Alas kaki datar dianjurkan agar tidak merusak lantai; tambahkan angkur/bandul bila panel dipakai di area terbuka.'
+    ];
+  }
+  function renderPlan() {
+    if (!planSvg) return;
+    var g = geom();
+    var captions = {
+      sheet: { name: 'Lembar 5 gambar', desc: 'Tampak depan, tampak samping, denah, detail kaki, dan detail mata jaring dalam satu lembar. Semua angka mengikuti kontrol di panel kanan.' },
+      front: { name: 'Tampak depan', desc: 'Bidang jaring, rangka pipa, penguat tengah, serta rantai dimensi lebar dan tinggi panel.' },
+      side: { name: 'Tampak samping', desc: 'Profil kaki segitiga: batang mendatar ' + cm(g.D) + ' cm, batang miring, sudut ' + Math.round(g.slantDeg) + '°, dan alas kaki.' },
+      plan: { name: 'Denah', desc: 'Kedudukan panel dan kedua kaki dari atas, termasuk jarak antar kaki dan kedalaman kaki ke belakang.' },
+      foot: { name: 'Detail kaki', desc: 'Pembesaran kaki segitiga dengan titik las, panjang batang, dan sudut kemiringan.' }
+    };
+    var cap = captions[planView] || captions.sheet;
+    var html = PV.plDefs() + fDefs(g);
+    if (planView === 'sheet') html += renderSheet(g);
+    else {
+      html += '<rect x="0" y="0" width="' + SHEET_W + '" height="' + SHEET_H + '" fill="#0d1517"/>' + fKop(g);
+      html += '<rect x="0" y="0" width="' + SHEET_W + '" height="' + SHEET_H + '" fill="url(#plSheetGrid)"/>';
+      var subs = {
+        front: cm(g.W) + ' × ' + cm(g.H) + ' CM',
+        side: 'KAKI ' + cm(g.D) + ' CM · ' + Math.round(g.slantDeg) + '°',
+        plan: 'KEDALAMAN ' + cm(g.D) + ' CM',
+        foot: 'SUDUT ' + Math.round(g.slantDeg) + '° · MIRING ' + cm(g.diagLen) + ' CM'
+      };
+      var one = { idx: '01', title: cap.name.toUpperCase(), sub: subs[planView] || '', x: 40, y: 92, w: SHEET_W - 80, h: SHEET_H - 176 };
+      var fn = planView === 'front' ? drawFront : planView === 'side' ? drawSide : planView === 'plan' ? drawPlan : drawFootDetail;
+      html += PV.plCard({ x: one.x, y: one.y, w: one.w, h: one.h, idx: one.idx, title: one.title, sub: one.sub, body: fn(PV.plBody(one), g, true) });
+    }
+    planSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    planSvg.setAttribute('width', String(SHEET_W));
+    planSvg.setAttribute('height', String(SHEET_H));
+    planSvg.setAttribute('viewBox', '0 0 ' + SHEET_W + ' ' + SHEET_H);
+    planSvg.setAttribute('aria-label', cap.name + ' · panel ' + cm(g.W) + ' × ' + cm(g.H) + ' cm · kaki ' + cm(g.D) + ' cm');
+    planSvg.innerHTML = html;
+    var t = $('#fPlanCurrentView'), b = $('#fPlanBadge'), d = $('#fPlanDescription');
+    if (t) t.textContent = cap.name;
+    if (b) b.textContent = 'V1 · Panel ' + cm(g.W) + ' × ' + cm(g.H);
+    if (d) d.textContent = cap.desc;
+    var foot = $('#fPlanFootNote');
+    if (foot) foot.textContent = 'Mendatar ' + cm(g.D) + ' cm · miring ' + cm(g.diagLen) + ' cm · sudut ' + Math.round(g.slantDeg) + '° dari datar. Kedua kaki berada di sisi luar rangka.';
+    var met = $('#fPlanMetrics');
+    if (met) met.innerHTML =
+      '<div class="plan-metric"><small>Lebar</small><b>' + cm(g.W) + ' cm</b></div>' +
+      '<div class="plan-metric"><small>Tinggi</small><b>' + cm(g.H) + ' cm</b></div>' +
+      '<div class="plan-metric"><small>Kedalaman kaki</small><b>' + cm(g.D) + ' cm</b></div>' +
+      '<div class="plan-metric"><small>Batang miring</small><b>' + cm(g.diagLen) + ' cm</b></div>' +
+      '<div class="plan-metric"><small>Mata jaring</small><b>' + cm(g.mesh) + ' × ' + cm(g.mesh) + ' cm</b></div>' +
+      '<div class="plan-metric"><small>Rangka</small><b>' + Math.round(g.pw * 1000) + ' × ' + Math.round(g.pw * 1000) + ' mm</b></div>' +
+      '<div class="plan-metric"><small>Bidang jaring</small><b>' + cm(g.openW) + ' × ' + cm(g.openH) + ' cm</b></div>' +
+      '<div class="plan-metric"><small>Berat konsep</small><b>≈ ' + Math.round(g.mass) + ' kg</b></div>';
+    var notes = $('#fPlanNotes');
+    if (notes) notes.innerHTML = planNotesFor(g).map(function (n) { return '<li>' + PV.planEsc(n) + '</li>'; }).join('');
+    $$('.plan-tab2').forEach(function (b2) { b2.setAttribute('aria-pressed', b2.dataset.fplanView === planView ? 'true' : 'false'); });
+  }
+  function openFPlan() {
+    if (!planModal || planOpen) return;
+    planOpen = true;
+    planFocusReturn = document.activeElement;
+    planBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    planModal.hidden = false;
+    var btn = $('#fPlanOpen'); if (btn) btn.setAttribute('aria-expanded', 'true');
+    renderPlan();
+    var c = $('#fPlanClose'); if (c) c.focus();
+  }
+  function closeFPlan() {
+    if (!planModal || !planOpen) return;
+    planModal.hidden = true; planOpen = false;
+    var btn = $('#fPlanOpen'); if (btn) btn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = planBodyOverflow;
+    if (planFocusReturn && planFocusReturn.focus) planFocusReturn.focus();
+  }
+  var planOpenB = $('#fPlanOpen');
+  if (planOpenB) planOpenB.addEventListener('click', openFPlan);
+  var planCloseB = $('#fPlanClose');
+  if (planCloseB) planCloseB.addEventListener('click', closeFPlan);
+  if (planModal) {
+    $$('[data-fplan-close]', planModal).forEach(function (el) { el.addEventListener('click', closeFPlan); });
+    $$('.plan-tab2').forEach(function (b) { b.addEventListener('click', function () { planView = b.dataset.fplanView; renderPlan(); }); });
+    var dl = $('#fPlanDownload');
+    if (dl) dl.addEventListener('click', function () {
+      renderPlan();
+      var xml = new XMLSerializer().serializeToString(planSvg);
+      var blob = new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + xml], { type: 'image/svg+xml;charset=utf-8' });
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = 'panel-pagar-wiremesh-' + planView + '.svg';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
+    });
+    var pr = $('#fPlanPrint');
+    if (pr) pr.addEventListener('click', function () { renderPlan(); window.print(); });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (!planOpen || e.key !== 'Escape') return;
+    e.preventDefault(); closeFPlan();
+  });
+
+  /* ---------- mulai ---------- */
+  readShare();
+  build();
+  renderPlan();
+  resetView();
+  applyCamera();
+  applySun();
+  grid.visible = F.gridOn;
+  dimG.visible = F.dimsOn;
+  resize();
+  requestAnimationFrame(loop);
+
+  (function hookWS() {
+    if (!window.Workspaces || !window.Workspaces.onChange) { setTimeout(hookWS, 30); return; }
+    window.Workspaces.onChange(function (id) {
+      if (id !== 'ws02') return;
+      resize(); kick(70);
+      setTimeout(function () { resize(); kick(40); }, 80);
+    });
+  })();
+  if (document.fonts && document.fonts.load) {
+    document.fonts.ready.then(function () { if (planOpen) renderPlan(); });
+  }
+  window.PanelWorkspace = { F: F, geom: geom, build: build, renderPlan: renderPlan };
+})();
+</script>
+<script>
+/* ==================================================================
+   PEMILIH WORKSPACE — satu halaman, dua lembar kerja.
+   Workspace dipilih lewat tautan (#ws=ws02) dan tetap terbawa saat
+   tautan "Bagikan" dipakai, karena kunci ws selalu disertakan.
+   ================================================================== */
+(function () {
+  'use strict';
+  var IDS = ['ws01', 'ws02'];
+  var els = {}, listeners = [];
+  IDS.forEach(function (id) { els[id] = document.getElementById(id); });
+
+  function hashWS() {
+    var h = location.hash || '';
+    var m = /(?:^#|&)ws=(ws0[12])\b/.exec(h);
+    if (m) return m[1];
+    /* dukung juga bentuk pendek #ws01 / #ws02 */
+    m = /^#(ws0[12])$/.exec(h);
+    return m ? m[1] : null;
+  }
+  var current = null;
+
+  function apply(id, opts) {
+    id = IDS.indexOf(id) === -1 ? 'ws01' : id;
+    if (id === current && !(opts && opts.force)) return;
+    IDS.forEach(function (k) {
+      if (!els[k]) return;
+      els[k].hidden = k !== id;
+    });
+    document.querySelectorAll('[data-ws-go]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-ws-go') === id ? 'true' : 'false');
+    });
+    current = id;
+    document.documentElement.setAttribute('data-ws', id);
+    listeners.forEach(function (fn) { try { fn(id); } catch (e) { } });
+  }
+
+  var api = {
+    get current() { return current; },
+    go: function (id, addHistory) {
+      apply(id);
+      if (addHistory === false) return;
+      var h = (location.hash || '').replace(/^#/, '');
+      h = h.replace(/(^|&)ws=ws0[12]/g, '$1').replace(/^&+/, '').replace(/&&+/g, '&').replace(/&$/, '');
+      var next = '#' + h + (h ? '&' : '') + 'ws=' + id;
+      try { history.replaceState(null, '', next); } catch (e) { location.hash = next.slice(1); }
+    },
+    onChange: function (fn) { listeners.push(fn); try { fn(current); } catch (e) { } },
+    ensure: function (id) { return current === id; }
+  };
+  window.Workspaces = api;
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-ws-go]');
+    if (b) { e.preventDefault(); api.go(b.getAttribute('data-ws-go')); }
+  });
+  var a = document.getElementById('ws01Go02'), b = document.getElementById('ws02Go01');
+  if (a) a.addEventListener('click', function () { api.go('ws02'); });
+  if (b) b.addEventListener('click', function () { api.go('ws01'); });
+  window.addEventListener('hashchange', function () {
+    var w = hashWS();
+    if (w && w !== current) apply(w);
+  });
+
+  apply(hashWS() || 'ws01', { force: true });
+})();
+</script>
 </body></html>
